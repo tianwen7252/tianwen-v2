@@ -127,7 +127,8 @@
     "logoutSuccess": "已登出",
     "loginSuccess": "已登入：{{name}}",
     "loginError": "登入失敗，請重試",
-    "loginViaHeader": "請點擊右上角的登入按鈕"
+    "loginViaHeader": "請點擊右上角的登入按鈕",
+    "sessionExpired": "登入已過期，請重新登入"
   },
   "error": {
     "title": "發生錯誤",

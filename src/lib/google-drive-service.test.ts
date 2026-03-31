@@ -4,6 +4,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { AuthExpiredError } from './errors'
 
 // ── Mocks ───────────────────────────────────────────────────────────────────
 
@@ -125,14 +126,29 @@ describe('listDriveBackupFiles', () => {
     expect(result).toEqual([])
   })
 
-  it('throws on 401 (token expired)', async () => {
+  it('throws AuthExpiredError on 401 during folder lookup', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: false,
       status: 401,
       statusText: 'Unauthorized',
     })
 
-    await expect(listDriveBackupFiles(TOKEN)).rejects.toThrow(/401/)
+    await expect(listDriveBackupFiles(TOKEN)).rejects.toBeInstanceOf(
+      AuthExpiredError,
+    )
+  })
+
+  it('throws AuthExpiredError on 401 during file listing', async () => {
+    mockFolderFound('folder-auth-err')
+    mockFetch.mockResolvedValueOnce({
+      ok: false,
+      status: 401,
+      statusText: 'Unauthorized',
+    })
+
+    await expect(listDriveBackupFiles(TOKEN)).rejects.toBeInstanceOf(
+      AuthExpiredError,
+    )
   })
 
   it('throws on network failure', async () => {
@@ -197,6 +213,18 @@ describe('downloadDriveFile', () => {
     })
 
     await expect(downloadDriveFile(TOKEN, FILE_ID)).rejects.toThrow(/404/)
+  })
+
+  it('throws AuthExpiredError on 401', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: false,
+      status: 401,
+      statusText: 'Unauthorized',
+    })
+
+    await expect(downloadDriveFile(TOKEN, FILE_ID)).rejects.toBeInstanceOf(
+      AuthExpiredError,
+    )
   })
 
   it('throws on network failure', async () => {

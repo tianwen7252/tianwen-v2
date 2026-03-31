@@ -127,7 +127,8 @@
     "logoutSuccess": "Logged out",
     "loginSuccess": "Logged in: {{name}}",
     "loginError": "Login failed, please try again",
-    "loginViaHeader": "Please click the login button in the header"
+    "loginViaHeader": "Please click the login button in the header",
+    "sessionExpired": "Session expired, please sign in again"
   },
   "error": {
     "title": "Error Occurred",

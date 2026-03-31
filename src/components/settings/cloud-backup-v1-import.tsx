@@ -17,6 +17,7 @@ import {
   downloadDriveFile,
   type DriveFile,
 } from '@/lib/google-drive-service'
+import { AuthExpiredError } from '@/lib/errors'
 import { transformV1Data, type V1BackupData } from '@/lib/v1-data-transformer'
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
@@ -52,7 +53,7 @@ function formatDate(isoDate: string): string {
 export function CloudBackupV1Import() {
   const { t } = useTranslation()
   const accessToken = useAppStore(s => s.accessToken)
-  const { login, isLoggedIn } = useGoogleAuth()
+  const { login, isLoggedIn, handleAuthError } = useGoogleAuth()
 
   const [files, setFiles] = useState<readonly DriveFile[]>([])
   const [loading, setLoading] = useState(false)
@@ -75,10 +76,14 @@ export function CloudBackupV1Import() {
         }
       } catch (err) {
         if (!cancelled) {
-          notify.error(
-            t('backup.v1ImportFailed') +
-              (err instanceof Error ? `: ${err.message}` : ''),
-          )
+          if (err instanceof AuthExpiredError) {
+            handleAuthError(err)
+          } else {
+            notify.error(
+              t('backup.v1ImportFailed') +
+                (err instanceof Error ? `: ${err.message}` : ''),
+            )
+          }
         }
       } finally {
         if (!cancelled) {
@@ -92,7 +97,7 @@ export function CloudBackupV1Import() {
     return () => {
       cancelled = true
     }
-  }, [isLoggedIn, accessToken, t])
+  }, [isLoggedIn, accessToken, t, handleAuthError])
 
   // Handle import button click — show confirmation modal
   const handleImportClick = useCallback((file: DriveFile) => {
@@ -128,14 +133,18 @@ export function CloudBackupV1Import() {
       setShowConfirm(false)
       setSelectedFile(null)
     } catch (err) {
-      notify.error(
-        t('backup.v1ImportFailed') +
-          (err instanceof Error ? `: ${err.message}` : ''),
-      )
+      if (err instanceof AuthExpiredError) {
+        handleAuthError(err)
+      } else {
+        notify.error(
+          t('backup.v1ImportFailed') +
+            (err instanceof Error ? `: ${err.message}` : ''),
+        )
+      }
     } finally {
       setImporting(false)
     }
-  }, [selectedFile, accessToken, t])
+  }, [selectedFile, accessToken, t, handleAuthError])
 
   // Handle cancel confirmation
   const handleCancelConfirm = useCallback(() => {
