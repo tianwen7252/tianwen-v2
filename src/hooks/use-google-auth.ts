@@ -6,7 +6,7 @@
 
 import { useRef, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useAppStore, isAdminUser } from '@/stores/app-store'
+import { useAppStore, isAdminUser, TIANWEN_SUB } from '@/stores/app-store'
 import type { GoogleUser } from '@/stores/app-store'
 import { notify } from '@/components/ui/sonner'
 
@@ -78,7 +78,15 @@ export function useGoogleAuth() {
         const userInfo = (await res.json()) as GoogleUser
         const admin = isAdminUser(userInfo.sub)
         setGoogleUser(userInfo, tokenResponse.access_token, admin)
-        notify.success(t('auth.loginSuccess', { name: userInfo.name }))
+
+        // Tianwen admin gets a centered info toast
+        if (userInfo.sub === TIANWEN_SUB) {
+          notify.info(t('auth.loginSuccess', { name: userInfo.name }), {
+            position: 'top-center',
+          })
+        } else {
+          notify.success(t('auth.loginSuccess', { name: userInfo.name }))
+        }
       } catch (err) {
         notify.error(
           t('auth.loginError') +

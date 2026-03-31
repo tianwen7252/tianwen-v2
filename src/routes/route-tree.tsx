@@ -11,7 +11,6 @@ import { Settings, Code } from 'lucide-react'
 import { OrderPage } from '@/pages/order'
 import { NotFoundPage } from '@/pages/not-found'
 import { ModalPreview, NotifyPreview, TestDataPreview } from '@/pages/preview'
-import { AnnouncementPreview } from '@/pages/preview/announcement-preview'
 import { ClockInPage } from '@/pages/clock-in'
 import { SettingsPage } from '@/pages/settings'
 import { SystemInfo } from '@/components/settings/system-info'
@@ -22,7 +21,6 @@ import { ProductManagement } from '@/components/settings/product-management'
 import { OrdersPage } from '@/pages/orders'
 import { AnalyticsPage } from '@/pages/analytics'
 import { SwUpdatePrompt } from '@/components/sw-update-prompt'
-import { AdminAnnouncement } from '@/components/announcement/admin-announcement'
 import { PageTransition } from '@/components/animations'
 import { AppErrorBoundary } from '@/components/app-error-boundary'
 import { ScrollToTop } from '@/components/ui/scroll-to-top'
@@ -125,9 +123,6 @@ function RootLayout() {
       {/* SW update prompt */}
       <SwUpdatePrompt />
 
-      {/* Admin login announcement */}
-      <AdminAnnouncement />
-
       {/* Dev tools — only in development */}
       {/* <TanStackRouterDevtools position="bottom-right" /> */}
     </div>
@@ -228,12 +223,6 @@ function DevIndex() {
           </Link>{' '}
           (Generate 6 months data)
         </li>
-        <li>
-          <Link to="/dev/announcement" className="text-primary underline">
-            Announcement
-          </Link>{' '}
-          (Admin Login Announcement)
-        </li>
       </ul>
     </div>
   )
@@ -255,12 +244,6 @@ const devTestDataRoute = createRoute({
   getParentRoute: () => devRoute,
   path: '/test-data',
   component: TestDataPreview,
-})
-
-const devAnnouncementRoute = createRoute({
-  getParentRoute: () => devRoute,
-  path: '/announcement',
-  component: AnnouncementPreview,
 })
 
 // Clock-in standalone page
@@ -362,6 +345,5 @@ export const routeTree = rootRoute.addChildren([
     devModalRoute,
     devNotifyRoute,
     devTestDataRoute,
-    devAnnouncementRoute,
   ]),
 ])

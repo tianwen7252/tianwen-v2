@@ -77,11 +77,21 @@ function NotificationToast({
 
 // ─── Custom toast helpers ────────────────────────────────────────────────────
 
+type ToastPosition =
+  | 'top-right'
+  | 'top-left'
+  | 'bottom-right'
+  | 'bottom-left'
+  | 'top-center'
+  | 'bottom-center'
+
 interface NotifyOptions {
   readonly description?: string
   readonly showTime?: boolean
   /** Auto-dismiss duration in milliseconds (default: 5000) */
   readonly duration?: number
+  /** Per-toast position override */
+  readonly position?: ToastPosition
 }
 
 function showToast(
@@ -89,7 +99,7 @@ function showToast(
   variant: ToastVariant,
   options: NotifyOptions = {},
 ) {
-  const { description, showTime, duration = 5000 } = options
+  const { description, showTime, duration = 5000, position } = options
   return toast.custom(
     () => (
       <NotificationToast
@@ -99,7 +109,7 @@ function showToast(
         showTime={showTime}
       />
     ),
-    { duration },
+    { duration, position },
   )
 }
 
