@@ -17,35 +17,38 @@ const CANNON_DURATION_MS = 3000
 /**
  * Fires confetti from both the left and right sides of the screen
  * simultaneously for 3 seconds using a requestAnimationFrame loop.
+ * Returns a cancel function to stop the loop early (e.g. on unmount).
  */
-export function fireSideCannons(): void {
+export function fireSideCannons(): () => void {
   const end = Date.now() + CANNON_DURATION_MS
+  let rafId = 0
 
   function frame(): void {
     if (Date.now() > end) return
 
-    confetti({
+    void confetti({
       particleCount: 2,
       angle: 60,
       spread: 55,
       startVelocity: 60,
       origin: { x: 0, y: 0.5 },
       colors: CANNON_COLORS,
-    })
+    })?.catch(() => undefined)
 
-    confetti({
+    void confetti({
       particleCount: 2,
       angle: 120,
       spread: 55,
       startVelocity: 60,
       origin: { x: 1, y: 0.5 },
       colors: CANNON_COLORS,
-    })
+    })?.catch(() => undefined)
 
-    requestAnimationFrame(frame)
+    rafId = requestAnimationFrame(frame)
   }
 
-  requestAnimationFrame(frame)
+  rafId = requestAnimationFrame(frame)
+  return () => cancelAnimationFrame(rafId)
 }
 
 // ─── fireStars ───────────────────────────────────────────────────────────────

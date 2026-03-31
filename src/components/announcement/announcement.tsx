@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Modal } from '@/components/modal/modal'
 import { RippleButton } from '@/components/ui/ripple-button'
@@ -25,44 +25,50 @@ export function Announcement({
 }: AnnouncementProps) {
   const { t } = useTranslation()
 
-  // Fire confetti effects when the announcement opens
+  // Track the confetti config via ref to avoid re-firing on object identity changes
+  const confettiRef = useRef(confetti)
+  confettiRef.current = confetti
+
+  // Fire confetti effects only when the announcement opens
   useEffect(() => {
-    if (!open || !confetti) return
+    if (!open || !confettiRef.current) return
 
-    const fireAll = confetti === true
+    const cfg = confettiRef.current
+    const fireAll = cfg === true
     const sideCannons =
-      fireAll || (typeof confetti === 'object' && confetti.sideCannons === true)
-    const stars =
-      fireAll || (typeof confetti === 'object' && confetti.stars === true)
+      fireAll || (typeof cfg === 'object' && cfg.sideCannons === true)
+    const stars = fireAll || (typeof cfg === 'object' && cfg.stars === true)
 
-    if (sideCannons) fireSideCannons()
+    let cancelCannons: (() => void) | undefined
+    if (sideCannons) cancelCannons = fireSideCannons()
     if (stars) fireStars()
-  }, [open, confetti])
+
+    return () => cancelCannons?.()
+  }, [open])
 
   const resolvedDismissText = dismissText ?? t('common.confirm')
 
   return (
-    // Wrapper hides the Modal's built-in X close button via CSS
-    <div className="announcement-wrapper [&_.absolute.right-2.top-2]:hidden">
-      <Modal
-        open={open}
-        variant={variant}
-        shineColor={shineColor}
-        title={title}
-        closeOnBackdropClick={closeOnBackdropClick}
-        onClose={onDismiss}
-        footer={
-          <RippleButton
-            onClick={onDismiss}
-            rippleColor="rgba(0,0,0,0.08)"
-            className="w-full rounded-lg bg-white px-4 py-3 text-foreground"
-          >
-            {resolvedDismissText}
-          </RippleButton>
-        }
-      >
-        <div className="flex flex-col items-center">{children}</div>
-      </Modal>
-    </div>
+    <Modal
+      open={open}
+      variant={variant}
+      shineColor={shineColor}
+      title={title}
+      hideCloseButton
+      closeOnBackdropClick={closeOnBackdropClick}
+      onClose={onDismiss}
+      footer={
+        <RippleButton
+          type="button"
+          onClick={onDismiss}
+          rippleColor="rgba(0,0,0,0.08)"
+          className="w-full rounded-lg bg-white px-4 py-3 text-foreground"
+        >
+          {resolvedDismissText}
+        </RippleButton>
+      }
+    >
+      <div className="flex flex-col items-center">{children}</div>
+    </Modal>
   )
 }
