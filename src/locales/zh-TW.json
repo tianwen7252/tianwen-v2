@@ -50,7 +50,11 @@
     "confirmDelete": "確認刪除",
     "toastAdded": "員工已新增",
     "toastUpdated": "員工資料已更新",
-    "toastDeleted": "員工已刪除"
+    "toastDeleted": "員工已刪除",
+    "bindGoogle": "綁定Google",
+    "googleBound": "已綁定Google",
+    "bindGoogleSuccess": "Google帳號綁定成功",
+    "bindGoogleConfirm": "確認綁定Google帳號至此員工？"
   },
   "clockIn": {
     "today": "今天",

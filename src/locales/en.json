@@ -50,7 +50,11 @@
     "confirmDelete": "Confirm Delete",
     "toastAdded": "Employee added",
     "toastUpdated": "Employee updated",
-    "toastDeleted": "Employee deleted"
+    "toastDeleted": "Employee deleted",
+    "bindGoogle": "Bind Google",
+    "googleBound": "Google Bound",
+    "bindGoogleSuccess": "Google account bound successfully",
+    "bindGoogleConfirm": "Confirm binding Google account to this employee?"
   },
   "clockIn": {
     "today": "Today",

@@ -53,6 +53,76 @@ describe('schemas', () => {
       })
       expect(result.success).toBe(false)
     })
+
+    it('should accept googleSub as optional string', () => {
+      const result = employeeSchema.safeParse({
+        id: 'emp-001',
+        name: 'Alex',
+        status: 'active',
+        shiftType: 'regular',
+        isAdmin: false,
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+        googleSub: '112232479673923380065',
+      })
+      expect(result.success).toBe(true)
+      if (result.success) {
+        expect(result.data.googleSub).toBe('112232479673923380065')
+      }
+    })
+
+    it('should accept googleEmail as optional string', () => {
+      const result = employeeSchema.safeParse({
+        id: 'emp-001',
+        name: 'Alex',
+        status: 'active',
+        shiftType: 'regular',
+        isAdmin: false,
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+        googleEmail: 'alex@gmail.com',
+      })
+      expect(result.success).toBe(true)
+      if (result.success) {
+        expect(result.data.googleEmail).toBe('alex@gmail.com')
+      }
+    })
+
+    it('should accept both googleSub and googleEmail together', () => {
+      const result = employeeSchema.safeParse({
+        id: 'emp-001',
+        name: 'Alex',
+        status: 'active',
+        shiftType: 'regular',
+        isAdmin: false,
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+        googleSub: 'sub-123',
+        googleEmail: 'alex@example.com',
+      })
+      expect(result.success).toBe(true)
+      if (result.success) {
+        expect(result.data.googleSub).toBe('sub-123')
+        expect(result.data.googleEmail).toBe('alex@example.com')
+      }
+    })
+
+    it('should allow googleSub and googleEmail to be omitted (undefined)', () => {
+      const result = employeeSchema.safeParse({
+        id: 'emp-001',
+        name: 'Alex',
+        status: 'active',
+        shiftType: 'regular',
+        isAdmin: false,
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+      })
+      expect(result.success).toBe(true)
+      if (result.success) {
+        expect(result.data.googleSub).toBeUndefined()
+        expect(result.data.googleEmail).toBeUndefined()
+      }
+    })
   })
 
   describe('createEmployeeSchema', () => {
