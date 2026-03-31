@@ -29,6 +29,7 @@ const GRADIENT_CLASS: Record<GradientVariant, string> = {
   blue: 'model-blue',
   orange: 'model-orange',
   gray: 'model-gray',
+  gold: 'model-gold',
 }
 
 const CONFIRM_BUTTON_BG: Record<GradientVariant, string> = {
@@ -38,6 +39,7 @@ const CONFIRM_BUTTON_BG: Record<GradientVariant, string> = {
   blue: '#6aa3d4',
   orange: '#d4a76a',
   gray: '#999999',
+  gold: '#D4920A',
 }
 
 // Preset shine color combinations (3 colors each for animated gradient shine)
@@ -59,6 +61,7 @@ const VARIANT_TO_SHINE: Record<GradientVariant, ShineColorPreset> = {
   blue: 'blue',
   orange: 'orange',
   gray: 'gray',
+  gold: 'gold',
 }
 
 function resolveShineColor(shineColor: ShineColor): string | string[] {

@@ -23,8 +23,9 @@ export function AnnouncementPreview() {
 
       <Announcement
         open={open}
+        variant="gold"
         title={
-          <span className="text-3xl text-white">
+          <span className="text-3xl text-amber-900">
             {t('announcement.adminName')}
           </span>
         }
@@ -33,7 +34,9 @@ export function AnnouncementPreview() {
         confetti={{ sideCannons: true, stars: true }}
         onDismiss={() => setOpen(false)}
       >
-        <p className="text-lg text-white/70">{t('announcement.loggedIn')}</p>
+        <p className="text-lg text-amber-800/70">
+          {t('announcement.loggedIn')}
+        </p>
       </Announcement>
     </div>
   )
