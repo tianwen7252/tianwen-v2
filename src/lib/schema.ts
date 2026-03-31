@@ -318,6 +318,18 @@ function runMigrations(exec: (sql: string) => void): void {
   exec(
     "UPDATE employees SET avatar = REPLACE(avatar, 'images/aminals/', '') WHERE avatar LIKE 'images/aminals/%'",
   )
+
+  // DEV-102: Add google_sub and google_email columns for Google account binding.
+  try {
+    exec('ALTER TABLE employees ADD COLUMN google_sub TEXT DEFAULT NULL')
+  } catch {
+    // Column already exists -- safe to ignore
+  }
+  try {
+    exec('ALTER TABLE employees ADD COLUMN google_email TEXT DEFAULT NULL')
+  } catch {
+    // Column already exists -- safe to ignore
+  }
 }
 
 /**
