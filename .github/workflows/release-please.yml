@@ -3,7 +3,7 @@ name: Release Please
 on:
   push:
     branches:
-      - master
+      - main
   workflow_dispatch:
 
 permissions:
@@ -78,7 +78,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: master
+          ref: main
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
