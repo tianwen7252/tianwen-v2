@@ -197,4 +197,39 @@ describe('Records', () => {
     await user.click(timeRange)
     expect(screen.getAllByText('編輯打卡紀錄')).toHaveLength(2)
   })
+
+  // Font size compliance tests — project rule: no text-sm or smaller
+  it('should not use text-sm or smaller on filter bar or hint elements', () => {
+    const { container } = render(<Records />)
+    const allElements = container.querySelectorAll('*')
+    const forbidden = [
+      'text-sm',
+      'text-xs',
+      'text-[10px]',
+      'text-[11px]',
+      'text-[12px]',
+      'text-[13px]',
+    ]
+    allElements.forEach(el => {
+      const cls = el.className ?? ''
+      forbidden.forEach(f => {
+        expect(
+          cls,
+          `Element has forbidden font class "${f}": ${cls}`,
+        ).not.toContain(f)
+      })
+    })
+  })
+
+  it('should not use font-semibold on any rendered element in Records', () => {
+    const { container } = render(<Records />)
+    const allElements = container.querySelectorAll('*')
+    allElements.forEach(el => {
+      const cls = el.className ?? ''
+      expect(
+        cls,
+        `Element has forbidden class "font-semibold": ${cls}`,
+      ).not.toContain('font-semibold')
+    })
+  })
 })

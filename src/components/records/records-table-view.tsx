@@ -56,7 +56,7 @@ function AttendanceCard({
     return (
       <button
         type="button"
-        className="rounded-md border border-[#f88181] bg-[#fff5f5] px-2 py-1 text-sm font-bold text-[#f88181] cursor-pointer"
+        className="rounded-md border border-[#f88181] bg-[#fff5f5] px-2 py-1 text-base font-bold text-[#f88181] cursor-pointer"
         onClick={e => {
           e.stopPropagation()
           onEdit(employee, date, attendance)
@@ -73,7 +73,7 @@ function AttendanceCard({
   return (
     <button
       type="button"
-      className="rounded-md border border-[#f2d680] px-2 py-1 text-sm font-medium text-[#334155] cursor-pointer hover:border-[#e6c45a]"
+      className="rounded-md border border-[#f2d680] px-2 py-1 text-base font-medium text-[#334155] cursor-pointer hover:border-[#e6c45a]"
       onClick={e => {
         e.stopPropagation()
         onEdit(employee, date, attendance)
@@ -130,7 +130,7 @@ function CellContent({
         />
       ))}
       {totalHours > 0 && (
-        <span className="rounded-md border border-[#7f956a] px-1.5 py-0.5 text-sm font-semibold text-[#7f956a]">
+        <span className="rounded-md border border-[#7f956a] px-1.5 py-0.5 text-base font-medium text-[#7f956a]">
           {t('records.totalHours')}: {formatTotalHours(totalHours)}
         </span>
       )}
