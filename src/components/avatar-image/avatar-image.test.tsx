@@ -21,10 +21,24 @@ describe('AvatarImage', () => {
     expect(img.getAttribute('src')).toBe('https://example.com/avatar.png')
   })
 
-  it('should render image for local path avatar', () => {
+  it('should render image for legacy full local path avatar (backward compat)', () => {
     render(<AvatarImage avatar="images/aminals/1049013.png" />)
     const img = screen.getByAltText('avatar')
     expect(img).toBeTruthy()
+    expect(img.getAttribute('src')).toBe('/images/aminals/1049013.png')
+  })
+
+  it('should render image for filename-only avatar (new format)', () => {
+    render(<AvatarImage avatar="1049013.png" />)
+    const img = screen.getByAltText('avatar')
+    expect(img).toBeTruthy()
+    expect(img.getAttribute('src')).toBe('/images/aminals/1049013.png')
+  })
+
+  it('should render image for filename-only avatar without path prefix confusion', () => {
+    render(<AvatarImage avatar="780258.png" />)
+    const img = screen.getByAltText('avatar')
+    expect(img.getAttribute('src')).toBe('/images/aminals/780258.png')
   })
 
   it('should apply custom size', () => {

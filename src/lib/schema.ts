@@ -312,6 +312,12 @@ function runMigrations(exec: (sql: string) => void): void {
   exec(
     'CREATE INDEX IF NOT EXISTS idx_backup_logs_created_at ON backup_logs(created_at)',
   )
+
+  // DEV-100: Strip images/aminals/ prefix from employee avatars.
+  // Avatar values are now stored as filename-only (e.g. '1308845.png').
+  exec(
+    "UPDATE employees SET avatar = REPLACE(avatar, 'images/aminals/', '') WHERE avatar LIKE 'images/aminals/%'",
+  )
 }
 
 /**
