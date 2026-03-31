@@ -5,6 +5,7 @@ export type GradientVariant =
   | 'blue'
   | 'orange'
   | 'gray'
+  | 'gold'
 
 /** Preset shine color names or custom ShineBorder color format */
 export type ShineColorPreset =
@@ -14,6 +15,7 @@ export type ShineColorPreset =
   | 'blue'
   | 'orange'
   | 'gray'
+  | 'gold'
 export type ShineColor = boolean | ShineColorPreset | string | string[]
 
 /**
@@ -47,6 +49,10 @@ export interface ModalProps {
   readonly loading?: boolean
   /** Whether clicking the backdrop closes the modal (default: true) */
   readonly closeOnBackdropClick?: boolean
+  /** Hide the built-in close (X) button (default: false) */
+  readonly hideCloseButton?: boolean
+  /** Make the center panel fully transparent with no shadow (default: false) */
+  readonly transparent?: boolean
   /** Called when modal is dismissed (backdrop click, escape key) */
   readonly onClose: () => void
 }

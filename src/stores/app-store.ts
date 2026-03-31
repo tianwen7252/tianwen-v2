@@ -83,13 +83,16 @@ function clearPersistedUser(): void {
 
 // ─── Admin whitelist (V1 compatible) ────────────────────────────────────────
 
-const ADMIN_SUBS = [
+export const ADMIN_SUBS = [
   '112232479673923380065', // Tianwen
   '108824661831026509560', // dev
-]
+] as const
+
+/** Tianwen (owner) Google sub ID */
+export const TIANWEN_SUB = ADMIN_SUBS[0]
 
 export function isAdminUser(sub: string): boolean {
-  return ADMIN_SUBS.includes(sub)
+  return (ADMIN_SUBS as readonly string[]).includes(sub)
 }
 
 // ─── Store ───────────────────────────────────────────────────────────────────
@@ -102,7 +105,6 @@ export const useAppStore = create<AppState & AppActions>(set => ({
   isAdmin: persisted.user ? isAdminUser(persisted.user.sub) : false,
   currentEmployeeId: persisted.user?.sub ?? null,
   fontSize: 18,
-
   setGoogleUser: (user, accessToken, isAdmin) => {
     persistUser(user, accessToken)
     set({

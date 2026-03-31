@@ -552,6 +552,10 @@
     "v1ImportBtn": "匯入",
     "v1Importing": "匯入中..."
   },
+  "announcement": {
+    "adminName": "天文老闆Eric",
+    "loggedIn": "已登入"
+  },
   "preview": {
     "testData": {
       "title": "測試資料產生器",

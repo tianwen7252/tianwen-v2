@@ -60,6 +60,16 @@
   }
 }
 
+@scope (.model-gold) {
+  :scope {
+    background:
+      radial-gradient(ellipse at 20% 50%, #f7e4a8 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 20%, #f4d576 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 80%, #fcedc4 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 80%, #faf0d0 0%, transparent 50%), #fdf6e3;
+  }
+}
+
 /* Animated overlay — cycles through all gradient variants with rotation */
 @keyframes bg-spin {
   from {

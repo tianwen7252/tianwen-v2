@@ -29,6 +29,7 @@ const GRADIENT_CLASS: Record<GradientVariant, string> = {
   blue: 'model-blue',
   orange: 'model-orange',
   gray: 'model-gray',
+  gold: 'model-gold',
 }
 
 const CONFIRM_BUTTON_BG: Record<GradientVariant, string> = {
@@ -38,6 +39,7 @@ const CONFIRM_BUTTON_BG: Record<GradientVariant, string> = {
   blue: '#6aa3d4',
   orange: '#d4a76a',
   gray: '#999999',
+  gold: '#D4920A',
 }
 
 // Preset shine color combinations (3 colors each for animated gradient shine)
@@ -48,6 +50,7 @@ const SHINE_COLOR_PRESETS: Record<ShineColorPreset, string[]> = {
   blue: ['#6aa3d4', '#8bbde0', '#b5d4ee'],
   orange: ['#d4a76a', '#e0bf8a', '#edd5aa'],
   gray: ['#bbbbbb', '#cccccc', '#dddddd'],
+  gold: ['#F4A900', '#F7C242', '#FADE82'],
 }
 
 // Map gradient variant to shine color preset
@@ -58,6 +61,7 @@ const VARIANT_TO_SHINE: Record<GradientVariant, ShineColorPreset> = {
   blue: 'blue',
   orange: 'orange',
   gray: 'gray',
+  gold: 'gold',
 }
 
 function resolveShineColor(shineColor: ShineColor): string | string[] {
@@ -112,6 +116,8 @@ export function Modal({
   transition: enableTransition = false,
   loading = false,
   closeOnBackdropClick = true,
+  hideCloseButton = false,
+  transparent = false,
   onClose,
 }: ModalProps) {
   // Resolve shineColor: animated disables shine; true maps to variant preset
@@ -239,13 +245,23 @@ export function Modal({
               closing ? 'animate-modal-exit' : 'animate-modal-enter',
             )}
             style={{
-              background: 'rgba(255, 255, 255, 0.7)',
-              backdropFilter: 'blur(20px) saturate(180%)',
-              WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-              border: shineColor
+              background: transparent
+                ? 'transparent'
+                : 'rgba(255, 255, 255, 0.7)',
+              backdropFilter: transparent
                 ? 'none'
-                : '1px solid rgba(255, 255, 255, 0.3)',
-              boxShadow: '0 8px 32px rgba(31, 38, 135, 0.1)',
+                : 'blur(20px) saturate(180%)',
+              WebkitBackdropFilter: transparent
+                ? 'none'
+                : 'blur(20px) saturate(180%)',
+              border: transparent
+                ? 'none'
+                : shineColor
+                  ? 'none'
+                  : '1px solid rgba(255, 255, 255, 0.3)',
+              boxShadow: transparent
+                ? 'none'
+                : '0 8px 32px rgba(31, 38, 135, 0.1)',
               borderRadius: 16,
               padding: 40,
               width: resolvedWidth,
@@ -273,13 +289,15 @@ export function Modal({
             )}
 
             {/* Close button */}
-            <RippleButton
-              onClick={onClose}
-              rippleColor="rgba(0,0,0,0.1)"
-              className="absolute right-2 top-2 z-10 flex size-10 items-center justify-center rounded-full text-gray-400 hover:text-gray-600"
-            >
-              <X size={24} />
-            </RippleButton>
+            {!hideCloseButton && (
+              <RippleButton
+                onClick={onClose}
+                rippleColor="rgba(0,0,0,0.1)"
+                className="absolute right-2 top-2 z-10 flex size-10 items-center justify-center rounded-full text-gray-400 hover:text-gray-600"
+              >
+                <X size={24} />
+              </RippleButton>
+            )}
 
             {/* Header */}
             {header && (

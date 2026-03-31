@@ -552,6 +552,10 @@
     "v1ImportBtn": "Import",
     "v1Importing": "Importing..."
   },
+  "announcement": {
+    "adminName": "Boss Eric",
+    "loggedIn": "Logged In"
+  },
   "preview": {
     "testData": {
       "title": "Test Data Generator",
