@@ -1,11 +1,11 @@
 {
-  "name": "tianwen7252.github.io",
+  "name": "tianwen-v2",
   "version": "2.0.0-alpha",
   "description": "Tianwen App",
   "main": "src/index.tsx",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/tianwen7252/tianwen7252.github.io.git"
+    "url": "git+https://github.com/tianwen7252/tianwen-v2.git"
   },
   "author": "Tianwen",
   "type": "module",
