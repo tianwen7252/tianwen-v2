@@ -247,4 +247,30 @@ describe('RecordsCalendarView', () => {
       .filter(el => el.className.includes('bg-[#f8fafc50]'))
     expect(sundayCells.length).toBeGreaterThan(0)
   })
+
+  // Font size compliance tests — project rule: no text-sm or smaller
+  it('should not use text-sm or text-[10px] on any rendered element', () => {
+    const gridWithAtt = buildGridWithAttendance()
+    const { container } = render(
+      <RecordsCalendarView {...defaultProps} calendarGrid={gridWithAtt} />,
+    )
+    const allElements = container.querySelectorAll('*')
+    const forbidden = [
+      'text-sm',
+      'text-xs',
+      'text-[10px]',
+      'text-[11px]',
+      'text-[12px]',
+      'text-[13px]',
+    ]
+    allElements.forEach(el => {
+      const cls = el.className ?? ''
+      forbidden.forEach(f => {
+        expect(
+          cls,
+          `Element has forbidden font class "${f}": ${cls}`,
+        ).not.toContain(f)
+      })
+    })
+  })
 })

@@ -144,7 +144,7 @@ export function Records() {
 
   const handleModalSuccess = useCallback(() => {
     setModalState(INITIAL_MODAL_STATE)
-    setRefreshKey((k) => k + 1)
+    setRefreshKey(k => k + 1)
   }, [setModalState, setRefreshKey])
 
   // "Today" button handler — uses fresh dayjs() to avoid stale closure
@@ -191,15 +191,15 @@ export function Records() {
           type="text"
           placeholder={t('records.searchPlaceholder')}
           value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full rounded-lg border border-border bg-card px-3 py-1.5 text-sm"
+          onChange={e => setSearchQuery(e.target.value)}
+          className="w-full rounded-lg border border-border bg-card px-3 py-1.5 text-base"
         />
         <select
           value={selectedYear}
-          onChange={(e) => setSelectedYear(Number(e.target.value))}
-          className="w-full rounded-lg border border-border bg-card px-3 py-1.5 text-sm"
+          onChange={e => setSelectedYear(Number(e.target.value))}
+          className="w-full rounded-lg border border-border bg-card px-3 py-1.5 text-base"
         >
-          {yearOptions.map((opt) => (
+          {yearOptions.map(opt => (
             <option key={opt.value} value={opt.value}>
               {opt.label}
             </option>
@@ -207,10 +207,10 @@ export function Records() {
         </select>
         <select
           value={selectedMonth}
-          onChange={(e) => setSelectedMonth(Number(e.target.value))}
-          className="w-full rounded-lg border border-border bg-card px-3 py-1.5 text-sm"
+          onChange={e => setSelectedMonth(Number(e.target.value))}
+          className="w-full rounded-lg border border-border bg-card px-3 py-1.5 text-base"
         >
-          {monthOptions.map((opt) => (
+          {monthOptions.map(opt => (
             <option key={opt.value} value={opt.value}>
               {opt.label}
             </option>
@@ -218,7 +218,7 @@ export function Records() {
         </select>
         <button
           type="button"
-          className="rounded-lg border border-[#7f956a] bg-transparent px-3 py-1.5 text-sm font-semibold text-[#7f956a] transition-colors hover:bg-[#7f956a] hover:text-white"
+          className="rounded-lg border border-[#7f956a] bg-transparent px-3 py-1.5 text-base font-medium text-[#7f956a] transition-colors hover:bg-[#7f956a] hover:text-white"
           onClick={handleTodayClick}
         >
           {t('records.today')}
@@ -226,7 +226,7 @@ export function Records() {
       </div>
 
       {/* Hint */}
-      <div className="mb-3 flex items-center gap-1.5 text-sm text-[#aaa]">
+      <div className="mb-3 flex items-center gap-1.5 text-base text-[#aaa]">
         <Info size={14} />
         <span>{t('records.hint')}</span>
       </div>
