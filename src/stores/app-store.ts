@@ -26,6 +26,9 @@ interface AppState {
   /** Global font size, same as var(--font-size) */
   readonly fontSize: number
 
+  /** Whether to show the admin login announcement */
+  readonly showAdminAnnouncement: boolean
+
   // Legacy compatibility
   /** @deprecated Use googleUser instead */
   readonly currentEmployeeId: string | null
@@ -40,6 +43,7 @@ interface AppActions {
   /** @deprecated Use setGoogleUser instead */
   setCurrentEmployee: (employeeId: string | null, isAdmin: boolean) => void
   logout: () => void
+  setShowAdminAnnouncement: (show: boolean) => void
 }
 
 // ─── Persistence ─────────────────────────────────────────────────────────────
@@ -102,6 +106,7 @@ export const useAppStore = create<AppState & AppActions>(set => ({
   isAdmin: persisted.user ? isAdminUser(persisted.user.sub) : false,
   currentEmployeeId: persisted.user?.sub ?? null,
   fontSize: 18,
+  showAdminAnnouncement: false,
 
   setGoogleUser: (user, accessToken, isAdmin) => {
     persistUser(user, accessToken)
@@ -110,6 +115,7 @@ export const useAppStore = create<AppState & AppActions>(set => ({
       accessToken,
       isAdmin,
       currentEmployeeId: user.sub,
+      showAdminAnnouncement: isAdmin,
     })
   },
 
@@ -125,4 +131,6 @@ export const useAppStore = create<AppState & AppActions>(set => ({
       currentEmployeeId: null,
     })
   },
+
+  setShowAdminAnnouncement: show => set({ showAdminAnnouncement: show }),
 }))

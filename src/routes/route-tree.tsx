@@ -21,6 +21,7 @@ import { ProductManagement } from '@/components/settings/product-management'
 import { OrdersPage } from '@/pages/orders'
 import { AnalyticsPage } from '@/pages/analytics'
 import { SwUpdatePrompt } from '@/components/sw-update-prompt'
+import { AdminAnnouncement } from '@/components/announcement/admin-announcement'
 import { PageTransition } from '@/components/animations'
 import { AppErrorBoundary } from '@/components/app-error-boundary'
 import { ScrollToTop } from '@/components/ui/scroll-to-top'
@@ -122,6 +123,9 @@ function RootLayout() {
 
       {/* SW update prompt */}
       <SwUpdatePrompt />
+
+      {/* Admin login announcement */}
+      <AdminAnnouncement />
 
       {/* Dev tools — only in development */}
       {/* <TanStackRouterDevtools position="bottom-right" /> */}
