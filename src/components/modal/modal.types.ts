@@ -47,6 +47,8 @@ export interface ModalProps {
   readonly loading?: boolean
   /** Whether clicking the backdrop closes the modal (default: true) */
   readonly closeOnBackdropClick?: boolean
+  /** Hide the built-in close (X) button (default: false) */
+  readonly hideCloseButton?: boolean
   /** Called when modal is dismissed (backdrop click, escape key) */
   readonly onClose: () => void
 }

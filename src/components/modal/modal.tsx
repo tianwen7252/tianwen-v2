@@ -112,6 +112,7 @@ export function Modal({
   transition: enableTransition = false,
   loading = false,
   closeOnBackdropClick = true,
+  hideCloseButton = false,
   onClose,
 }: ModalProps) {
   // Resolve shineColor: animated disables shine; true maps to variant preset
@@ -273,13 +274,15 @@ export function Modal({
             )}
 
             {/* Close button */}
-            <RippleButton
-              onClick={onClose}
-              rippleColor="rgba(0,0,0,0.1)"
-              className="absolute right-2 top-2 z-10 flex size-10 items-center justify-center rounded-full text-gray-400 hover:text-gray-600"
-            >
-              <X size={24} />
-            </RippleButton>
+            {!hideCloseButton && (
+              <RippleButton
+                onClick={onClose}
+                rippleColor="rgba(0,0,0,0.1)"
+                className="absolute right-2 top-2 z-10 flex size-10 items-center justify-center rounded-full text-gray-400 hover:text-gray-600"
+              >
+                <X size={24} />
+              </RippleButton>
+            )}
 
             {/* Header */}
             {header && (
