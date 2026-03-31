@@ -95,7 +95,9 @@ export function ClockInModal({
   }
   const displayEmployee = employee ?? snapshotRef.current.employee
   const displayAction = employee ? action : snapshotRef.current.action
-  const displayAttendance = employee ? attendance : snapshotRef.current.attendance
+  const displayAttendance = employee
+    ? attendance
+    : snapshotRef.current.attendance
 
   // Real-time clock — updates every second when modal is open
   const [currentTime, setCurrentTime] = useState(() => dayjs())
@@ -120,7 +122,9 @@ export function ClockInModal({
   const shine = SHINE_MAP[displayAction]
 
   // Shift type label with fallback
-  const shiftTypeEntry = SHIFT_TYPES.find(s => s.key === displayEmployee.shiftType)
+  const shiftTypeEntry = SHIFT_TYPES.find(
+    s => s.key === displayEmployee.shiftType,
+  )
   const shiftTypeLabel = shiftTypeEntry?.label ?? SHIFT_TYPES[0].label
 
   // Re-clock-out hint
@@ -165,7 +169,10 @@ export function ClockInModal({
       <ModalCard>
         <AvatarImage avatar={displayEmployee.avatar} size={120} />
 
-        <div className="mt-3 text-xl font-bold" style={{ color: '#1a202c' }}>
+        <div
+          className="mt-3 text-xl font-semibold"
+          style={{ color: '#1a202c' }}
+        >
           {displayEmployee.name}
         </div>
 
@@ -189,7 +196,7 @@ export function ClockInModal({
             <div className="text-sm" style={{ color: '#718096' }}>
               {timeLabel}
             </div>
-            <div className="text-lg font-semibold" style={{ color: '#1a202c' }}>
+            <div className="text-lg" style={{ color: '#1a202c', marginTop: 4 }}>
               {timeValue}
             </div>
           </div>
@@ -197,7 +204,7 @@ export function ClockInModal({
             <div className="text-sm" style={{ color: '#718096' }}>
               {t('clockIn.shiftTypeLabel')}
             </div>
-            <div className="text-lg font-semibold" style={{ color: '#1a202c' }}>
+            <div className="text-lg" style={{ color: '#1a202c', marginTop: 4 }}>
               {shiftTypeLabel}
             </div>
           </div>

@@ -11,8 +11,8 @@ describe('schema', () => {
   describe('CREATE_TABLES', () => {
     it('should include all 7 core tables', () => {
       const tables = [
-        'commondity_types',
-        'commondities',
+        'commodity_types',
+        'commodities',
         'orders',
         'order_types',
         'daily_data',
@@ -41,9 +41,9 @@ describe('schema', () => {
       expect(CREATE_TABLES).toContain('idx_attendances_employee_date')
     })
 
-    it('should define foreign key from commondities to commondity_types', () => {
+    it('should define foreign key from commodities to commodity_types', () => {
       expect(CREATE_TABLES).toContain(
-        'FOREIGN KEY (type_id) REFERENCES commondity_types(type_id)',
+        'FOREIGN KEY (type_id) REFERENCES commodity_types(type_id)',
       )
     })
 
@@ -53,24 +53,48 @@ describe('schema', () => {
       )
     })
 
+    it('should include price_change_logs table', () => {
+      expect(CREATE_TABLES).toContain(
+        'CREATE TABLE IF NOT EXISTS price_change_logs',
+      )
+    })
+
+    it('should create index on price_change_logs.created_at', () => {
+      expect(CREATE_TABLES).toContain('idx_price_change_logs_created_at')
+    })
+
     it('should use TEXT primary keys for nanoid compatibility', () => {
       // All core tables should use TEXT PRIMARY KEY (not INTEGER autoincrement)
       // to support nanoid-generated IDs in V2
       const textPkPattern = /id TEXT PRIMARY KEY/g
       const matches = CREATE_TABLES.match(textPkPattern)
-      // 7 core tables use "id TEXT PRIMARY KEY"
+      // 13 core tables use "id TEXT PRIMARY KEY"
       // schema_meta uses "key TEXT PRIMARY KEY" (different column name)
-      expect(matches?.length).toBe(7)
+      expect(matches?.length).toBe(13)
+    })
+
+    it('should not include a data column in the orders table DDL', () => {
+      // V2-56: orders.data was removed — ensure it stays removed from fresh DDL
+      const ordersSection = CREATE_TABLES.slice(
+        CREATE_TABLES.indexOf('CREATE TABLE IF NOT EXISTS orders'),
+        CREATE_TABLES.indexOf('CREATE TABLE IF NOT EXISTS order_types'),
+      )
+      expect(ordersSection).not.toContain('data TEXT')
+      expect(ordersSection).not.toContain('data BLOB')
     })
   })
 
   describe('initSchema', () => {
-    it('should enable foreign keys and create tables', () => {
+    it('should enable foreign keys, create tables, and run migrations', () => {
       const mockExec = vi.fn()
       initSchema(mockExec)
-      expect(mockExec).toHaveBeenCalledTimes(2)
       expect(mockExec).toHaveBeenNthCalledWith(1, 'PRAGMA foreign_keys = ON')
       expect(mockExec).toHaveBeenNthCalledWith(2, CREATE_TABLES)
+      // Third call is the V2-76 rename migration for commodity_types
+      expect(mockExec).toHaveBeenNthCalledWith(
+        3,
+        'ALTER TABLE commondity_types RENAME TO commodity_types',
+      )
     })
   })
 })

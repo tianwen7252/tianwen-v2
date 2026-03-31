@@ -9,7 +9,7 @@ import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { zodResolver } from '@hookform/resolvers/zod'
 import dayjs from 'dayjs'
-import { toast } from 'sonner'
+import { notify } from '@/components/ui/sonner'
 import { Modal, ModalCard } from '@/components/modal'
 import { AvatarImage } from '@/components/avatar-image'
 import { ATTENDANCE_TYPES } from '@/constants/attendance-types'
@@ -88,7 +88,12 @@ export function RecordModal({
     defaultValues: buildFormValues(record),
   })
 
-  const { watch, setValue, formState: { errors }, clearErrors } = form
+  const {
+    watch,
+    setValue,
+    formState: { errors },
+    clearErrors,
+  } = form
 
   const attendanceType = watch('attendanceType')
   const clockInTime = watch('clockInTime') ?? ''
@@ -101,7 +106,10 @@ export function RecordModal({
   const prevRecordRef = useRef(record)
 
   useEffect(() => {
-    if (open && (open !== prevOpenRef.current || record !== prevRecordRef.current)) {
+    if (
+      open &&
+      (open !== prevOpenRef.current || record !== prevRecordRef.current)
+    ) {
       form.reset(buildFormValues(record))
     }
     prevOpenRef.current = open
@@ -122,10 +130,16 @@ export function RecordModal({
   const onValidSubmit = useCallback(
     async (values: RecordFormValues) => {
       const isVac = values.attendanceType === 'vacation'
-      const clockInTs = buildTimestamp(date, timeStringToDayjs(date, values.clockInTime ?? ''))
+      const clockInTs = buildTimestamp(
+        date,
+        timeStringToDayjs(date, values.clockInTime ?? ''),
+      )
       const clockOutTs = isVac
         ? undefined
-        : buildTimestamp(date, timeStringToDayjs(date, values.clockOutTime ?? ''))
+        : buildTimestamp(
+            date,
+            timeStringToDayjs(date, values.clockOutTime ?? ''),
+          )
       const dbType = isVac ? 'paid_leave' : 'regular'
 
       if (mode === 'add') {
@@ -136,14 +150,14 @@ export function RecordModal({
           clockOut: clockOutTs,
           type: dbType,
         })
-        toast.success(t('records.toastAdded'))
+        notify.success(t('records.toastAdded'))
       } else if (record) {
         await getAttendanceRepo().update(record.id, {
           clockIn: clockInTs,
           clockOut: clockOutTs,
           type: dbType,
         })
-        toast.success(t('records.toastUpdated'))
+        notify.success(t('records.toastUpdated'))
       }
 
       onSuccess()
@@ -158,12 +172,13 @@ export function RecordModal({
   const handleDelete = useCallback(async () => {
     if (record) {
       await getAttendanceRepo().remove(record.id)
-      toast.success(t('records.toastDeleted'))
+      notify.success(t('records.toastDeleted'))
     }
     onSuccess()
   }, [record, onSuccess, t])
 
-  const title = mode === 'add' ? t('records.addRecord') : t('records.editRecord')
+  const title =
+    mode === 'add' ? t('records.addRecord') : t('records.editRecord')
   const gradientVariant = mode === 'add' ? 'green' : 'warm'
   const shineVariant = mode === 'add' ? 'green' : 'purple'
 
@@ -178,7 +193,6 @@ export function RecordModal({
         <div className="flex w-full justify-center gap-3">
           <button
             type="button"
-
             onClick={onCancel}
             className="flex-1 rounded-lg border border-border bg-white/50 px-4 py-2.5 text-sm font-semibold text-gray-600 shadow-[0_0_10px_#ccc] transition-transform hover:-translate-y-0.5"
           >
@@ -187,7 +201,6 @@ export function RecordModal({
           {mode === 'edit' && (
             <button
               type="button"
-
               onClick={handleDelete}
               className="flex-1 rounded-lg bg-red-500 px-4 py-2.5 text-sm font-semibold text-white shadow-[0_0_10px_#ccc] transition-transform hover:-translate-y-0.5"
             >
@@ -196,7 +209,6 @@ export function RecordModal({
           )}
           <button
             type="button"
-
             onClick={handleSave}
             className="flex-1 rounded-lg bg-[#7f956a] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_0_10px_#ccc] transition-transform hover:-translate-y-0.5"
           >

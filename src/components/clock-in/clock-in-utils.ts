@@ -24,7 +24,9 @@ export function formatTime(ts?: number): string {
 }
 
 /** Derive the correct action from an employee's attendance records. */
-export function deriveCardAction(records: readonly Attendance[]): ClockInAction {
+export function deriveCardAction(
+  records: readonly Attendance[],
+): ClockInAction {
   if (records.length === 0) return 'clockIn'
   const lastRecord = records[records.length - 1]!
   if (lastRecord.type !== 'regular') return 'cancelVacation'
@@ -41,16 +43,28 @@ export function deriveStatus(records: readonly Attendance[]): {
   badgeTextKey: string
 } {
   if (records.length === 0) {
-    return { badgeColor: BADGE_COLORS.default, badgeTextKey: 'clockIn.notClockedIn' }
+    return {
+      badgeColor: BADGE_COLORS.default,
+      badgeTextKey: 'clockIn.notClockedIn',
+    }
   }
   const lastRecord = records[records.length - 1]!
   if (lastRecord.type !== 'regular') {
-    return { badgeColor: BADGE_COLORS.vacation, badgeTextKey: 'clockIn.onVacation' }
+    return {
+      badgeColor: BADGE_COLORS.vacation,
+      badgeTextKey: 'clockIn.onVacation',
+    }
   }
   if (lastRecord.clockOut) {
-    return { badgeColor: BADGE_COLORS.clockedOut, badgeTextKey: 'clockIn.clockedOut' }
+    return {
+      badgeColor: BADGE_COLORS.clockedOut,
+      badgeTextKey: 'clockIn.clockedOut',
+    }
   }
-  return { badgeColor: BADGE_COLORS.clockedIn, badgeTextKey: 'clockIn.clockedIn' }
+  return {
+    badgeColor: BADGE_COLORS.clockedIn,
+    badgeTextKey: 'clockIn.clockedIn',
+  }
 }
 
 /** Determine avatar border color from attendance state. */

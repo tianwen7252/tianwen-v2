@@ -78,7 +78,9 @@ export const sqliteWasmFactory: DatabaseFactory = {
       ) as unknown as Sqlite3DB
     } else {
       // In-memory mode
-      db = new sqlite3.oo1.DB(':memory:')
+      // db = new sqlite3.oo1.DB(':memory:')
+      db = undefined as unknown as Sqlite3DB
+      console.error('Unable to create OPFS database')
     }
 
     return new SqliteWasmDatabase(db)

@@ -72,8 +72,9 @@ describe('ClockIn', () => {
 
   it('should show correct status badge for vacation employee (休假)', async () => {
     render(<ClockIn />)
-    // emp-003 has type: 'paid_leave'
-    await screen.findByText('休假')
+    // emp-003 has type: 'paid_leave' — badge and button both show 休假
+    const vacationElements = await screen.findAllByText('休假')
+    expect(vacationElements.length).toBeGreaterThanOrEqual(1)
   })
 
   it('should show employee names', async () => {
@@ -105,7 +106,7 @@ describe('ClockIn', () => {
       // emp-001 (clocked out) and emp-004 (no record) both show 打卡上班
       const clockInBtns = screen.getAllByText('打卡上班')
       expect(clockInBtns.length).toBeGreaterThanOrEqual(1)
-      expect(screen.getAllByText('申請休假').length).toBeGreaterThanOrEqual(1)
+      expect(screen.getAllByText('休假').length).toBeGreaterThanOrEqual(1)
       // emp-002 (clocked in): should show 打卡下班
       expect(screen.getByText('打卡下班')).toBeTruthy()
       // emp-003 (vacation): should show 取消休假
@@ -303,7 +304,7 @@ describe('ClockIn', () => {
 
     // Click 申請休假 button for emp-004 (Grace)
     const graceCard = allCards.find(card => within(card).queryByText('Grace'))!
-    await user.click(within(graceCard).getByText('申請休假'))
+    await user.click(within(graceCard).getByText('休假'))
 
     // Modal should open with vacation title
     const titles = screen.getAllByText(/確認 Grace 的休假打卡？/)

@@ -1,9 +1,11 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Dialog as DialogPrimitive } from 'radix-ui'
 import { useTranslation } from 'react-i18next'
-import { Loader2 } from 'lucide-react'
+import { Loader2, X } from 'lucide-react'
 import { cn } from '@/lib/cn'
+import { resolvePx } from '@/lib/resolve-px'
 import { ShineBorder } from '@/components/ui/shine-border'
+import { RippleButton } from '@/components/ui/ripple-button'
 import type {
   ModalProps,
   ModalCardProps,
@@ -24,12 +26,18 @@ const GRADIENT_CLASS: Record<GradientVariant, string> = {
   green: 'model-green',
   warm: 'model-warm',
   red: 'model-red',
+  blue: 'model-blue',
+  orange: 'model-orange',
+  gray: 'model-gray',
 }
 
 const CONFIRM_BUTTON_BG: Record<GradientVariant, string> = {
   green: COLOR_PRIMARY,
   warm: '#ad9ac0',
   red: COLOR_RED,
+  blue: '#6aa3d4',
+  orange: '#d4a76a',
+  gray: '#999999',
 }
 
 // Preset shine color combinations (3 colors each for animated gradient shine)
@@ -37,11 +45,27 @@ const SHINE_COLOR_PRESETS: Record<ShineColorPreset, string[]> = {
   green: ['#a8c896', '#c8deb8', '#e4fad9'],
   purple: ['#c4a1e0', '#dcc4f0', '#e3d0f5'],
   red: ['#e39a9d', '#f4b6b7', '#f0c4c4'],
+  blue: ['#6aa3d4', '#8bbde0', '#b5d4ee'],
+  orange: ['#d4a76a', '#e0bf8a', '#edd5aa'],
+  gray: ['#bbbbbb', '#cccccc', '#dddddd'],
+}
+
+// Map gradient variant to shine color preset
+const VARIANT_TO_SHINE: Record<GradientVariant, ShineColorPreset> = {
+  green: 'green',
+  warm: 'purple',
+  red: 'red',
+  blue: 'blue',
+  orange: 'orange',
+  gray: 'gray',
 }
 
 function resolveShineColor(shineColor: ShineColor): string | string[] {
   if (typeof shineColor === 'string' && shineColor in SHINE_COLOR_PRESETS) {
     return SHINE_COLOR_PRESETS[shineColor as ShineColorPreset]
+  }
+  if (typeof shineColor === 'boolean') {
+    return []
   }
   return shineColor
 }
@@ -77,18 +101,64 @@ export function ModalCard({ children, className }: ModalCardProps) {
 export function Modal({
   open,
   variant = 'green',
+  animated = false,
   header,
   title,
   children,
   footer,
-  shineColor,
+  shineColor: shineColorProp = false,
+  width = 500,
+  height,
+  transition: enableTransition = false,
   loading = false,
+  closeOnBackdropClick = true,
   onClose,
 }: ModalProps) {
+  // Resolve shineColor: animated disables shine; true maps to variant preset
+  const shineColor = animated
+    ? undefined
+    : shineColorProp === true
+      ? VARIANT_TO_SHINE[variant]
+      : shineColorProp === false
+        ? undefined
+        : shineColorProp
+
   // Delay Radix unmount so close animation plays first.
   // dialogOpen stays true during close animation; closing triggers CSS exit classes.
   const [dialogOpen, setDialogOpen] = useState(false)
   const [closing, setClosing] = useState(false)
+
+  // Track viewport size for vw/vh resolution when transition is enabled
+  const [viewport, setViewport] = useState(() => ({
+    width: typeof window !== 'undefined' ? window.innerWidth : 1024,
+    height: typeof window !== 'undefined' ? window.innerHeight : 768,
+  }))
+
+  // Recalculate viewport on resize (only when transition is enabled)
+  useEffect(() => {
+    if (!enableTransition) return
+    function handleResize() {
+      setViewport({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      })
+    }
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [enableTransition])
+
+  // Resolve width/height to px values when transition is enabled
+  const resolvedWidth = useMemo(
+    () => (enableTransition ? resolvePx(width, viewport) : width),
+    [enableTransition, width, viewport],
+  )
+  const resolvedHeight = useMemo(
+    () =>
+      enableTransition && height !== undefined
+        ? resolvePx(height, viewport)
+        : height,
+    [enableTransition, height, viewport],
+  )
 
   useEffect(() => {
     if (open) {
@@ -120,18 +190,26 @@ export function Modal({
   return (
     <DialogPrimitive.Root
       open={dialogOpen}
-      onOpenChange={(o) => !o && onClose()}
+      onOpenChange={o => {
+        if (!o && closeOnBackdropClick) onClose()
+      }}
     >
       <DialogPrimitive.Portal>
         {/* Full-screen gradient overlay with fade animation */}
         <DialogPrimitive.Overlay
           className={cn(
             'glass-modal-overlay fixed inset-0 z-50',
-            GRADIENT_CLASS[variant],
+            !animated && GRADIENT_CLASS[variant],
             closing && 'glass-modal-closing',
           )}
           onAnimationEnd={handleCloseAnimationEnd}
-        />
+        >
+          {animated && (
+            <div className="absolute inset-0 overflow-hidden">
+              <div className="model-bg-animated" />
+            </div>
+          )}
+        </DialogPrimitive.Overlay>
 
         {/* Content — centered, with zoom animation (antd style) */}
         <DialogPrimitive.Content
@@ -140,18 +218,22 @@ export function Modal({
             'glass-modal-content fixed inset-0 z-50 flex items-center justify-center outline-none',
             closing && 'glass-modal-closing',
           )}
-          onClick={(e) => {
-            if (e.target === e.currentTarget) onClose()
+          onClick={e => {
+            if (e.target === e.currentTarget && closeOnBackdropClick) onClose()
           }}
-          onEscapeKeyDown={onClose}
+          onEscapeKeyDown={e => {
+            if (!closeOnBackdropClick) e.preventDefault()
+            else onClose()
+          }}
         >
-          {/* Accessible title (sr-only) */}
+          {/* Accessible title (sr-only) — falls back to header when title is not provided */}
           <DialogPrimitive.Title className="sr-only">
-            {title}
+            {title ?? header}
           </DialogPrimitive.Title>
 
           {/* Glassmorphism container with CSS entrance/exit animation */}
           <div
+            data-testid="modal-glass-container"
             className={cn(
               'relative',
               closing ? 'animate-modal-exit' : 'animate-modal-enter',
@@ -166,9 +248,19 @@ export function Modal({
               boxShadow: '0 8px 32px rgba(31, 38, 135, 0.1)',
               borderRadius: 16,
               padding: 40,
-              width: 500,
+              width: resolvedWidth,
+              height: resolvedHeight,
               maxWidth: 'calc(100vw - 32px)',
               overflow: 'hidden',
+              ...(enableTransition
+                ? {
+                    transition:
+                      'width 0.4s cubic-bezier(0.4, 0, 0.2, 1), height 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                  }
+                : {}),
+              ...(resolvedHeight
+                ? { display: 'flex', flexDirection: 'column' as const }
+                : {}),
             }}
           >
             {/* Animated shine border */}
@@ -180,41 +272,73 @@ export function Modal({
               />
             )}
 
+            {/* Close button */}
+            <RippleButton
+              onClick={onClose}
+              rippleColor="rgba(0,0,0,0.1)"
+              className="absolute right-2 top-2 z-10 flex size-10 items-center justify-center rounded-full text-gray-400 hover:text-gray-600"
+            >
+              <X size={24} />
+            </RippleButton>
+
             {/* Header */}
             {header && (
               <div
                 style={{
-                  fontSize: 16,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 6,
+                  fontSize: 18,
                   fontWeight: 500,
                   color: COLOR_MUTED,
                   textTransform: 'uppercase',
                   letterSpacing: 0.5,
                   marginBottom: 4,
-                  textAlign: 'center',
                 }}
               >
                 {header}
               </div>
             )}
 
-            {/* Title */}
-            <div
-              style={{
-                fontSize: 22,
-                fontWeight: 500,
-                color: COLOR_TEXT,
-                marginBottom: 24,
-                textAlign: 'center',
-              }}
-            >
-              {title}
-            </div>
+            {/* Title — only rendered when title prop is provided */}
+            {title && (
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 8,
+                  fontSize: 22,
+                  fontWeight: 500,
+                  color: COLOR_TEXT,
+                  marginBottom: 24,
+                }}
+              >
+                {title}
+              </div>
+            )}
 
             {/* Content */}
-            {children}
+            {height ? (
+              <div style={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
+                {children}
+              </div>
+            ) : (
+              children
+            )}
 
             {/* Footer */}
-            {footer && <div style={{ marginTop: 24 }}>{footer}</div>}
+            {footer && (
+              <div
+                style={{
+                  marginTop: height ? 'auto' : 24,
+                  paddingTop: height ? 16 : 0,
+                }}
+              >
+                {footer}
+              </div>
+            )}
 
             {/* Loading overlay */}
             {loading && (
@@ -256,6 +380,7 @@ export function ConfirmModal({
   open,
   title,
   variant = 'green',
+  animated = false,
   header,
   children,
   confirmText,
@@ -273,6 +398,7 @@ export function ConfirmModal({
     <Modal
       open={open}
       variant={variant}
+      animated={animated}
       header={resolvedHeader}
       title={title}
       shineColor={shineColor}
@@ -297,14 +423,13 @@ export function ConfirmModal({
               border: '1px solid rgba(0, 0, 0, 0.08)',
               padding: '12px 16px',
               borderRadius: 8,
-              fontSize: 14,
               fontWeight: 600,
               cursor: loading ? 'not-allowed' : 'pointer',
               opacity: loading ? 0.6 : 1,
               transition: 'transform 0.15s ease',
               flex: 1,
             }}
-            className={cn(!loading && 'hover:-translate-y-0.5')}
+            className={cn('text-md', !loading && 'hover:-translate-y-0.5')}
           >
             {resolvedCancelText}
           </button>
@@ -318,7 +443,6 @@ export function ConfirmModal({
               border: 'none',
               padding: '12px 16px',
               borderRadius: 8,
-              fontSize: 14,
               fontWeight: 600,
               cursor: loading ? 'not-allowed' : 'pointer',
               opacity: loading ? 0.6 : 1,
@@ -326,6 +450,7 @@ export function ConfirmModal({
               flex: 1,
             }}
             className={cn(
+              'text-md',
               !loading &&
                 'hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(0,0,0,0.15)]',
             )}

@@ -4,16 +4,15 @@ import userEvent from '@testing-library/user-event'
 import type { Employee, Attendance } from '@/lib/schemas'
 import { RecordModal } from './record-modal'
 
-// Mock sonner to capture toast calls — vi.hoisted ensures mockToast is
-// available when vi.mock factory (which is hoisted) executes.
-const mockToast = vi.hoisted(() => ({
+// Mock notify to capture toast calls
+const mockNotify = vi.hoisted(() => ({
   success: vi.fn(),
   error: vi.fn(),
   info: vi.fn(),
 }))
 
-vi.mock('sonner', () => ({
-  toast: mockToast,
+vi.mock('@/components/ui/sonner', () => ({
+  notify: mockNotify,
 }))
 
 // Mock API
@@ -89,7 +88,7 @@ describe('RecordModal — Toast Integration', () => {
     await user.click(screen.getByRole('button', { name: '儲存' }))
 
     await waitFor(() => {
-      expect(mockToast.success).toHaveBeenCalledWith('出勤記錄已新增')
+      expect(mockNotify.success).toHaveBeenCalledWith('出勤記錄已新增')
     })
   })
 
@@ -111,7 +110,7 @@ describe('RecordModal — Toast Integration', () => {
     await user.click(screen.getByRole('button', { name: '儲存' }))
 
     await waitFor(() => {
-      expect(mockToast.success).toHaveBeenCalledWith('出勤記錄已更新')
+      expect(mockNotify.success).toHaveBeenCalledWith('出勤記錄已更新')
     })
   })
 
@@ -133,7 +132,7 @@ describe('RecordModal — Toast Integration', () => {
     await user.click(screen.getByRole('button', { name: '刪除' }))
 
     await waitFor(() => {
-      expect(mockToast.success).toHaveBeenCalledWith('出勤記錄已刪除')
+      expect(mockNotify.success).toHaveBeenCalledWith('出勤記錄已刪除')
     })
   })
 
@@ -161,7 +160,7 @@ describe('RecordModal — Toast Integration', () => {
     await user.click(screen.getByRole('button', { name: '儲存' }))
 
     // Validation error should prevent toast
-    expect(mockToast.success).not.toHaveBeenCalled()
+    expect(mockNotify.success).not.toHaveBeenCalled()
   })
 
   it('should NOT show toast when cancel is clicked', async () => {
@@ -180,6 +179,6 @@ describe('RecordModal — Toast Integration', () => {
 
     await user.click(screen.getByRole('button', { name: '取消' }))
 
-    expect(mockToast.success).not.toHaveBeenCalled()
+    expect(mockNotify.success).not.toHaveBeenCalled()
   })
 })

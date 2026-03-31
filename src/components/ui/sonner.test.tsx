@@ -6,6 +6,9 @@ vi.mock('sonner', () => ({
   Toaster: (props: Record<string, unknown>) => (
     <div data-testid="sonner-toaster" data-props={JSON.stringify(props)} />
   ),
+  toast: {
+    custom: vi.fn(),
+  },
 }))
 
 describe('Toaster', () => {
@@ -22,14 +25,6 @@ describe('Toaster', () => {
     const toaster = container.querySelector('[data-testid="sonner-toaster"]')
     const props = JSON.parse(toaster?.getAttribute('data-props') ?? '{}')
     expect(props.position).toBe('top-right')
-  })
-
-  it('should enable rich colors by default', async () => {
-    const { Toaster } = await import('./sonner')
-    const { container } = render(<Toaster />)
-    const toaster = container.querySelector('[data-testid="sonner-toaster"]')
-    const props = JSON.parse(toaster?.getAttribute('data-props') ?? '{}')
-    expect(props.richColors).toBe(true)
   })
 
   it('should use 3000ms duration by default', async () => {
@@ -56,20 +51,28 @@ describe('Toaster', () => {
     expect(props.duration).toBe(5000)
   })
 
-  it('should allow disabling rich colors', async () => {
-    const { Toaster } = await import('./sonner')
-    const { container } = render(<Toaster richColors={false} />)
-    const toaster = container.querySelector('[data-testid="sonner-toaster"]')
-    const props = JSON.parse(toaster?.getAttribute('data-props') ?? '{}')
-    expect(props.richColors).toBe(false)
-  })
-
-  it('should pass toastOptions with font-sans className', async () => {
+  it('should set unstyled toastOptions', async () => {
     const { Toaster } = await import('./sonner')
     const { container } = render(<Toaster />)
     const toaster = container.querySelector('[data-testid="sonner-toaster"]')
     const props = JSON.parse(toaster?.getAttribute('data-props') ?? '{}')
     expect(props.toastOptions).toBeDefined()
-    expect(props.toastOptions.className).toBe('font-sans')
+    expect(props.toastOptions.unstyled).toBe(true)
+  })
+})
+
+describe('notify', () => {
+  it('should call toast.custom for success', async () => {
+    const { toast } = await import('sonner')
+    const { notify } = await import('./sonner')
+    notify.success('test message')
+    expect(toast.custom).toHaveBeenCalled()
+  })
+
+  it('should call toast.custom for error', async () => {
+    const { toast } = await import('sonner')
+    const { notify } = await import('./sonner')
+    notify.error('error message')
+    expect(toast.custom).toHaveBeenCalled()
   })
 })

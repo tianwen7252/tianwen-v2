@@ -14,7 +14,7 @@ export function useDbQuery<T>(
 
   useEffect(() => {
     let cancelled = false
-    queryFn().then((result) => {
+    queryFn().then(result => {
       if (!cancelled) setData(result)
     })
     return () => {

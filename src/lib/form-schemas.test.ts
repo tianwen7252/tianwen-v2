@@ -1,6 +1,16 @@
 import { describe, it, expect } from 'vitest'
-import { employeeFormSchema, recordFormSchema } from './form-schemas'
-import type { EmployeeFormValues, RecordFormValues } from './form-schemas'
+import {
+  employeeFormSchema,
+  recordFormSchema,
+  commodityFormSchema,
+  orderTypeFormSchema,
+} from './form-schemas'
+import type {
+  EmployeeFormValues,
+  RecordFormValues,
+  CommodityFormValues,
+  OrderTypeFormValues,
+} from './form-schemas'
 
 describe('employeeFormSchema', () => {
   describe('valid data', () => {
@@ -166,8 +176,8 @@ describe('recordFormSchema', () => {
       })
       expect(result.success).toBe(false)
       if (!result.success) {
-        const clockOutError = result.error.issues.find(
-          i => i.path.includes('clockOutTime'),
+        const clockOutError = result.error.issues.find(i =>
+          i.path.includes('clockOutTime'),
         )
         expect(clockOutError?.message).toBe('下班時間必須晚於上班時間')
       }
@@ -214,6 +224,124 @@ describe('recordFormSchema', () => {
     it('should reject invalid attendance type', () => {
       const result = recordFormSchema.safeParse({
         attendanceType: 'sick',
+      })
+      expect(result.success).toBe(false)
+    })
+  })
+})
+
+// ─── commodityFormSchema ──────────────────────────────────────────────────
+
+describe('commodityFormSchema', () => {
+  describe('valid data', () => {
+    it('accepts valid commodity form data with all fields', () => {
+      const data: CommodityFormValues = {
+        name: '油淋雞腿飯',
+        price: 140,
+        includesSoup: true,
+      }
+      const result = commodityFormSchema.safeParse(data)
+      expect(result.success).toBe(true)
+      if (result.success) {
+        expect(result.data.name).toBe('油淋雞腿飯')
+        expect(result.data.price).toBe(140)
+        expect(result.data.includesSoup).toBe(true)
+      }
+    })
+
+    it('accepts minimal required data (name + price)', () => {
+      const result = commodityFormSchema.safeParse({
+        name: '紅茶',
+        price: 25,
+      })
+      expect(result.success).toBe(true)
+      if (result.success) {
+        expect(result.data.includesSoup).toBe(false)
+      }
+    })
+
+    it('accepts price of 0', () => {
+      const result = commodityFormSchema.safeParse({
+        name: '贈品',
+        price: 0,
+      })
+      expect(result.success).toBe(true)
+    })
+  })
+
+  describe('invalid data', () => {
+    it('rejects empty name', () => {
+      const result = commodityFormSchema.safeParse({
+        name: '',
+        price: 100,
+      })
+      expect(result.success).toBe(false)
+    })
+
+    it('rejects missing name', () => {
+      const result = commodityFormSchema.safeParse({
+        price: 100,
+      })
+      expect(result.success).toBe(false)
+    })
+
+    it('rejects negative price', () => {
+      const result = commodityFormSchema.safeParse({
+        name: '紅茶',
+        price: -10,
+      })
+      expect(result.success).toBe(false)
+    })
+  })
+})
+
+// ─── orderTypeFormSchema ──────────────────────────────────────────────────
+
+describe('orderTypeFormSchema', () => {
+  describe('valid data', () => {
+    it('accepts valid order type form data', () => {
+      const data: OrderTypeFormValues = {
+        name: '攤位',
+        color: 'green',
+      }
+      const result = orderTypeFormSchema.safeParse(data)
+      expect(result.success).toBe(true)
+      if (result.success) {
+        expect(result.data.name).toBe('攤位')
+        expect(result.data.color).toBe('green')
+      }
+    })
+
+    it('accepts minimal required data (name only)', () => {
+      const result = orderTypeFormSchema.safeParse({
+        name: '外送',
+      })
+      expect(result.success).toBe(true)
+      if (result.success) {
+        expect(result.data.color).toBe('')
+      }
+    })
+
+    it('accepts empty color string', () => {
+      const result = orderTypeFormSchema.safeParse({
+        name: '外送',
+        color: '',
+      })
+      expect(result.success).toBe(true)
+    })
+  })
+
+  describe('invalid data', () => {
+    it('rejects empty name', () => {
+      const result = orderTypeFormSchema.safeParse({
+        name: '',
+      })
+      expect(result.success).toBe(false)
+    })
+
+    it('rejects missing name', () => {
+      const result = orderTypeFormSchema.safeParse({
+        color: 'green',
       })
       expect(result.success).toBe(false)
     })

@@ -46,11 +46,13 @@ export function SlideIn({
   return (
     <div
       className={className}
-      style={{
-        '--slide-from': fromTransform,
-        animation: `slide-in ${duration}s ease-out ${delay}s both`,
-        ...style,
-      } as React.CSSProperties}
+      style={
+        {
+          '--slide-from': fromTransform,
+          animation: `slide-in ${duration}s ease-out ${delay}s both`,
+          ...style,
+        } as React.CSSProperties
+      }
       {...rest}
     >
       {children}

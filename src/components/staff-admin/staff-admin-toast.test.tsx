@@ -12,16 +12,15 @@ vi.mock('@/lib/repositories', () => ({
   getEmployeeRepo: () => getEmployeeRepo(),
 }))
 
-// Mock sonner to capture toast calls — vi.hoisted ensures mockToast is
-// available when vi.mock factory (which is hoisted) executes.
-const mockToast = vi.hoisted(() => ({
+// Mock notify to capture toast calls
+const mockNotify = vi.hoisted(() => ({
   success: vi.fn(),
   error: vi.fn(),
   info: vi.fn(),
 }))
 
-vi.mock('sonner', () => ({
-  toast: mockToast,
+vi.mock('@/components/ui/sonner', () => ({
+  notify: mockNotify,
 }))
 
 // Mock the modal component to avoid Radix Portal issues in tests
@@ -104,7 +103,7 @@ describe('StaffAdmin — Toast Integration', () => {
     await user.click(screen.getByRole('button', { name: '確認' }))
 
     await waitFor(() => {
-      expect(mockToast.success).toHaveBeenCalledWith('員工已新增')
+      expect(mockNotify.success).toHaveBeenCalledWith('員工已新增')
     })
   })
 
@@ -124,7 +123,7 @@ describe('StaffAdmin — Toast Integration', () => {
     await user.click(screen.getByRole('button', { name: '確認' }))
 
     await waitFor(() => {
-      expect(mockToast.success).toHaveBeenCalledWith('員工資料已更新')
+      expect(mockNotify.success).toHaveBeenCalledWith('員工資料已更新')
     })
   })
 
@@ -140,7 +139,7 @@ describe('StaffAdmin — Toast Integration', () => {
     await user.click(within(confirmModal).getByText('confirm-delete'))
 
     await waitFor(() => {
-      expect(mockToast.success).toHaveBeenCalledWith('員工已刪除')
+      expect(mockNotify.success).toHaveBeenCalledWith('員工已刪除')
     })
   })
 
@@ -151,7 +150,7 @@ describe('StaffAdmin — Toast Integration', () => {
     await user.click(screen.getByRole('button', { name: /新增員工/ }))
     await user.click(screen.getByRole('button', { name: '確認' }))
 
-    expect(mockToast.success).not.toHaveBeenCalled()
+    expect(mockNotify.success).not.toHaveBeenCalled()
   })
 
   it('should NOT show toast when delete is cancelled', async () => {
@@ -165,6 +164,6 @@ describe('StaffAdmin — Toast Integration', () => {
     const confirmModal = screen.getByTestId('confirm-modal')
     await user.click(within(confirmModal).getByText('cancel-delete'))
 
-    expect(mockToast.success).not.toHaveBeenCalled()
+    expect(mockNotify.success).not.toHaveBeenCalled()
   })
 })

@@ -131,7 +131,9 @@ describe('Form Components', () => {
     })
 
     it('should not set aria-invalid when no error', () => {
-      render(<TestForm defaultValues={{ username: 'test', email: 'a@b.com' }} />)
+      render(
+        <TestForm defaultValues={{ username: 'test', email: 'a@b.com' }} />,
+      )
       const input = screen.getByPlaceholderText('Enter username')
       expect(input.getAttribute('aria-invalid')).toBeNull()
     })

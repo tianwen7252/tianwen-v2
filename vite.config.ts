@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react-swc'
 import tailwindcss from '@tailwindcss/vite'
+import basicSsl from '@vitejs/plugin-basic-ssl'
 import { VitePWA } from 'vite-plugin-pwa'
 import { resolve } from 'path'
 
@@ -8,13 +9,10 @@ export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
+    basicSsl(),
     VitePWA({
       registerType: 'prompt',
-      includeAssets: [
-        'favicon.ico',
-        'icons/*.png',
-        'images/**/*.png',
-      ],
+      includeAssets: ['favicon.ico', 'icons/*.png', 'images/**/*.png'],
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2,wasm}'],
         maximumFileSizeToCacheInBytes: 10 * 1024 * 1024,
@@ -50,11 +48,14 @@ export default defineConfig({
   optimizeDeps: {
     exclude: ['@sqlite.org/sqlite-wasm'],
   },
+  // https://10-0-0-23.sslip.io:5665/ for ipad if internal IP is 10.0.0.23
   server: {
     port: 5665,
+    host: true,
+    https: true,
     headers: {
-      'Cross-Origin-Opener-Policy': 'same-origin',
-      'Cross-Origin-Embedder-Policy': 'require-corp',
+      'Cross-Origin-Opener-Policy': 'same-origin-allow-popups',
+      'Cross-Origin-Embedder-Policy': 'credentialless',
     },
   },
 })

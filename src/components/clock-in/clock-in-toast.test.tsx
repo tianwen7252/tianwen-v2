@@ -14,16 +14,15 @@ vi.mock('@/lib/repositories', () => ({
   getAttendanceRepo: () => getAttendanceRepo(),
 }))
 
-// Mock sonner to capture toast calls — vi.hoisted ensures mockToast is
-// available when vi.mock factory (which is hoisted) executes.
-const mockToast = vi.hoisted(() => ({
+// Mock notify to capture toast calls
+const mockNotify = vi.hoisted(() => ({
   success: vi.fn(),
   error: vi.fn(),
   info: vi.fn(),
 }))
 
-vi.mock('sonner', () => ({
-  toast: mockToast,
+vi.mock('@/components/ui/sonner', () => ({
+  notify: mockNotify,
 }))
 
 describe('ClockIn — Toast Integration', () => {
@@ -52,7 +51,7 @@ describe('ClockIn — Toast Integration', () => {
     await user.click(screen.getByText('確認打卡'))
 
     await waitFor(() => {
-      expect(mockToast.success).toHaveBeenCalledWith('打卡上班成功')
+      expect(mockNotify.success).toHaveBeenCalledWith('打卡上班成功')
     })
   })
 
@@ -70,7 +69,7 @@ describe('ClockIn — Toast Integration', () => {
     await user.click(screen.getByText('確認下班'))
 
     await waitFor(() => {
-      expect(mockToast.success).toHaveBeenCalledWith('打卡下班成功')
+      expect(mockNotify.success).toHaveBeenCalledWith('打卡下班成功')
     })
   })
 
@@ -84,13 +83,13 @@ describe('ClockIn — Toast Integration', () => {
 
     // Click 申請休假 button for emp-004 (Grace)
     const graceCard = allCards.find(card => within(card).queryByText('Grace'))!
-    await user.click(within(graceCard).getByText('申請休假'))
+    await user.click(within(graceCard).getByText('休假'))
 
     // Confirm vacation
     await user.click(screen.getByText('確認休假'))
 
     await waitFor(() => {
-      expect(mockToast.success).toHaveBeenCalledWith('休假申請成功')
+      expect(mockNotify.success).toHaveBeenCalledWith('休假申請成功')
     })
   })
 
@@ -108,7 +107,7 @@ describe('ClockIn — Toast Integration', () => {
     await user.click(screen.getByText('確認取消'))
 
     await waitFor(() => {
-      expect(mockToast.success).toHaveBeenCalledWith('已取消休假')
+      expect(mockNotify.success).toHaveBeenCalledWith('已取消休假')
     })
   })
 
@@ -126,6 +125,6 @@ describe('ClockIn — Toast Integration', () => {
     // Cancel
     await user.click(screen.getByText('取消'))
 
-    expect(mockToast.success).not.toHaveBeenCalled()
+    expect(mockNotify.success).not.toHaveBeenCalled()
   })
 })

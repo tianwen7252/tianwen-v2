@@ -326,7 +326,9 @@ describe('StaffAdmin', () => {
       await user.click(within(confirmModal).getByText('確認'))
 
       await waitFor(async () => {
-        expect((await getEmployeeRepo().findAll()).length).toBe(initialCount - 1)
+        expect((await getEmployeeRepo().findAll()).length).toBe(
+          initialCount - 1,
+        )
       })
     })
 

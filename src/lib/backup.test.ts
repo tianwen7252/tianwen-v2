@@ -1,41 +1,12 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import {
   compress,
   decompress,
   generateBackupFilename,
   createBackupService,
-  type BackupConfig,
 } from './backup'
 
-// Mock Supabase client
-vi.mock('@supabase/supabase-js', () => ({
-  createClient: vi.fn(() => ({
-    storage: {
-      from: vi.fn(() => ({
-        upload: vi.fn().mockResolvedValue({ error: null }),
-        download: vi.fn().mockResolvedValue({
-          data: new Blob([new Uint8Array([1, 2, 3])]),
-          error: null,
-        }),
-        list: vi.fn().mockResolvedValue({
-          data: [
-            {
-              name: 'tianwen-backup-2026-03-21.db.gz',
-              created_at: '2026-03-21T10:00:00Z',
-              metadata: { size: 1024 },
-            },
-            {
-              name: 'other-file.txt',
-              created_at: '2026-03-20T10:00:00Z',
-              metadata: { size: 512 },
-            },
-          ],
-          error: null,
-        }),
-      })),
-    },
-  })),
-}))
+// ─── Tests ──────────────────────────────────────────────────────────────────
 
 describe('backup utilities', () => {
   describe('compress / decompress', () => {
@@ -50,7 +21,6 @@ describe('backup utilities', () => {
     })
 
     it('should produce smaller output for compressible data', async () => {
-      // Repeating data is highly compressible
       const repeating = new Uint8Array(1000).fill(65)
       const compressed = await compress(repeating)
 
@@ -67,59 +37,111 @@ describe('backup utilities', () => {
   })
 
   describe('generateBackupFilename', () => {
-    it('should generate a filename with timestamp', () => {
+    it('should generate a filename with unix timestamp', () => {
       const filename = generateBackupFilename()
 
-      expect(filename).toMatch(
-        /^tianwen-backup-\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}\.db\.gz$/,
-      )
+      expect(filename).toMatch(/^backup-\d+\.sqlite\.gz$/)
     })
 
     it('should generate unique filenames on consecutive calls', () => {
       const name1 = generateBackupFilename()
-      // Filenames within the same second will be the same
-      // But the format should be consistent
-      expect(name1).toContain('tianwen-backup-')
-      expect(name1).toContain('.db.gz')
+      expect(name1).toMatch(/^backup-\d+\.sqlite\.gz$/)
     })
   })
 
   describe('createBackupService', () => {
-    const config: BackupConfig = {
-      supabaseUrl: 'https://test.supabase.co',
-      supabaseAnonKey: 'test-key',
-      bucketName: 'backups',
-    }
+    beforeEach(() => {
+      vi.restoreAllMocks()
+    })
 
     it('should export database with compression', async () => {
-      const service = createBackupService(config)
+      const service = createBackupService()
       const dbData = new TextEncoder().encode('fake sqlite db data')
       const compressed = await service.exportDatabase(dbData)
 
-      // Compressed data should be a valid Uint8Array
       expect(compressed).toBeInstanceOf(Uint8Array)
       expect(compressed.length).toBeGreaterThan(0)
     })
 
-    it('should upload compressed data', async () => {
-      const service = createBackupService(config)
-      const data = new Uint8Array([1, 2, 3])
-      const metadata = await service.upload(data, 'test-backup.db.gz')
+    it('should upload compressed data via PUT to /api/backup', async () => {
+      const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          success: true,
+          metadata: {
+            filename: 'backup-1711814400000.sqlite.gz',
+            size: 3,
+            createdAt: '2026-03-30T00:00:00Z',
+          },
+        }),
+      } as Response)
 
-      expect(metadata.filename).toBe('test-backup.db.gz')
+      const service = createBackupService()
+      const data = new Uint8Array([1, 2, 3])
+      const metadata = await service.upload(
+        data,
+        'backup-1711814400000.sqlite.gz',
+      )
+
+      expect(fetchSpy).toHaveBeenCalledWith(
+        '/api/backup/backup-1711814400000.sqlite.gz',
+        expect.objectContaining({
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/gzip' },
+          body: expect.any(Blob),
+        }),
+      )
+      expect(metadata.filename).toBe('backup-1711814400000.sqlite.gz')
       expect(metadata.size).toBe(3)
-      expect(metadata.createdAt).toBeDefined()
+      expect(metadata.createdAt).toBe('2026-03-30T00:00:00Z')
     })
 
-    it('should download backup file', async () => {
-      const service = createBackupService(config)
-      const data = await service.download('test-backup.db.gz')
+    it('should throw when upload returns non-ok response', async () => {
+      vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+        ok: false,
+        status: 500,
+        statusText: 'Internal Server Error',
+      } as Response)
 
-      expect(data).toBeInstanceOf(Uint8Array)
+      const service = createBackupService()
+      const data = new Uint8Array([1, 2, 3])
+
+      await expect(
+        service.upload(data, 'backup-123.sqlite.gz'),
+      ).rejects.toThrow('Upload failed')
+    })
+
+    it('should download backup file via GET from /api/backup', async () => {
+      const binaryData = new Uint8Array([1, 2, 3])
+      const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+        ok: true,
+        arrayBuffer: async () => binaryData.buffer,
+      } as Response)
+
+      const service = createBackupService()
+      const result = await service.download('backup-123.sqlite.gz')
+
+      expect(fetchSpy).toHaveBeenCalledWith('/api/backup/backup-123.sqlite.gz')
+      expect(result).toBeInstanceOf(Uint8Array)
+      expect(result).toEqual(binaryData)
+    })
+
+    it('should throw when download returns non-ok response', async () => {
+      vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+        ok: false,
+        status: 404,
+        statusText: 'Not Found',
+      } as Response)
+
+      const service = createBackupService()
+
+      await expect(service.download('missing.sqlite.gz')).rejects.toThrow(
+        'Download failed',
+      )
     })
 
     it('should restore database from compressed data', async () => {
-      const service = createBackupService(config)
+      const service = createBackupService()
       const original = new TextEncoder().encode('restore test data')
       const compressed = await compress(original)
       const restored = await service.restoreDatabase(compressed)
@@ -127,13 +149,45 @@ describe('backup utilities', () => {
       expect(restored).toEqual(original)
     })
 
-    it('should list only .db.gz backups', async () => {
-      const service = createBackupService(config)
+    it('should list only .sqlite.gz backups via GET from /api/backup', async () => {
+      const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          success: true,
+          data: [
+            {
+              filename: 'backup-1711814400000.sqlite.gz',
+              size: 1024,
+              createdAt: '2026-03-21T10:00:00Z',
+            },
+            {
+              filename: 'other-file.txt',
+              size: 512,
+              createdAt: '2026-03-20T10:00:00Z',
+            },
+          ],
+        }),
+      } as Response)
+
+      const service = createBackupService()
       const backups = await service.listBackups()
 
+      expect(fetchSpy).toHaveBeenCalledWith('/api/backup')
       expect(backups).toHaveLength(1)
-      expect(backups[0]?.filename).toBe('tianwen-backup-2026-03-21.db.gz')
+      expect(backups[0]?.filename).toBe('backup-1711814400000.sqlite.gz')
       expect(backups[0]?.size).toBe(1024)
+    })
+
+    it('should throw when listBackups returns non-ok response', async () => {
+      vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+        ok: false,
+        status: 403,
+        statusText: 'Forbidden',
+      } as Response)
+
+      const service = createBackupService()
+
+      await expect(service.listBackups()).rejects.toThrow('List backups failed')
     })
   })
 })

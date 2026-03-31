@@ -2,7 +2,10 @@
 <html lang="zh-TW">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
     <title>天文 POS</title>
 
     <!-- PWA Manifest -->
@@ -13,6 +16,7 @@
 
     <!-- iOS PWA meta tags -->
     <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="天文" />
     <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
@@ -22,6 +26,9 @@
 
     <!-- Prevent auto-linking phone numbers (important for POS prices) -->
     <meta name="format-detection" content="telephone=no" />
+
+    <!-- Google Identity Services (OAuth) -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
   </head>
   <body>
     <div id="root"></div>

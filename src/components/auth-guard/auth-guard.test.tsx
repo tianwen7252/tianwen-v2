@@ -1,11 +1,32 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
 import { AuthGuard } from './auth-guard'
 
+// ─── Mocks ───────────────────────────────────────────────────────────────────
+
+let mockGoogleUser: { sub: string; name: string; email: string } | null = null
+let mockIsAdmin = false
+
+vi.mock('@/hooks/use-google-auth', () => ({
+  useGoogleAuth: () => ({
+    googleUser: mockGoogleUser,
+    isLoggedIn: mockGoogleUser !== null,
+    isAdmin: mockIsAdmin,
+    login: vi.fn(),
+    logout: vi.fn(),
+  }),
+}))
+
+// ─── Tests ───────────────────────────────────────────────────────────────────
+
 describe('AuthGuard', () => {
-  describe('unauthenticated state', () => {
-    it('should render lock icon and login screen by default', () => {
+  beforeEach(() => {
+    mockGoogleUser = null
+    mockIsAdmin = false
+  })
+
+  describe('not logged in', () => {
+    it('should show login screen with lock icon', () => {
       render(
         <AuthGuard>
           <div>Protected content</div>
@@ -13,13 +34,13 @@ describe('AuthGuard', () => {
       )
       expect(screen.queryByText('Protected content')).toBeNull()
       expect(screen.getByText('權限不足')).toBeTruthy()
-      expect(screen.getByRole('button', { name: '管理員登入' })).toBeTruthy()
+      expect(screen.getByText('請點擊右上角的登入按鈕')).toBeTruthy()
     })
 
-    it('should show staffAdmin subtitle for staffAdmin variant', () => {
+    it('should show staffAdmin subtitle', () => {
       render(
         <AuthGuard variant="staffAdmin">
-          <div>Staff admin content</div>
+          <div>Content</div>
         </AuthGuard>,
       )
       expect(
@@ -27,97 +48,66 @@ describe('AuthGuard', () => {
       ).toBeTruthy()
     })
 
-    it('should show backup subtitle for backup variant', () => {
+    it('should show backup subtitle', () => {
       render(
         <AuthGuard variant="backup">
-          <div>Backup content</div>
+          <div>Content</div>
         </AuthGuard>,
       )
       expect(
         screen.getByText('此功能僅限管理員使用，請以管理員帳號登入'),
       ).toBeTruthy()
     })
-
-    it('should default to staffAdmin variant subtitle', () => {
-      render(
-        <AuthGuard>
-          <div>Content</div>
-        </AuthGuard>,
-      )
-      expect(
-        screen.getByText('此頁面僅限管理員使用，請以管理員帳號登入'),
-      ).toBeTruthy()
-    })
-
-    it('should not render children when unauthenticated', () => {
-      render(
-        <AuthGuard>
-          <div>Secret content</div>
-        </AuthGuard>,
-      )
-      expect(screen.queryByText('Secret content')).toBeNull()
-    })
   })
 
-  describe('authentication flow', () => {
-    it('should render children after login button is clicked', async () => {
-      const user = userEvent.setup()
+  describe('logged in but not admin', () => {
+    beforeEach(() => {
+      mockGoogleUser = {
+        sub: '999',
+        name: 'Regular',
+        email: 'regular@test.com',
+      }
+      mockIsAdmin = false
+    })
+
+    it('should show admin-only message', () => {
       render(
         <AuthGuard>
           <div>Protected content</div>
         </AuthGuard>,
       )
-      await user.click(screen.getByRole('button', { name: '管理員登入' }))
-      expect(screen.getByText('Protected content')).toBeTruthy()
-    })
-
-    it('should show admin info bar after authentication', async () => {
-      const user = userEvent.setup()
-      render(
-        <AuthGuard>
-          <div>Content</div>
-        </AuthGuard>,
-      )
-      await user.click(screen.getByRole('button', { name: '管理員登入' }))
-      expect(screen.getByText('管理員 / admin@tianwen.app')).toBeTruthy()
-      expect(screen.getByRole('button', { name: '登出' })).toBeTruthy()
-    })
-
-    it('should return to login screen after logout', async () => {
-      const user = userEvent.setup()
-      render(
-        <AuthGuard>
-          <div>Protected content</div>
-        </AuthGuard>,
-      )
-      // Login
-      await user.click(screen.getByRole('button', { name: '管理員登入' }))
-      expect(screen.getByText('Protected content')).toBeTruthy()
-
-      // Logout
-      await user.click(screen.getByRole('button', { name: '登出' }))
       expect(screen.queryByText('Protected content')).toBeNull()
-      expect(screen.getByRole('button', { name: '管理員登入' })).toBeTruthy()
+      expect(screen.getByText('僅限管理員')).toBeTruthy()
     })
   })
 
-  describe('variant-specific titles', () => {
-    it('should show correct title for staffAdmin variant', () => {
-      render(
-        <AuthGuard variant="staffAdmin">
-          <div>Content</div>
-        </AuthGuard>,
-      )
-      expect(screen.getByText('權限不足')).toBeTruthy()
+  describe('logged in as admin', () => {
+    beforeEach(() => {
+      mockGoogleUser = {
+        sub: '112232479673923380065',
+        name: 'Admin',
+        email: 'admin@test.com',
+      }
+      mockIsAdmin = true
     })
 
-    it('should show correct title for backup variant', () => {
+    it('should render children', () => {
       render(
-        <AuthGuard variant="backup">
+        <AuthGuard>
+          <div>Protected content</div>
+        </AuthGuard>,
+      )
+      expect(screen.getByText('Protected content')).toBeTruthy()
+    })
+
+    it('should not show login screen or admin bar', () => {
+      render(
+        <AuthGuard>
           <div>Content</div>
         </AuthGuard>,
       )
-      expect(screen.getByText('權限不足')).toBeTruthy()
+      expect(screen.queryByText('權限不足')).toBeNull()
+      expect(screen.queryByText('僅限管理員')).toBeNull()
     })
   })
 })

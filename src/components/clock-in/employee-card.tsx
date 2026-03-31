@@ -54,7 +54,8 @@ export function EmployeeCard({
   return (
     <div
       className={cn(
-        'cursor-pointer rounded-xl border border-[#eee] bg-card px-2.5 py-5 text-center flex flex-col shadow-[0_1px_3px_rgba(0,0,0,0.08)] transition-[shadow,transform] duration-200 hover:shadow-md hover:scale-[1.02] active:scale-[0.98]',
+        'cursor-pointer rounded-xl border border-[#eee] bg-card px-2.5 py-5 text-center flex flex-col shadow-[0_1px_3px_rgba(0,0,0,0.08)] ',
+        'transition-all ease-in-out duration-200 hover:shadow-md hover:scale-[1.02] active:scale-[0.95]',
         cardBgClass,
       )}
       data-testid="employee-card"
@@ -62,7 +63,7 @@ export function EmployeeCard({
       tabIndex={0}
       aria-label={`${employee.name} ${t('nav.clockIn')} — ${badgeText}`}
       onClick={() => onCardClick(employee, records)}
-      onKeyDown={(e) => e.key === 'Enter' && onCardClick(employee, records)}
+      onKeyDown={e => e.key === 'Enter' && onCardClick(employee, records)}
     >
       {/* Avatar with colored border */}
       <div className="mx-auto mb-3">
@@ -75,7 +76,7 @@ export function EmployeeCard({
       </div>
 
       {/* Name */}
-      <div className="text-[16px] font-semibold" style={{ color: '#1a202c' }}>
+      <div className="text-[20px]" style={{ color: '#1a202c' }}>
         {employee.name}
       </div>
 
@@ -140,17 +141,15 @@ export function EmployeeCard({
           <>
             <button
               type="button"
-              className="rounded-lg border bg-white text-[#444] px-3 py-1.5 text-sm font-semibold hover:bg-[#6b8058]"
-              onClick={(e) => onButtonAction(e, employee, 'clockIn', undefined)}
+              className="rounded-lg border bg-white text-[#444] px-3 py-1.5 text-sm hover:bg-[#6b8058]"
+              onClick={e => onButtonAction(e, employee, 'clockIn', undefined)}
             >
               {t('clockIn.clockIn')}
             </button>
             <button
               type="button"
-              className="rounded-lg border bg-white text-[#444] px-3 py-1.5 text-sm font-semibold hover:bg-[#e06868]"
-              onClick={(e) =>
-                onButtonAction(e, employee, 'vacation', undefined)
-              }
+              className="rounded-lg border bg-white text-[#444] px-3 py-1.5 text-sm hover:bg-[#e06868]"
+              onClick={e => onButtonAction(e, employee, 'vacation', undefined)}
             >
               {t('clockIn.applyVacation')}
             </button>
@@ -159,8 +158,8 @@ export function EmployeeCard({
         {isClockedIn && (
           <button
             type="button"
-            className="rounded-lg border bg-white text-[#444] px-3 py-1.5 text-sm font-semibold hover:bg-[#6b8058]"
-            onClick={(e) => onButtonAction(e, employee, 'clockOut', lastRecord)}
+            className="rounded-lg border bg-white text-[#444] px-3 py-1.5 text-sm hover:bg-[#6b8058]"
+            onClick={e => onButtonAction(e, employee, 'clockOut', lastRecord)}
           >
             {t('clockIn.clockOut')}
           </button>
@@ -168,8 +167,8 @@ export function EmployeeCard({
         {isClockedOut && (
           <button
             type="button"
-            className="rounded-lg border bg-white text-[#444] px-3 py-1.5 text-sm font-semibold hover:bg-[#6b8058]"
-            onClick={(e) => onButtonAction(e, employee, 'clockIn', undefined)}
+            className="rounded-lg border bg-white text-[#444] px-3 py-1.5 text-sm hover:bg-[#6b8058]"
+            onClick={e => onButtonAction(e, employee, 'clockIn', undefined)}
           >
             {t('clockIn.clockIn')}
           </button>
@@ -177,8 +176,8 @@ export function EmployeeCard({
         {isVacation && (
           <button
             type="button"
-            className="rounded-lg border bg-white text-[#444] px-3 py-1.5 text-sm font-semibold hover:bg-gray-500"
-            onClick={(e) =>
+            className="rounded-lg border bg-white text-[#444] px-3 py-1.5 text-sm hover:bg-gray-500"
+            onClick={e =>
               onButtonAction(e, employee, 'cancelVacation', lastRecord)
             }
           >

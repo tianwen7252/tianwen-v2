@@ -30,6 +30,102 @@
   }
 }
 
+@scope (.model-blue) {
+  :scope {
+    background:
+      radial-gradient(ellipse at 20% 50%, #d4ecf8 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 20%, #b8d9f0 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 80%, #cce4f5 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 80%, #d8ecf8 0%, transparent 50%), #e8f4fd;
+  }
+}
+
+@scope (.model-orange) {
+  :scope {
+    background:
+      radial-gradient(ellipse at 20% 50%, #fef0d8 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 20%, #fde3be 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 80%, #fffbf2 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 80%, #fff8ee 0%, transparent 50%), #fffbf5;
+  }
+}
+
+@scope (.model-gray) {
+  :scope {
+    background:
+      radial-gradient(ellipse at 20% 50%, #c8c8d4 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 20%, #d4ccc8 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 80%, #d0d0dc 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 80%, #dcd8d4 0%, transparent 50%), #ededef;
+  }
+}
+
+/* Animated overlay — cycles through all gradient variants with rotation */
+@keyframes bg-spin {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+@keyframes bg-cycle {
+  0% {
+    background:
+      radial-gradient(ellipse at 20% 50%, #f1f7ed 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 20%, #eff6e9 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 80%, #f1f5f9 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 80%, #f8fafc 0%, transparent 50%), #f8fafc;
+  }
+  16.67% {
+    background:
+      radial-gradient(ellipse at 20% 50%, #fff7ed 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 20%, #f5f3ff 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 80%, #fff1f2 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 80%, #fdf4ff 0%, transparent 50%), #fdf4ff;
+  }
+  33.33% {
+    background:
+      radial-gradient(ellipse at 20% 50%, #fff1f2 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 20%, #ffe4e6 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 80%, #fce7f3 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 80%, #fef2f2 0%, transparent 50%), #fef2f2;
+  }
+  50% {
+    background:
+      radial-gradient(ellipse at 20% 50%, #d4ecf8 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 20%, #b8d9f0 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 80%, #cce4f5 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 80%, #d8ecf8 0%, transparent 50%), #e8f4fd;
+  }
+  66.67% {
+    background:
+      radial-gradient(ellipse at 20% 50%, #fef0d8 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 20%, #fde3be 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 80%, #fffbf2 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 80%, #fff8ee 0%, transparent 50%), #fffbf5;
+  }
+  83.33% {
+    background:
+      radial-gradient(ellipse at 20% 50%, #c8c8d4 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 20%, #d4ccc8 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 80%, #d0d0dc 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 80%, #dcd8d4 0%, transparent 50%), #ededef;
+  }
+}
+
+.model-bg-animated {
+  position: absolute;
+  width: 150vmax;
+  height: 150vmax;
+  top: 50%;
+  left: 50%;
+  animation:
+    bg-spin 3s linear infinite,
+    bg-cycle 18s step-end infinite; /* 3s x 6 colors  */
+}
+
 /* ─── Modal animations (Ant Design style) ─────────────────────────────────── */
 
 /* Overlay: fade in/out */

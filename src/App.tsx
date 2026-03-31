@@ -50,7 +50,7 @@ export function App() {
         setStatus('ready')
 
         const existing = database.exec<{ cnt: number }>(
-          'SELECT COUNT(*) as cnt FROM commondities',
+          'SELECT COUNT(*) as cnt FROM commodities',
         )
         setPersistenceCount(existing.rows[0]?.cnt ?? 0)
       } catch (err) {
@@ -77,7 +77,7 @@ export function App() {
     const insertStart = performance.now()
     try {
       db.exec(
-        `INSERT INTO commondities (id, type_id, name, price, priority, on_market)
+        `INSERT INTO commodities (id, type_id, name, price, priority, on_market)
          VALUES (?, ?, ?, ?, ?, ?)`,
         ['poc-1', 'main-dish', 'POC Test Item', 100, 1, 1],
       )
@@ -99,7 +99,7 @@ export function App() {
     const selectStart = performance.now()
     try {
       const result = db.exec<{ id: string; name: string; price: number }>(
-        'SELECT id, name, price FROM commondities WHERE id = ?',
+        'SELECT id, name, price FROM commodities WHERE id = ?',
         ['poc-1'],
       )
       newResults.push({
@@ -121,9 +121,9 @@ export function App() {
     // UPDATE test
     const updateStart = performance.now()
     try {
-      db.exec('UPDATE commondities SET price = ? WHERE id = ?', [200, 'poc-1'])
+      db.exec('UPDATE commodities SET price = ? WHERE id = ?', [200, 'poc-1'])
       const verify = db.exec<{ price: number }>(
-        'SELECT price FROM commondities WHERE id = ?',
+        'SELECT price FROM commodities WHERE id = ?',
         ['poc-1'],
       )
       newResults.push({
@@ -143,9 +143,9 @@ export function App() {
     // DELETE test
     const deleteStart = performance.now()
     try {
-      db.exec('DELETE FROM commondities WHERE id = ?', ['poc-1'])
+      db.exec('DELETE FROM commodities WHERE id = ?', ['poc-1'])
       const verify = db.exec<{ cnt: number }>(
-        'SELECT COUNT(*) as cnt FROM commondities WHERE id = ?',
+        'SELECT COUNT(*) as cnt FROM commodities WHERE id = ?',
         ['poc-1'],
       )
       newResults.push({
@@ -165,18 +165,18 @@ export function App() {
     // Bulk INSERT performance test — clean up first to handle re-entrancy
     const bulkStart = performance.now()
     try {
-      db.exec("DELETE FROM commondities WHERE id LIKE 'bulk-%'")
+      db.exec("DELETE FROM commodities WHERE id LIKE 'bulk-%'")
       db.exec('BEGIN TRANSACTION')
       for (let i = 0; i < 100; i++) {
         db.exec(
-          `INSERT INTO commondities (id, type_id, name, price, priority, on_market)
+          `INSERT INTO commodities (id, type_id, name, price, priority, on_market)
            VALUES (?, ?, ?, ?, ?, ?)`,
           [`bulk-${i}`, 'main-dish', `Bulk Item ${i}`, i * 10, i, 1],
         )
       }
       db.exec('COMMIT')
       const count = db.exec<{ cnt: number }>(
-        "SELECT COUNT(*) as cnt FROM commondities WHERE id LIKE 'bulk-%'",
+        "SELECT COUNT(*) as cnt FROM commodities WHERE id LIKE 'bulk-%'",
       )
       newResults.push({
         operation: 'BULK INSERT (100 rows)',
@@ -186,7 +186,7 @@ export function App() {
       })
 
       // Cleanup bulk data
-      db.exec("DELETE FROM commondities WHERE id LIKE 'bulk-%'")
+      db.exec("DELETE FROM commodities WHERE id LIKE 'bulk-%'")
     } catch (err) {
       try {
         db.exec('ROLLBACK')
@@ -210,7 +210,7 @@ export function App() {
     try {
       const timestamp = Date.now()
       db.exec(
-        `INSERT OR REPLACE INTO commondities (id, type_id, name, price, priority, on_market)
+        `INSERT OR REPLACE INTO commodities (id, type_id, name, price, priority, on_market)
          VALUES (?, ?, ?, ?, ?, ?)`,
         ['persist-test', 'main-dish', `Persisted at ${timestamp}`, 999, 0, 1],
       )
@@ -244,7 +244,7 @@ export function App() {
         </p>
         {persistenceCount !== null && (
           <p>
-            Existing rows in commondities table:{' '}
+            Existing rows in commodities table:{' '}
             <strong>{persistenceCount}</strong>
             {persistenceCount > 0 && ' (data persisted from previous session!)'}
           </p>

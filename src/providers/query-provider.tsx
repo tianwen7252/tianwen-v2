@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
-const DEFAULT_STALE_TIME = 5 * 60 * 1000 // 5 minutes
+const DEFAULT_STALE_TIME = 0
 
 export function QueryProvider({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(

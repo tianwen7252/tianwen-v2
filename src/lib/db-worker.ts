@@ -6,14 +6,24 @@
  */
 
 import sqlite3InitModule from '@sqlite.org/sqlite-wasm'
-import { CREATE_TABLES } from '@/lib/schema'
-import { SEED_EMPLOYEES, buildSeedAttendances } from '@/lib/seed-data'
+import { initSchema } from '@/lib/schema'
+import {
+  insertDefaultEmployees,
+  insertDefaultCommodities,
+  insertDefaultOrderTypes,
+  deleteDefaultData,
+  clearAllData,
+} from '@/lib/default-data'
 import type { WorkerRequest, WorkerResponse } from '@/lib/worker-database'
 import type { Database } from '@/lib/database'
 
 // ─── State ──────────────────────────────────────────────────────────────────
 
 let db: Database | null = null
+/** Raw SQLite db handle, needed for sqlite3_js_db_export */
+let rawDbHandle: unknown = null
+/** SQLite3 module reference, needed for capi.sqlite3_js_db_export */
+let sqlite3Ref: Awaited<ReturnType<typeof sqlite3InitModule>> | null = null
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -43,49 +53,14 @@ function wrapSahPoolDb(rawDb: unknown): Database {
   }
 }
 
-/** Seed employees and attendances into an empty database */
-function seedData(database: Database): void {
-  for (const emp of SEED_EMPLOYEES) {
-    database.exec(
-      `INSERT INTO employees (id, name, avatar, status, shift_type, employee_no, is_admin, hire_date, resignation_date, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
-        emp.id,
-        emp.name,
-        emp.avatar ?? null,
-        emp.status,
-        emp.shiftType,
-        emp.employeeNo ?? null,
-        emp.isAdmin ? 1 : 0,
-        emp.hireDate ?? null,
-        emp.resignationDate ?? null,
-        emp.createdAt,
-        emp.updatedAt,
-      ],
-    )
-  }
-
-  const attendances = buildSeedAttendances()
-  for (const att of attendances) {
-    database.exec(
-      `INSERT INTO attendances (id, employee_id, date, clock_in, clock_out, type)
-       VALUES (?, ?, ?, ?, ?, ?)`,
-      [
-        att.id,
-        att.employeeId,
-        att.date,
-        att.clockIn ?? null,
-        att.clockOut ?? null,
-        att.type,
-      ],
-    )
-  }
-}
-
 // ─── Post typed messages ────────────────────────────────────────────────────
 
-function post(msg: WorkerResponse): void {
-  self.postMessage(msg)
+function post(msg: WorkerResponse, transfer?: Transferable[]): void {
+  if (transfer) {
+    self.postMessage(msg, transfer)
+  } else {
+    self.postMessage(msg)
+  }
 }
 
 // ─── Message handler ────────────────────────────────────────────────────────
@@ -101,25 +76,51 @@ self.onmessage = async (e: MessageEvent<WorkerRequest>) => {
         initialCapacity: 6,
       })
       const rawDb = new sahPoolUtil.OpfsSAHPoolDb('tianwen.db')
+      rawDbHandle = rawDb
+      sqlite3Ref = sqlite3
       db = wrapSahPoolDb(rawDb)
 
-      // Initialize schema
-      db.exec('PRAGMA foreign_keys = ON')
-      db.exec(CREATE_TABLES)
+      // Initialize schema + run migrations for existing DBs
+      initSchema((sql: string) => db!.exec(sql))
 
-      // Clear all data if deleteSeedData is enabled (takes precedence)
-      if (msg.deleteSeedData) {
-        db.exec('DELETE FROM attendances')
-        db.exec('DELETE FROM employees')
+      // Full wipe takes highest precedence
+      if (msg.clearDbData) {
+        clearAllData(db)
+      } else if (msg.deleteDefaultData) {
+        // Delete only default data items, leaving user-created data intact
+        deleteDefaultData(db)
       }
 
-      // Seed if enabled and employees table is empty
-      if (msg.enableSeedData && !msg.deleteSeedData) {
-        const result = db.exec<{ cnt: number }>(
-          'SELECT COUNT(*) as cnt FROM employees',
-        )
-        if (result.rows[0]?.cnt === 0) {
-          seedData(db)
+      // Insert default data when enabled and not in a destructive mode
+      if (msg.enableDefaultData && !msg.deleteDefaultData && !msg.clearDbData) {
+        if (msg.shouldResetData) {
+          // Version changed: clean slate for default items then re-insert
+          deleteDefaultData(db)
+          insertDefaultEmployees(db)
+          insertDefaultCommodities(db)
+          insertDefaultOrderTypes(db)
+        } else {
+          // Insert only into empty tables
+          const empCount = db.exec<{ cnt: number }>(
+            'SELECT COUNT(*) as cnt FROM employees',
+          )
+          if (Number(empCount.rows[0]?.cnt) === 0) {
+            insertDefaultEmployees(db)
+          }
+
+          const comCount = db.exec<{ cnt: number }>(
+            'SELECT COUNT(*) as cnt FROM commodities',
+          )
+          if (Number(comCount.rows[0]?.cnt) === 0) {
+            insertDefaultCommodities(db)
+          }
+
+          const otCount = db.exec<{ cnt: number }>(
+            'SELECT COUNT(*) as cnt FROM order_types',
+          )
+          if (Number(otCount.rows[0]?.cnt) === 0) {
+            insertDefaultOrderTypes(db)
+          }
         }
       }
 
@@ -131,7 +132,11 @@ self.onmessage = async (e: MessageEvent<WorkerRequest>) => {
 
   if (msg.type === 'exec') {
     if (!db) {
-      post({ type: 'exec-error', id: msg.id, error: 'Database not initialized' })
+      post({
+        type: 'exec-error',
+        id: msg.id,
+        error: 'Database not initialized',
+      })
       return
     }
 
@@ -145,6 +150,35 @@ self.onmessage = async (e: MessageEvent<WorkerRequest>) => {
       })
     } catch (err) {
       post({ type: 'exec-error', id: msg.id, error: String(err) })
+    }
+  }
+
+  if (msg.type === 'export-db') {
+    if (!db || !rawDbHandle || !sqlite3Ref) {
+      post({
+        type: 'export-db-error',
+        id: msg.id,
+        error: 'Database not initialized',
+      })
+      return
+    }
+
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const bytes = sqlite3Ref.capi.sqlite3_js_db_export(rawDbHandle as any)
+      // Copy into an isolated buffer — bytes.buffer is the live WASM heap,
+      // transferring it directly would detach WASM memory and crash the worker.
+      const copy = bytes.slice()
+      post(
+        {
+          type: 'export-db-result',
+          id: msg.id,
+          data: copy.buffer,
+        },
+        [copy.buffer],
+      )
+    } catch (err) {
+      post({ type: 'export-db-error', id: msg.id, error: String(err) })
     }
   }
 }

@@ -1,15 +1,7 @@
 /**
- * Backup/restore service for SQLite database via Supabase Storage.
- * Exports the database as a gzipped file and uploads to Supabase Storage bucket.
+ * Backup/restore service for SQLite database via Vercel Function API.
+ * Exports the database as a gzipped file and uploads via same-origin fetch.
  */
-
-import { createClient, type SupabaseClient } from '@supabase/supabase-js'
-
-export interface BackupConfig {
-  readonly supabaseUrl: string
-  readonly supabaseAnonKey: string
-  readonly bucketName: string
-}
 
 export interface BackupMetadata {
   readonly filename: string
@@ -89,56 +81,53 @@ export async function decompress(data: Uint8Array): Promise<Uint8Array> {
 
 /**
  * Generate a timestamped backup filename.
+ * Format: backup-{unix_timestamp}.sqlite.gz
  */
 export function generateBackupFilename(): string {
-  const now = new Date()
-  const timestamp = now.toISOString().replace(/[:.]/g, '-').slice(0, 19)
-  return `tianwen-backup-${timestamp}.db.gz`
+  return `backup-${Date.now()}.sqlite.gz`
 }
 
 /**
- * Create a backup service backed by Supabase Storage.
+ * Create a backup service backed by Vercel Function API (/api/backup).
+ * No credentials needed — same-origin request, R2 auth is server-side.
  */
-export function createBackupService(config: BackupConfig): BackupService {
-  const supabase: SupabaseClient = createClient(
-    config.supabaseUrl,
-    config.supabaseAnonKey,
-  )
-
+export function createBackupService(): BackupService {
   return {
     async exportDatabase(dbData: Uint8Array): Promise<Uint8Array> {
       return compress(dbData)
     },
 
     async upload(data: Uint8Array, filename: string): Promise<BackupMetadata> {
-      const { error } = await supabase.storage
-        .from(config.bucketName)
-        .upload(filename, data, {
-          contentType: 'application/gzip',
-          upsert: true,
-        })
+      const response = await fetch(`/api/backup/${filename}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/gzip' },
+        body: new Blob([data as BlobPart], { type: 'application/gzip' }),
+      })
 
-      if (error) {
-        throw new Error(`Upload failed: ${error.message}`)
+      if (!response.ok) {
+        throw new Error(
+          `Upload failed: ${response.status} ${response.statusText}`,
+        )
       }
 
-      return {
-        filename,
-        size: data.length,
-        createdAt: new Date().toISOString(),
+      const json = (await response.json()) as {
+        success: boolean
+        metadata: BackupMetadata
       }
+
+      return json.metadata
     },
 
     async download(filename: string): Promise<Uint8Array> {
-      const { data, error } = await supabase.storage
-        .from(config.bucketName)
-        .download(filename)
+      const response = await fetch(`/api/backup/${filename}`)
 
-      if (error || !data) {
-        throw new Error(`Download failed: ${error?.message ?? 'No data'}`)
+      if (!response.ok) {
+        throw new Error(
+          `Download failed: ${response.status} ${response.statusText}`,
+        )
       }
 
-      return new Uint8Array(await data.arrayBuffer())
+      return new Uint8Array(await response.arrayBuffer())
     },
 
     async restoreDatabase(compressed: Uint8Array): Promise<Uint8Array> {
@@ -146,23 +135,22 @@ export function createBackupService(config: BackupConfig): BackupService {
     },
 
     async listBackups(): Promise<readonly BackupMetadata[]> {
-      const { data, error } = await supabase.storage
-        .from(config.bucketName)
-        .list('', {
-          sortBy: { column: 'created_at', order: 'desc' },
-        })
+      const response = await fetch('/api/backup')
 
-      if (error) {
-        throw new Error(`List backups failed: ${error.message}`)
+      if (!response.ok) {
+        throw new Error(
+          `List backups failed: ${response.status} ${response.statusText}`,
+        )
       }
 
-      return (data ?? [])
-        .filter(file => file.name.endsWith('.db.gz'))
-        .map(file => ({
-          filename: file.name,
-          size: file.metadata?.size ?? 0,
-          createdAt: file.created_at ?? new Date().toISOString(),
-        }))
+      const json = (await response.json()) as {
+        success: boolean
+        data: BackupMetadata[]
+      }
+
+      return (json.data ?? []).filter(item =>
+        item.filename.endsWith('.sqlite.gz'),
+      )
     },
   }
 }

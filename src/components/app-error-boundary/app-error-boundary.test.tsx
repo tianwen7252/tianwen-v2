@@ -2,7 +2,14 @@ import type React from 'react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+
+// Mock the error-logger to prevent provider dependency in tests
+vi.mock('@/lib/error-logger', () => ({
+  logError: vi.fn(),
+}))
+
 import { AppErrorBoundary } from './app-error-boundary'
+import { logError } from '@/lib/error-logger'
 
 // A component that always throws
 function AlwaysThrows(): React.ReactNode {
@@ -133,5 +140,19 @@ describe('AppErrorBoundary', () => {
       </AppErrorBoundary>,
     )
     expect(screen.getByText('發生錯誤')).toBeTruthy()
+  })
+
+  it('should persist error to DB via logError when a child throws', () => {
+    render(
+      <AppErrorBoundary>
+        <AlwaysThrows />
+      </AppErrorBoundary>,
+    )
+
+    expect(logError).toHaveBeenCalledWith(
+      'Always fails',
+      'ErrorBoundary',
+      expect.any(String),
+    )
   })
 })

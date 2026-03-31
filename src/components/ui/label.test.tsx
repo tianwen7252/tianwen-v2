@@ -33,7 +33,11 @@ describe('Label', () => {
   })
 
   it('should forward additional HTML attributes', () => {
-    render(<Label data-testid="my-label" id="test-label">Username</Label>)
+    render(
+      <Label data-testid="my-label" id="test-label">
+        Username
+      </Label>,
+    )
     const label = screen.getByTestId('my-label')
     expect(label.id).toBe('test-label')
   })

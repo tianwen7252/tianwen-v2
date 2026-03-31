@@ -18,9 +18,7 @@ import type { Attendance } from '@/lib/schemas'
 // ─── Test Helpers ────────────────────────────────────────────────────────────
 
 /** Create a minimal attendance record for testing. */
-function makeAttendance(
-  overrides: Partial<Attendance> = {},
-): Attendance {
+function makeAttendance(overrides: Partial<Attendance> = {}): Attendance {
   return {
     id: 'att-test-1',
     employeeId: 'emp-001',

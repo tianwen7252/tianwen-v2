@@ -1,16 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { renderHook } from '@testing-library/react'
 
-// Mock the sonner toast function — vi.hoisted ensures mockToast is
-// available when vi.mock factory (which is hoisted) executes.
-const mockToast = vi.hoisted(() => ({
+// Mock notify
+const mockNotify = vi.hoisted(() => ({
   success: vi.fn(),
   error: vi.fn(),
   info: vi.fn(),
 }))
 
-vi.mock('sonner', () => ({
-  toast: mockToast,
+vi.mock('@/components/ui/sonner', () => ({
+  notify: mockNotify,
 }))
 
 describe('useToast', () => {
@@ -27,34 +26,34 @@ describe('useToast', () => {
     expect(typeof result.current.info).toBe('function')
   })
 
-  it('should call toast.success with the provided message', async () => {
+  it('should call notify.success with the provided message', async () => {
     const { useToast } = await import('./use-toast')
     const { result } = renderHook(() => useToast())
 
     result.current.success('Operation successful')
 
-    expect(mockToast.success).toHaveBeenCalledOnce()
-    expect(mockToast.success).toHaveBeenCalledWith('Operation successful')
+    expect(mockNotify.success).toHaveBeenCalledOnce()
+    expect(mockNotify.success).toHaveBeenCalledWith('Operation successful')
   })
 
-  it('should call toast.error with the provided message', async () => {
+  it('should call notify.error with the provided message', async () => {
     const { useToast } = await import('./use-toast')
     const { result } = renderHook(() => useToast())
 
     result.current.error('Something went wrong')
 
-    expect(mockToast.error).toHaveBeenCalledOnce()
-    expect(mockToast.error).toHaveBeenCalledWith('Something went wrong')
+    expect(mockNotify.error).toHaveBeenCalledOnce()
+    expect(mockNotify.error).toHaveBeenCalledWith('Something went wrong')
   })
 
-  it('should call toast.info with the provided message', async () => {
+  it('should call notify.info with the provided message', async () => {
     const { useToast } = await import('./use-toast')
     const { result } = renderHook(() => useToast())
 
     result.current.info('Here is some information')
 
-    expect(mockToast.info).toHaveBeenCalledOnce()
-    expect(mockToast.info).toHaveBeenCalledWith('Here is some information')
+    expect(mockNotify.info).toHaveBeenCalledOnce()
+    expect(mockNotify.info).toHaveBeenCalledWith('Here is some information')
   })
 
   it('should handle empty string messages', async () => {
@@ -65,9 +64,9 @@ describe('useToast', () => {
     result.current.error('')
     result.current.info('')
 
-    expect(mockToast.success).toHaveBeenCalledWith('')
-    expect(mockToast.error).toHaveBeenCalledWith('')
-    expect(mockToast.info).toHaveBeenCalledWith('')
+    expect(mockNotify.success).toHaveBeenCalledWith('')
+    expect(mockNotify.error).toHaveBeenCalledWith('')
+    expect(mockNotify.info).toHaveBeenCalledWith('')
   })
 
   it('should handle messages with special characters', async () => {
@@ -77,7 +76,7 @@ describe('useToast', () => {
     const specialMessage = '員工已新增 (ID: #123) <script>alert("xss")</script>'
     result.current.success(specialMessage)
 
-    expect(mockToast.success).toHaveBeenCalledWith(specialMessage)
+    expect(mockNotify.success).toHaveBeenCalledWith(specialMessage)
   })
 
   it('should handle Traditional Chinese messages', async () => {
@@ -88,8 +87,8 @@ describe('useToast', () => {
     result.current.error('操作失敗')
     result.current.info('請確認資料')
 
-    expect(mockToast.success).toHaveBeenCalledWith('員工已新增')
-    expect(mockToast.error).toHaveBeenCalledWith('操作失敗')
-    expect(mockToast.info).toHaveBeenCalledWith('請確認資料')
+    expect(mockNotify.success).toHaveBeenCalledWith('員工已新增')
+    expect(mockNotify.error).toHaveBeenCalledWith('操作失敗')
+    expect(mockNotify.info).toHaveBeenCalledWith('請確認資料')
   })
 })

@@ -14,9 +14,11 @@ export function AvatarImage({
       avatar.startsWith('http'))
 
   if (hasImage) {
+    // Ensure local paths are absolute to avoid nested route resolution issues
+    const src = avatar.startsWith('images/') ? `/${avatar}` : avatar
     return (
       <img
-        src={avatar}
+        src={src}
         alt="avatar"
         className={cn('rounded-full object-cover', className)}
         style={{ width: size, height: size }}

@@ -1,23 +1,13 @@
-import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useGoogleAuth } from '@/hooks/use-google-auth'
 
-// Mock admin credentials for development
-const MOCK_ADMIN = {
-  name: '管理員',
-  email: 'admin@tianwen.app',
-} as const
-
-type AuthGuardVariant = 'staffAdmin' | 'backup'
+type AuthGuardVariant = 'staffAdmin' | 'backup' | 'productAdmin'
 
 // Translation key mapping for variant-specific subtitles
 const SUBTITLE_KEYS: Record<AuthGuardVariant, string> = {
   staffAdmin: 'auth.staffAdminSubtitle',
   backup: 'auth.backupSubtitle',
-}
-
-interface AdminInfo {
-  readonly name: string
-  readonly email: string
+  productAdmin: 'auth.productAdminSubtitle',
 }
 
 interface AuthGuardProps {
@@ -27,63 +17,45 @@ interface AuthGuardProps {
 
 /**
  * Protects content behind admin authentication.
- * Shows a 403-style login screen when unauthenticated.
- * Uses mock local state for auth (no real OAuth yet).
+ * Reads auth state from useAppStore (shared with HeaderUserMenu).
+ * Shows a 403-style screen when not logged in or not admin.
  */
 export function AuthGuard({
   children,
   variant = 'staffAdmin',
 }: AuthGuardProps) {
   const { t } = useTranslation()
-  const [admin, setAdmin] = useState<AdminInfo | null>(null)
+  const { googleUser, isAdmin } = useGoogleAuth()
 
-  // TODO: Replace with real Google OAuth before production
-  const handleLogin = () => {
-    setAdmin({ ...MOCK_ADMIN })
-  }
-
-  const handleLogout = () => {
-    setAdmin(null)
-  }
-
-  // Unauthenticated: show 403-style login screen
-  if (!admin) {
+  // Not logged in
+  if (!googleUser) {
     return (
       <div className="flex min-h-[400px] flex-col items-center justify-center gap-6 p-10">
         <div className="text-6xl" aria-hidden="true">
           &#x1F512;
         </div>
-        <h2 className="text-2xl font-semibold text-foreground">
-          {t('auth.title')}
-        </h2>
+        <h2 className="text-2xl text-foreground">{t('auth.title')}</h2>
         <p className="text-muted-foreground">{t(SUBTITLE_KEYS[variant])}</p>
-        <button
-          type="button"
-          className="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
-          onClick={handleLogin}
-        >
-          {t('auth.login')}
-        </button>
+        <p className="text-md text-muted-foreground">
+          {t('auth.loginViaHeader')}
+        </p>
       </div>
     )
   }
 
-  // Authenticated: admin bar + children
-  return (
-    <>
-      <div className="flex items-center justify-end gap-3 border-b border-border px-6 py-2">
-        <span className="text-sm text-muted-foreground">
-          {admin.name} / {admin.email}
-        </span>
-        <button
-          type="button"
-          className="rounded-lg px-3 py-1 text-sm font-semibold text-muted-foreground hover:bg-accent"
-          onClick={handleLogout}
-        >
-          {t('auth.logout')}
-        </button>
+  // Logged in but not admin
+  if (!isAdmin) {
+    return (
+      <div className="flex min-h-[400px] flex-col items-center justify-center gap-6 p-10">
+        <div className="text-6xl" aria-hidden="true">
+          &#x1F6AB;
+        </div>
+        <h2 className="text-2xl text-foreground">{t('auth.title')}</h2>
+        <p className="text-muted-foreground">{t('auth.adminOnly')}</p>
       </div>
-      {children}
-    </>
-  )
+    )
+  }
+
+  // Authenticated admin — render children directly (no admin bar, header handles it)
+  return <>{children}</>
 }

@@ -3,7 +3,7 @@
  * These mirror the SQL schema in src/lib/schema.ts.
  */
 
-export interface CommondityType {
+export interface CommodityType {
   readonly id: string
   readonly typeId: string
   readonly type: string
@@ -13,7 +13,7 @@ export interface CommondityType {
   readonly updatedAt: number
 }
 
-export interface Commondity {
+export interface Commodity {
   readonly id: string
   readonly typeId: string
   readonly name: string
@@ -26,19 +26,9 @@ export interface Commondity {
   readonly updatedAt: number
 }
 
-export interface OrderData {
-  readonly comID?: string
-  readonly value?: string
-  readonly res?: string
-  readonly type?: string
-  readonly operator?: '+' | '*'
-  readonly amount?: string
-}
-
 export interface Order {
   readonly id: string
   readonly number: number
-  readonly data: readonly OrderData[]
   readonly memo: readonly string[]
   readonly soups: number
   readonly total: number

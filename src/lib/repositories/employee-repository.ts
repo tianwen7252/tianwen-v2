@@ -8,7 +8,10 @@ export interface EmployeeRepository {
   findByStatus(status: 'active' | 'inactive'): Promise<Employee[]>
   findByEmployeeNo(employeeNo: string): Promise<Employee | undefined>
   create(data: CreateEmployee): Promise<Employee>
-  update(id: string, data: Partial<CreateEmployee>): Promise<Employee | undefined>
+  update(
+    id: string,
+    data: Partial<CreateEmployee>,
+  ): Promise<Employee | undefined>
   remove(id: string): Promise<boolean>
 }
 
@@ -35,7 +38,9 @@ function toEmployee(row: Record<string, unknown>): Employee {
   }
 }
 
-export function createEmployeeRepository(db: AsyncDatabase): EmployeeRepository {
+export function createEmployeeRepository(
+  db: AsyncDatabase,
+): EmployeeRepository {
   return {
     async findAll() {
       const result = await db.exec<Record<string, unknown>>(
@@ -140,7 +145,10 @@ export function createEmployeeRepository(db: AsyncDatabase): EmployeeRepository 
       values.push(Date.now())
       values.push(id)
 
-      await db.exec(`UPDATE employees SET ${fields.join(', ')} WHERE id = ?`, values)
+      await db.exec(
+        `UPDATE employees SET ${fields.join(', ')} WHERE id = ?`,
+        values,
+      )
       const updated = await this.findById(id)
       return updated!
     },

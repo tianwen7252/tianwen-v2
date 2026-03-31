@@ -1,0 +1,127 @@
+/**
+ * Cloud Backup Actions — provides manual backup trigger button,
+ * schedule type selector, and hour picker for auto-backup configuration.
+ */
+
+import { useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
+import { DatabaseBackup, Download } from 'lucide-react'
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
+import { RippleButton } from '@/components/ui/ripple-button'
+import { notify } from '@/components/ui/sonner'
+import { useBackupStore, type ScheduleType } from '@/stores/backup-store'
+
+// ── Constants ──────────────────────────────────────────────────────────────
+
+const SCHEDULE_OPTIONS: readonly {
+  readonly type: ScheduleType
+  readonly labelKey: string
+}[] = [
+  { type: 'daily', labelKey: 'backup.scheduleDaily' },
+  { type: 'weekly', labelKey: 'backup.scheduleWeekly' },
+  { type: 'none', labelKey: 'backup.scheduleNone' },
+]
+
+const HOURS = Array.from({ length: 24 }, (_, i) => i)
+
+// ── Component ──────────────────────────────────────────────────────────────
+
+export function CloudBackupActions() {
+  const { t } = useTranslation()
+  const isBackingUp = useBackupStore(s => s.isBackingUp)
+  const scheduleType = useBackupStore(s => s.scheduleType)
+  const scheduleHour = useBackupStore(s => s.scheduleHour)
+  const setSchedule = useBackupStore(s => s.setSchedule)
+
+  const handleBackupNow = useCallback(() => {
+    useBackupStore.getState().startBackup()
+  }, [])
+
+  const handleExportDb = useCallback(() => {
+    notify.info(t('settings.featureInDev'))
+  }, [t])
+
+  const handleScheduleTypeChange = useCallback(
+    (type: ScheduleType) => {
+      setSchedule(type)
+    },
+    [setSchedule],
+  )
+
+  const handleHourChange = useCallback(
+    (event: React.ChangeEvent<HTMLSelectElement>) => {
+      const hour = Number(event.target.value)
+      setSchedule(scheduleType, hour)
+    },
+    [setSchedule, scheduleType],
+  )
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>{t('backup.backupActions')}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        {/* Action buttons */}
+        <div className="grid grid-cols-3 gap-4">
+          <RippleButton
+            className="flex items-center justify-center gap-2 rounded-md border-none bg-(--color-green) px-4 py-2 text-white hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50"
+            onClick={handleBackupNow}
+            disabled={isBackingUp}
+          >
+            <DatabaseBackup size={16} />
+            {isBackingUp ? t('backup.backingUp') : t('backup.backupNow')}
+          </RippleButton>
+          <RippleButton
+            className="flex items-center justify-center gap-2 rounded-md border-none bg-(--color-blue) px-4 py-2 text-white hover:opacity-80"
+            onClick={handleExportDb}
+          >
+            <Download size={16} />
+            {t('settings.exportDb')}
+          </RippleButton>
+        </div>
+
+        {/* Schedule type selector */}
+        <div className="mt-6">
+          <p className="mb-2 text-muted-foreground">{t('backup.schedule')}</p>
+          <div className="flex gap-2">
+            {SCHEDULE_OPTIONS.map(option => (
+              <RippleButton
+                key={option.type}
+                data-active={scheduleType === option.type ? 'true' : undefined}
+                className={`rounded-md px-4 py-2 ${
+                  scheduleType === option.type
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-muted text-muted-foreground'
+                }`}
+                onClick={() => handleScheduleTypeChange(option.type)}
+              >
+                {t(option.labelKey)}
+              </RippleButton>
+            ))}
+          </div>
+        </div>
+
+        {/* Hour picker (only shown when schedule is active) */}
+        {scheduleType !== 'none' && (
+          <div className="mt-4">
+            <p className="mb-2 text-muted-foreground">
+              {t('backup.scheduleTime')}
+            </p>
+            <select
+              className="rounded-md border bg-background px-3 py-2 text-foreground"
+              value={scheduleHour}
+              onChange={handleHourChange}
+            >
+              {HOURS.map(hour => (
+                <option key={hour} value={hour}>
+                  {String(hour).padStart(2, '0')}:00
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  )
+}

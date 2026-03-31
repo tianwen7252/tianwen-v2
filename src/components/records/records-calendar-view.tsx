@@ -50,7 +50,11 @@ function DayCellContent({
 
   // Weekend with no attendance shows translated label
   if (day.isWeekend && !hasAttendance) {
-    return <div className="mt-1 text-[#cbd5e1] font-medium">{t('records.weekendLabel')}</div>
+    return (
+      <div className="mt-1 text-[#cbd5e1] font-medium">
+        {t('records.weekendLabel')}
+      </div>
+    )
   }
 
   // No cells or empty cells

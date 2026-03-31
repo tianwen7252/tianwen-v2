@@ -131,21 +131,22 @@ function FormControl({ ...props }: React.ComponentProps<'div'>) {
     return child as React.ReactNode
   }
 
-  const childProps = (child as React.ReactElement<Record<string, unknown>>).props
-  return React.cloneElement(child as React.ReactElement<Record<string, unknown>>, {
-    ...childProps,
-    id: formItemId,
-    'aria-describedby': ariaDescribedBy,
-    'aria-invalid': error ? true : undefined,
-  })
+  const childProps = (child as React.ReactElement<Record<string, unknown>>)
+    .props
+  return React.cloneElement(
+    child as React.ReactElement<Record<string, unknown>>,
+    {
+      ...childProps,
+      id: formItemId,
+      'aria-describedby': ariaDescribedBy,
+      'aria-invalid': error ? true : undefined,
+    },
+  )
 }
 
 // ─── FormDescription ─────────────────────────────────────────────────────────
 
-function FormDescription({
-  className,
-  ...props
-}: React.ComponentProps<'p'>) {
+function FormDescription({ className, ...props }: React.ComponentProps<'p'>) {
   const { formDescriptionId } = useFormField()
 
   return (

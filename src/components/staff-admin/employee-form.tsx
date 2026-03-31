@@ -18,7 +18,12 @@ export interface EmployeeFormProps {
 
 export function EmployeeForm({ form, isEditing }: EmployeeFormProps) {
   const { t } = useTranslation()
-  const { register, watch, setValue, formState: { errors } } = form
+  const {
+    register,
+    watch,
+    setValue,
+    formState: { errors },
+  } = form
   const currentAvatar = watch('avatar')
 
   return (
@@ -61,10 +66,7 @@ export function EmployeeForm({ form, isEditing }: EmployeeFormProps) {
       {/* Admin checkbox */}
       <div>
         <label className="flex items-center gap-2">
-          <input
-            type="checkbox"
-            {...register('isAdmin')}
-          />
+          <input type="checkbox" {...register('isAdmin')} />
           <span className="text-sm font-medium text-foreground">
             {t('staff.adminPermission')}
           </span>

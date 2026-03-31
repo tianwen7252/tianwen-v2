@@ -5,6 +5,28 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Disable pinch-to-zoom globally (iPad Safari) */
+html {
+  touch-action: manipulation;
+}
+
+/* Force landscape — show overlay when device is in portrait */
+@media screen and (orientation: portrait) {
+  body::after {
+    content: '請將裝置轉為橫向使用';
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--background, #fdfdfd);
+    color: var(--foreground, #333);
+    font-size: 1.5rem;
+    font-weight: 600;
+  }
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -38,6 +60,12 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  --color-gold: #d4af37;
+  --color-blue: #6aa3d4;
+  --color-yellow: #f5c842;
+  --color-red: #e85d5d;
+  --color-green: var(--primary);
+  --font-size: 18px;
   /* --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -53,6 +81,16 @@
     }
     to {
       background-position: 0% 0%;
+    }
+  }
+  --animate-neon-pulse: neon-pulse 3s ease-in-out infinite;
+  @keyframes neon-pulse {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.6;
     }
   }
 }
@@ -81,11 +119,11 @@
   --border: #e7e7ee;
   --input: #ebebeb;
   --ring: #afbea5;
-  --chart-1: oklch(0.648 0.2 131.684);
-  --chart-2: oklch(0.808 0.114 19.571);
-  --chart-3: #ffda1a;
-  --chart-4: #0051ba;
-  --chart-5: oklch(0.709 0.01 56.259);
+  --chart-1: #7f956a;
+  --chart-2: #c2785c;
+  --chart-3: #5b8f9b;
+  --chart-4: #c9a84c;
+  --chart-5: #8b6f9b;
   --radius: 1.4rem;
   --sidebar: #f5f8fb;
   --sidebar-foreground: #000000;
@@ -136,12 +174,24 @@
   * {
     @apply border-border outline-ring/50;
   }
+  html {
+    font-size: var(--font-size);
+  }
   body {
     @apply bg-background text-foreground;
-    font-family: 'Huninn', sans-serif;
-    /* font-family: "Noto Sans TC", sans-serif; */
+    font-family: 'Huninn', 'Noto Sans TC', sans-serif;
+    /* font-family: 'Noto Sans TC', sans-serif; */
     font-style: normal;
+    -webkit-user-select: none;
+    user-select: none;
   }
+
+  html,
+  body {
+    overscroll-behavior: none;
+    -webkit-overflow-scrolling: auto;
+  }
+
   /* iPad touch optimization */
   button,
   a,
@@ -152,6 +202,44 @@
   h3 {
     @apply text-accent;
   }
+
+  /* @media (pointer: coarse) {
+    body {
+      font-family: 'Noto Sans TC', sans-serif;
+    }
+  } */
+
+  .rdp-selected {
+    background: transparent !important;
+  }
+}
+
+/* ─── Ripple button animation ────────────────────────────────────────────── */
+
+@keyframes ripple-anim {
+  to {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+/* ─── Quantity bounce animation ──────────────────────────────────────────── */
+
+@keyframes qty-bounce {
+  0% {
+    transform: scale(1);
+  }
+  30% {
+    transform: scale(2);
+    color: var(--primary);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.animate-qty-bounce {
+  animation: qty-bounce 0.35s ease-out;
 }
 
 /* ─── Animation keyframes (replaces framer-motion) ─────────────────────────── */
@@ -188,6 +276,17 @@
 }
 
 @keyframes list-item-enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes animated-list-item {
   from {
     opacity: 0;
     transform: translateY(10px);

@@ -57,49 +57,119 @@ export type AttendanceType = z.infer<typeof attendanceTypeEnum>
 export type Attendance = z.infer<typeof attendanceSchema>
 export type CreateAttendance = z.infer<typeof createAttendanceSchema>
 
-// ─── Commondity ──────────────────────────────────────────────────────────────
+// ─── Commodity ───────────────────────────────────────────────────────────────
 
-export const commondityTypeSchema = z.object({
+export const commodityTypeSchema = z.object({
   id: z.string(),
   typeId: z.string(),
   type: z.string(),
   label: z.string(),
   color: z.string().default(''),
+  priority: z.number().default(0),
   createdAt: z.number(),
   updatedAt: z.number(),
 })
 
-export const commonditySchema = z.object({
+export const createCommodityTypeSchema = commodityTypeSchema.omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+})
+
+export const commoditySchema = z.object({
   id: z.string(),
   typeId: z.string(),
   name: z.string().min(1),
+  image: z.string().optional(),
   price: z.number().min(0),
   priority: z.number().default(0),
   onMarket: z.boolean().default(true),
   hideOnMode: z.string().optional(),
   editor: z.string().optional(),
+  includesSoup: z.boolean().default(false),
   createdAt: z.number(),
   updatedAt: z.number(),
 })
 
-export type CommondityType = z.infer<typeof commondityTypeSchema>
-export type Commondity = z.infer<typeof commonditySchema>
+export const createCommoditySchema = commoditySchema.omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+})
+
+export type CommodityType = z.infer<typeof commodityTypeSchema>
+export type CreateCommodityType = z.infer<typeof createCommodityTypeSchema>
+export type Commodity = z.infer<typeof commoditySchema>
+export type CreateCommodity = z.infer<typeof createCommoditySchema>
+
+// ─── OrderType ──────────────────────────────────────────────────────────────
+
+export const orderTypeSchema = z.object({
+  id: z.string(),
+  name: z.string().min(1),
+  priority: z.number(),
+  type: z.string().default('order'),
+  color: z.string().optional(),
+  editor: z.string().optional(),
+  createdAt: z.number(),
+  updatedAt: z.number(),
+})
+
+export const createOrderTypeSchema = orderTypeSchema.omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+})
+
+export type OrderType = z.infer<typeof orderTypeSchema>
+export type CreateOrderType = z.infer<typeof createOrderTypeSchema>
+
+// ─── OrderItem ───────────────────────────────────────────────────────────────
+// Defined before Order so it can be referenced in orderSchema directly.
+
+export const orderItemSchema = z.object({
+  id: z.string(),
+  orderId: z.string(),
+  commodityId: z.string(),
+  name: z.string(),
+  price: z.number(),
+  quantity: z.number().int().min(1),
+  includesSoup: z.boolean().default(false),
+  createdAt: z.number(),
+})
+
+export const createOrderItemSchema = orderItemSchema.omit({
+  id: true,
+  createdAt: true,
+})
+
+export type OrderItem = z.infer<typeof orderItemSchema>
+export type CreateOrderItem = z.infer<typeof createOrderItemSchema>
+
+// ─── OrderDiscount ───────────────────────────────────────────────────────────
+// Defined before Order so it can be referenced in orderSchema directly.
+
+export const orderDiscountSchema = z.object({
+  id: z.string(),
+  orderId: z.string(),
+  label: z.string(),
+  amount: z.number(),
+  createdAt: z.number(),
+})
+
+export const createOrderDiscountSchema = orderDiscountSchema.omit({
+  id: true,
+  createdAt: true,
+})
+
+export type OrderDiscount = z.infer<typeof orderDiscountSchema>
+export type CreateOrderDiscount = z.infer<typeof createOrderDiscountSchema>
 
 // ─── Order ───────────────────────────────────────────────────────────────────
-
-export const orderDataSchema = z.object({
-  comID: z.string().optional(),
-  value: z.string().optional(),
-  res: z.string().optional(),
-  type: z.string().optional(),
-  operator: z.enum(['+', '*']).optional(),
-  amount: z.string().optional(),
-})
 
 export const orderSchema = z.object({
   id: z.string(),
   number: z.number(),
-  data: z.array(orderDataSchema),
   memo: z.array(z.string()),
   soups: z.number().default(0),
   total: z.number().default(0),
@@ -108,10 +178,90 @@ export const orderSchema = z.object({
   editor: z.string().default(''),
   createdAt: z.number(),
   updatedAt: z.number(),
+  // Normalized items and discounts — populated on read, empty array for old orders
+  items: z.array(orderItemSchema).default([]),
+  discounts: z.array(orderDiscountSchema).default([]),
 })
 
-export type OrderData = z.infer<typeof orderDataSchema>
+// NewOrderItem — for creating an item without an orderId (orderId is assigned at creation time)
+export const newOrderItemSchema = z.object({
+  commodityId: z.string(),
+  name: z.string(),
+  price: z.number(),
+  quantity: z.number().int().min(1),
+  includesSoup: z.boolean().default(false),
+})
+
+// NewOrderDiscount — for creating a discount without an orderId
+export const newOrderDiscountSchema = z.object({
+  label: z.string(),
+  amount: z.number(),
+})
+
+export const createOrderSchema = z.object({
+  number: z.number(),
+  items: z.array(newOrderItemSchema).default([]),
+  discounts: z.array(newOrderDiscountSchema).default([]),
+  memo: z.array(z.string()),
+  soups: z.number(),
+  total: z.number(),
+  originalTotal: z.number().optional(),
+  editedMemo: z.string().optional(),
+  editor: z.string(),
+})
+
 export type Order = z.infer<typeof orderSchema>
+export type CreateOrder = z.infer<typeof createOrderSchema>
+export type NewOrderItem = z.infer<typeof newOrderItemSchema>
+export type NewOrderDiscount = z.infer<typeof newOrderDiscountSchema>
+
+// ─── CustomOrderName ────────────────────────────────────────────────────────
+
+export const customOrderNameSchema = z.object({
+  id: z.string(),
+  name: z.string().min(1),
+  createdAt: z.number(),
+})
+
+export const createCustomOrderNameSchema = customOrderNameSchema.omit({
+  id: true,
+  createdAt: true,
+})
+
+export type CustomOrderName = z.infer<typeof customOrderNameSchema>
+export type CreateCustomOrderName = z.infer<typeof createCustomOrderNameSchema>
+
+// ─── ErrorLog ───────────────────────────────────────────────────────────────
+
+export const errorLogSchema = z.object({
+  id: z.string(),
+  message: z.string(),
+  source: z.string(),
+  stack: z.string().nullable(),
+  createdAt: z.number(),
+})
+
+export type ErrorLog = z.infer<typeof errorLogSchema>
+
+// ─── BackupLog ─────────────────────────────────────────────────────────────
+
+export const backupLogTypeEnum = z.enum(['manual', 'auto', 'v1-import'])
+export const backupLogStatusEnum = z.enum(['success', 'failed'])
+
+export const backupLogSchema = z.object({
+  id: z.string(),
+  type: backupLogTypeEnum,
+  status: backupLogStatusEnum,
+  filename: z.string().nullable(),
+  size: z.number().default(0),
+  durationMs: z.number().default(0),
+  errorMessage: z.string().nullable(),
+  createdAt: z.number(),
+})
+
+export type BackupLog = z.infer<typeof backupLogSchema>
+export type BackupLogType = z.infer<typeof backupLogTypeEnum>
+export type BackupLogStatus = z.infer<typeof backupLogStatusEnum>
 
 // ─── DailyData ───────────────────────────────────────────────────────────────
 
@@ -126,3 +276,17 @@ export const dailyDataSchema = z.object({
 })
 
 export type DailyData = z.infer<typeof dailyDataSchema>
+
+// ─── PriceChangeLog ─────────────────────────────────────────────────────────
+
+export const priceChangeLogSchema = z.object({
+  id: z.string(),
+  commodityId: z.string(),
+  commodityName: z.string(),
+  oldPrice: z.number(),
+  newPrice: z.number(),
+  editor: z.string().default(''),
+  createdAt: z.number(),
+})
+
+export type PriceChangeLog = z.infer<typeof priceChangeLogSchema>

@@ -24,9 +24,19 @@ describe('Modal', () => {
         <div>Modal content</div>
       </Modal>,
     )
-    // Title appears twice: sr-only (accessibility) + visual
+    // Title appears twice: sr-only h2 (accessibility) + visual title div
     expect(screen.getAllByText('Test Modal')).toHaveLength(2)
     expect(screen.getByText('Modal content')).toBeTruthy()
+  })
+
+  it('should not render visual title when title prop is omitted', () => {
+    render(
+      <Modal open header="Header Only" onClose={() => {}}>
+        Content
+      </Modal>,
+    )
+    // sr-only h2 falls back to header text; header div also renders "Header Only" — total 2
+    expect(screen.getAllByText('Header Only')).toHaveLength(2)
   })
 
   it('should render header when provided', () => {
@@ -61,6 +71,47 @@ describe('Modal', () => {
     expect(screen.queryByText('Hidden')).toBeNull()
   })
 
+  it('should not render shine border by default (shineColor defaults to false)', () => {
+    render(
+      <Modal open title="No Shine Default" onClose={() => {}}>
+        Content
+      </Modal>,
+    )
+    const glassContainer = screen.getByTestId('modal-glass-container')
+    expect(glassContainer.style.border).toContain('rgba(255, 255, 255, 0.3)')
+  })
+
+  it('should render shine border when shineColor is true', () => {
+    render(
+      <Modal open title="Shine True" shineColor onClose={() => {}}>
+        Content
+      </Modal>,
+    )
+    const glassContainer = screen.getByTestId('modal-glass-container')
+    expect(glassContainer.style.border).toContain('none')
+  })
+
+  it('should not render shine border when shineColor is false', () => {
+    render(
+      <Modal open title="No Shine" shineColor={false} onClose={() => {}}>
+        Content
+      </Modal>,
+    )
+    const glassContainer = screen.getByTestId('modal-glass-container')
+    expect(glassContainer.style.border).toContain('rgba(255, 255, 255, 0.3)')
+  })
+
+  it('should not render shine border when animated is true', () => {
+    render(
+      <Modal open title="Animated" animated onClose={() => {}}>
+        Content
+      </Modal>,
+    )
+    const glassContainer = screen.getByTestId('modal-glass-container')
+    // animated=true overrides shineColor to undefined, so border shows
+    expect(glassContainer.style.border).toContain('rgba(255, 255, 255, 0.3)')
+  })
+
   it('should show loading overlay when loading', () => {
     render(
       <Modal open title="Loading" loading onClose={() => {}}>
@@ -68,6 +119,104 @@ describe('Modal', () => {
       </Modal>,
     )
     expect(screen.getByTestId('modal-loading-overlay')).toBeTruthy()
+  })
+
+  // --- transition prop tests ---
+
+  it('should NOT add transition style to glassmorphism container when transition is not enabled', () => {
+    render(
+      <Modal open title="No Transition" width={500} onClose={() => {}}>
+        Content
+      </Modal>,
+    )
+    const container = screen.getByTestId('modal-glass-container')
+    expect(container.style.transition).toBe('')
+  })
+
+  it('should add width/height transition style when transition prop is true', () => {
+    render(
+      <Modal
+        open
+        title="With Transition"
+        transition
+        width={500}
+        height={400}
+        onClose={() => {}}
+      >
+        Content
+      </Modal>,
+    )
+    const container = screen.getByTestId('modal-glass-container')
+    expect(container.style.transition).toContain('width')
+    expect(container.style.transition).toContain('height')
+    expect(container.style.transition).toContain('0.4s')
+    expect(container.style.transition).toContain('cubic-bezier')
+  })
+
+  it('should resolve vw/vh values to px when transition is true', () => {
+    // In happy-dom, window.innerWidth/innerHeight are available
+    render(
+      <Modal
+        open
+        title="VW Modal"
+        transition
+        width="95vw"
+        height="90vh"
+        onClose={() => {}}
+      >
+        Content
+      </Modal>,
+    )
+    const container = screen.getByTestId('modal-glass-container')
+    // Width/height should be numeric px values (not '95vw' / '90vh')
+    const widthVal = container.style.width
+    const heightVal = container.style.height
+    expect(widthVal).toMatch(/^\d+px$/)
+    expect(heightVal).toMatch(/^\d+px$/)
+  })
+
+  it('should pass width/height through as-is when transition is false', () => {
+    render(
+      <Modal
+        open
+        title="No Transition Passthrough"
+        width="95vw"
+        height="90vh"
+        onClose={() => {}}
+      >
+        Content
+      </Modal>,
+    )
+    const container = screen.getByTestId('modal-glass-container')
+    // When transition is not enabled, the original string values are passed through
+    expect(container.style.width).toBe('95vw')
+    expect(container.style.height).toBe('90vh')
+  })
+
+  it('should resolve px string to numeric px when transition is true', () => {
+    render(
+      <Modal open title="PX Modal" transition width="600px" onClose={() => {}}>
+        Content
+      </Modal>,
+    )
+    const container = screen.getByTestId('modal-glass-container')
+    expect(container.style.width).toBe('600px')
+  })
+
+  it('should use numeric width directly when transition is true', () => {
+    render(
+      <Modal
+        open
+        title="Numeric Modal"
+        transition
+        width={700}
+        onClose={() => {}}
+      >
+        Content
+      </Modal>,
+    )
+    const container = screen.getByTestId('modal-glass-container')
+    expect(container.style.width).toBe('700px')
   })
 })
 

@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { toast } from 'sonner'
+import { notify } from '@/components/ui/sonner'
 import { Plus } from 'lucide-react'
 import { Modal, ConfirmModal } from '@/components/modal'
 import { AvatarImage } from '@/components/avatar-image'
@@ -39,7 +39,7 @@ export function StaffAdmin() {
 
   // Refresh employee list from database
   const refreshEmployees = useCallback(() => {
-    setRefreshKey((k) => k + 1)
+    setRefreshKey(k => k + 1)
   }, [])
 
   // Open add modal
@@ -89,7 +89,7 @@ export function StaffAdmin() {
           resignationDate: values.resignationDate || undefined,
           status: values.resignationDate ? 'inactive' : 'active',
         })
-        toast.success(t('staff.toastUpdated'))
+        notify.success(t('staff.toastUpdated'))
       } else {
         // Generate next employee number
         const allEmployees = await getEmployeeRepo().findAll()
@@ -109,7 +109,7 @@ export function StaffAdmin() {
           status: 'active',
         }
         await getEmployeeRepo().create(newEmployee)
-        toast.success(t('staff.toastAdded'))
+        notify.success(t('staff.toastAdded'))
       }
 
       refreshEmployees()
@@ -133,7 +133,7 @@ export function StaffAdmin() {
     if (deleteTarget) {
       await getEmployeeRepo().remove(deleteTarget.id)
       refreshEmployees()
-      toast.success(t('staff.toastDeleted'))
+      notify.success(t('staff.toastDeleted'))
     }
     setDeleteTarget(null)
   }, [deleteTarget, refreshEmployees, t])
@@ -147,9 +147,9 @@ export function StaffAdmin() {
     <div className="p-6">
       {/* Header with add button */}
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-foreground">
+        <h3 className="text-xl font-medium">
           {t('staff.title')}
-        </h2>
+        </h3>
         <button
           type="button"
           className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
@@ -201,7 +201,9 @@ export function StaffAdmin() {
       {/* Add/Edit Modal */}
       <Modal
         open={isModalOpen}
-        title={editingEmployee ? t('staff.editEmployee') : t('staff.addEmployee')}
+        title={
+          editingEmployee ? t('staff.editEmployee') : t('staff.addEmployee')
+        }
         variant={editingEmployee ? 'warm' : 'green'}
         shineColor={editingEmployee ? 'purple' : 'green'}
         onClose={handleClose}
@@ -224,10 +226,7 @@ export function StaffAdmin() {
           </div>
         }
       >
-        <EmployeeForm
-          form={form}
-          isEditing={!!editingEmployee}
-        />
+        <EmployeeForm form={form} isEditing={!!editingEmployee} />
       </Modal>
 
       {/* Delete Confirmation Modal */}

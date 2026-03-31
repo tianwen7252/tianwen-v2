@@ -13,7 +13,10 @@ export interface AttendanceRepository {
   ): Promise<Attendance | undefined>
   findByMonth(year: number, month: number): Promise<Attendance[]>
   create(data: CreateAttendance): Promise<Attendance>
-  update(id: string, data: Partial<CreateAttendance>): Promise<Attendance | undefined>
+  update(
+    id: string,
+    data: Partial<CreateAttendance>,
+  ): Promise<Attendance | undefined>
   remove(id: string): Promise<boolean>
 }
 
@@ -28,7 +31,9 @@ function toAttendance(row: Record<string, unknown>): Attendance {
   }
 }
 
-export function createAttendanceRepository(db: AsyncDatabase): AttendanceRepository {
+export function createAttendanceRepository(
+  db: AsyncDatabase,
+): AttendanceRepository {
   return {
     async findAll() {
       const result = await db.exec<Record<string, unknown>>(

@@ -1,59 +1,91 @@
-import { useState } from 'react'
+import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
+import {
+  Outlet,
+  Link,
+  useRouterState,
+  useNavigate,
+} from '@tanstack/react-router'
 import { cn } from '@/lib/cn'
-import { ClockIn } from '@/components/clock-in'
-import { Records } from '@/components/records'
-import { StaffAdmin } from '@/components/staff-admin'
 import { AuthGuard } from '@/components/auth-guard'
 
-type TabKey = 'clock-in' | 'records' | 'staff-admin'
-
 interface Tab {
-  readonly key: TabKey
+  readonly path: string
   readonly labelKey: string
+  readonly guard?: 'backup' | 'staffAdmin' | 'productAdmin'
 }
 
 const TABS: readonly Tab[] = [
-  { key: 'clock-in', labelKey: 'nav.clockIn' },
-  { key: 'records', labelKey: 'nav.records' },
-  { key: 'staff-admin', labelKey: 'nav.staffAdmin' },
+  { path: '/settings/system-info', labelKey: 'settings.systemInfo' },
+  { path: '/settings/records', labelKey: 'nav.records' },
+  {
+    path: '/settings/staff-admin',
+    labelKey: 'nav.staffAdmin',
+    guard: 'staffAdmin',
+  },
+  {
+    path: '/settings/product-management',
+    labelKey: 'productMgmt.tabTitle',
+    guard: 'productAdmin',
+  },
+  {
+    path: '/settings/cloud-backup',
+    labelKey: 'backup.tabTitle',
+    guard: 'backup',
+  },
 ]
 
 export function SettingsPage() {
   const { t } = useTranslation()
-  const [activeTab, setActiveTab] = useState<TabKey>('clock-in')
+  const pathname = useRouterState({ select: s => s.location.pathname })
+  const navigate = useNavigate()
+
+  // Redirect /settings to /settings/system-info
+  useEffect(() => {
+    if (pathname === '/settings' || pathname === '/settings/') {
+      navigate({ to: '/settings/system-info' as string, replace: true })
+    }
+  }, [pathname, navigate])
+
+  // Determine which tab needs AuthGuard wrapping
+  const activeTab = TABS.find(
+    tab => pathname === tab.path || pathname.startsWith(`${tab.path}/`),
+  )
 
   return (
     <div>
       {/* Tab navigation */}
       <div className="border-b border-border bg-card px-6">
         <div className="flex gap-1">
-          {TABS.map((tab) => (
-            <button
-              key={tab.key}
-              type="button"
-              className={cn(
-                'border-b-2 px-4 py-3 text-sm font-medium transition-colors',
-                activeTab === tab.key
-                  ? 'border-primary text-primary'
-                  : 'border-transparent text-muted-foreground hover:border-border hover:text-foreground',
-              )}
-              onClick={() => setActiveTab(tab.key)}
-            >
-              {t(tab.labelKey)}
-            </button>
-          ))}
+          {TABS.map(tab => {
+            const isActive =
+              pathname === tab.path || pathname.startsWith(`${tab.path}/`)
+            return (
+              <Link
+                key={tab.path}
+                to={tab.path}
+                className={cn(
+                  'border-b-2 px-4 py-3 text-base transition-colors',
+                  isActive
+                    ? 'border-primary text-primary'
+                    : 'border-transparent text-muted-foreground hover:border-border hover:text-foreground',
+                )}
+              >
+                {t(tab.labelKey)}
+              </Link>
+            )
+          })}
         </div>
       </div>
 
-      {/* Tab content */}
+      {/* Tab content via nested routes */}
       <div>
-        {activeTab === 'clock-in' && <ClockIn />}
-        {activeTab === 'records' && <Records />}
-        {activeTab === 'staff-admin' && (
-          <AuthGuard variant="staffAdmin">
-            <StaffAdmin />
+        {activeTab?.guard ? (
+          <AuthGuard variant={activeTab.guard}>
+            <Outlet />
           </AuthGuard>
+        ) : (
+          <Outlet />
         )}
       </div>
     </div>
