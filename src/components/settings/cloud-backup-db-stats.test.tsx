@@ -100,4 +100,39 @@ describe('CloudBackupDbStats', () => {
     renderWithProviders(<CloudBackupDbStats />)
     expect(screen.getByText('連線後顯示雲端資料')).toBeTruthy()
   })
+
+  it('formats large row counts with locale separators', () => {
+    mockDbStats = {
+      tables: [
+        { tableName: 'orders', rowCount: 12345 },
+        { tableName: 'employees', rowCount: 1000000 },
+      ],
+      totalRows: 1012345,
+      isLoading: false,
+      error: null,
+      refetch: mockRefetch,
+    }
+    renderWithProviders(<CloudBackupDbStats />)
+    // Raw numbers must NOT appear — formatted strings must be used
+    expect(screen.queryByText('12345')).toBeNull()
+    expect(screen.queryByText('1000000')).toBeNull()
+    expect(screen.queryByText('1012345')).toBeNull()
+    // Formatted numbers must appear (zh-TW uses comma as thousands separator)
+    expect(screen.getByText('12,345')).toBeTruthy()
+    expect(screen.getByText('1,000,000')).toBeTruthy()
+    expect(screen.getByText('1,012,345')).toBeTruthy()
+  })
+
+  it('formats totalRows with locale separators', () => {
+    mockDbStats = {
+      tables: [{ tableName: 'orders', rowCount: 999 }],
+      totalRows: 9999999,
+      isLoading: false,
+      error: null,
+      refetch: mockRefetch,
+    }
+    renderWithProviders(<CloudBackupDbStats />)
+    expect(screen.queryByText('9999999')).toBeNull()
+    expect(screen.getByText('9,999,999')).toBeTruthy()
+  })
 })
