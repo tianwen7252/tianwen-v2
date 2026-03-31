@@ -1,5 +1,6 @@
 import { User } from 'lucide-react'
 import { cn } from '@/lib/cn'
+import { resolveAvatarSrc } from '@/lib/resolve-avatar-src'
 import type { AvatarImageProps } from './avatar-image.types'
 
 export function AvatarImage({
@@ -7,15 +8,18 @@ export function AvatarImage({
   size = 36,
   className,
 }: AvatarImageProps) {
+  const resolved = avatar ? resolveAvatarSrc(avatar) : ''
+
+  // Determine if a resolvable image source exists
   const hasImage =
-    avatar &&
-    (avatar.startsWith('images/') ||
-      avatar.startsWith('/images/') ||
-      avatar.startsWith('http'))
+    resolved &&
+    (resolved.startsWith('images/') ||
+      resolved.startsWith('/images/') ||
+      resolved.startsWith('http'))
 
   if (hasImage) {
     // Ensure local paths are absolute to avoid nested route resolution issues
-    const src = avatar.startsWith('images/') ? `/${avatar}` : avatar
+    const src = resolved.startsWith('images/') ? `/${resolved}` : resolved
     return (
       <img
         src={src}
