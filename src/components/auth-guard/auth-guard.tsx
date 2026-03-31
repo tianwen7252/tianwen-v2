@@ -1,5 +1,7 @@
+import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useGoogleAuth } from '@/hooks/use-google-auth'
+import { isSessionValid } from '@/stores/app-store'
 
 type AuthGuardVariant = 'staffAdmin' | 'backup' | 'productAdmin'
 
@@ -18,17 +20,29 @@ interface AuthGuardProps {
 /**
  * Protects content behind admin authentication.
  * Reads auth state from useAppStore (shared with HeaderUserMenu).
- * Shows a 403-style screen when not logged in or not admin.
+ * Shows a 403-style screen when not logged in, session expired, or not admin.
+ * When a user has a stale Zustand state but an expired session timestamp,
+ * logout() is called to clear the store and the user is shown the lock screen.
  */
 export function AuthGuard({
   children,
   variant = 'staffAdmin',
 }: AuthGuardProps) {
   const { t } = useTranslation()
-  const { googleUser, isAdmin } = useGoogleAuth()
+  const { googleUser, isAdmin, logout } = useGoogleAuth()
 
-  // Not logged in
-  if (!googleUser) {
+  // Session validity check: googleUser may still be in Zustand store after
+  // the session timestamp has expired (e.g. after 7 days or a 401 error).
+  const sessionExpired = googleUser !== null && !isSessionValid()
+
+  useEffect(() => {
+    if (sessionExpired) {
+      logout()
+    }
+  }, [sessionExpired, logout])
+
+  // Not logged in, or session has expired (treat as not logged in)
+  if (!googleUser || sessionExpired) {
     return (
       <div className="flex min-h-[400px] flex-col items-center justify-center gap-6 p-10">
         <div className="text-6xl" aria-hidden="true">
