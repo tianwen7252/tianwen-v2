@@ -92,7 +92,7 @@ export const ADMIN_SUBS = [
 export const TIANWEN_SUB = ADMIN_SUBS[0]
 
 export function isAdminUser(sub: string): boolean {
-  return ADMIN_SUBS.includes(sub)
+  return (ADMIN_SUBS as readonly string[]).includes(sub)
 }
 
 // ─── Store ───────────────────────────────────────────────────────────────────
