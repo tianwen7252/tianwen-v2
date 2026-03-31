@@ -16,13 +16,17 @@ export function AdminAnnouncement() {
   return (
     <Announcement
       open={show}
-      title={t('announcement.adminName')}
+      title={
+        <span className="text-3xl text-white">
+          {t('announcement.adminName')}
+        </span>
+      }
+      shineColor="gold"
+      transparent
       confetti={{ sideCannons: true, stars: true }}
       onDismiss={() => dismiss(false)}
     >
-      <p className="text-lg text-muted-foreground">
-        {t('announcement.loggedIn')}
-      </p>
+      <p className="text-lg text-white/70">{t('announcement.loggedIn')}</p>
     </Announcement>
   )
 }

@@ -11,6 +11,7 @@ import { Settings, Code } from 'lucide-react'
 import { OrderPage } from '@/pages/order'
 import { NotFoundPage } from '@/pages/not-found'
 import { ModalPreview, NotifyPreview, TestDataPreview } from '@/pages/preview'
+import { AnnouncementPreview } from '@/pages/preview/announcement-preview'
 import { ClockInPage } from '@/pages/clock-in'
 import { SettingsPage } from '@/pages/settings'
 import { SystemInfo } from '@/components/settings/system-info'
@@ -97,7 +98,7 @@ function RootLayout() {
           {/* Right: dev + settings + login icons */}
           <div className="ml-auto flex items-center gap-2">
             {import.meta.env.DEV && (
-              <NavIconLink to="/preview" ariaLabel="DEV">
+              <NavIconLink to="/dev" ariaLabel="DEV">
                 <Code size={20} />
               </NavIconLink>
             )}
@@ -181,73 +182,85 @@ const indexRoute = createRoute({
   component: OrderPage,
 })
 
-// Preview layout route — for component previews during development
-const previewRoute = createRoute({
+// Dev layout route — for component previews during development
+const devRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/preview',
-  component: PreviewLayout,
+  path: '/dev',
+  component: DevLayout,
 })
 
-function PreviewLayout() {
+function DevLayout() {
   return (
     <div className="p-6">
-      <h1 className="mb-4 text-2xl font-bold">Component Preview</h1>
+      <h1 className="mb-4 text-2xl font-bold">Dev Tools</h1>
       <Outlet />
     </div>
   )
 }
 
-// Preview index — list available previews
-const previewIndexRoute = createRoute({
-  getParentRoute: () => previewRoute,
+// Dev index — list available dev tools
+const devIndexRoute = createRoute({
+  getParentRoute: () => devRoute,
   path: '/',
-  component: PreviewIndex,
+  component: DevIndex,
 })
 
-function PreviewIndex() {
+function DevIndex() {
   return (
     <div className="space-y-2">
-      <p className="text-muted-foreground">Select a component to preview:</p>
+      <p className="text-muted-foreground">Select a tool:</p>
       <ul className="list-inside list-disc space-y-1">
         <li>
-          <Link to="/preview/modal" className="text-primary underline">
+          <Link to="/dev/modal" className="text-primary underline">
             Modal
           </Link>{' '}
           (V2-16)
         </li>
         <li>
-          <Link to="/preview/notify" className="text-primary underline">
+          <Link to="/dev/notify" className="text-primary underline">
             Notify
           </Link>{' '}
           (Toast Notifications)
         </li>
         <li>
-          <Link to="/preview/test-data" className="text-primary underline">
+          <Link to="/dev/test-data" className="text-primary underline">
             Test Data
           </Link>{' '}
           (Generate 6 months data)
+        </li>
+        <li>
+          <Link to="/dev/announcement" className="text-primary underline">
+            Announcement
+          </Link>{' '}
+          (Admin Login Announcement)
         </li>
       </ul>
     </div>
   )
 }
 
-const previewModalRoute = createRoute({
-  getParentRoute: () => previewRoute,
+const devModalRoute = createRoute({
+  getParentRoute: () => devRoute,
   path: '/modal',
   component: ModalPreview,
 })
 
-const previewNotifyRoute = createRoute({
-  getParentRoute: () => previewRoute,
+const devNotifyRoute = createRoute({
+  getParentRoute: () => devRoute,
   path: '/notify',
   component: NotifyPreview,
 })
 
-const previewTestDataRoute = createRoute({
-  getParentRoute: () => previewRoute,
+const devTestDataRoute = createRoute({
+  getParentRoute: () => devRoute,
   path: '/test-data',
   component: TestDataPreview,
+})
+
+const devAnnouncementRoute = createRoute({
+  getParentRoute: () => devRoute,
+  path: '/announcement',
+  component: AnnouncementPreview,
 })
 
 // Clock-in standalone page
@@ -344,10 +357,11 @@ export const routeTree = rootRoute.addChildren([
     settingsStaffAdminRoute,
     settingsProductManagementRoute,
   ]),
-  previewRoute.addChildren([
-    previewIndexRoute,
-    previewModalRoute,
-    previewNotifyRoute,
-    previewTestDataRoute,
+  devRoute.addChildren([
+    devIndexRoute,
+    devModalRoute,
+    devNotifyRoute,
+    devTestDataRoute,
+    devAnnouncementRoute,
   ]),
 ])

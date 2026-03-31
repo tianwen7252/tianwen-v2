@@ -22,6 +22,7 @@ export function Announcement({
   confetti,
   onDismiss,
   closeOnBackdropClick = false,
+  transparent = false,
 }: AnnouncementProps) {
   const { t } = useTranslation()
 
@@ -55,6 +56,7 @@ export function Announcement({
       shineColor={shineColor}
       title={title}
       hideCloseButton
+      transparent={transparent}
       closeOnBackdropClick={closeOnBackdropClick}
       onClose={onDismiss}
       footer={

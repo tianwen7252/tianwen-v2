@@ -34,4 +34,6 @@ export interface AnnouncementProps {
   readonly onDismiss: () => void
   /** Whether backdrop click dismisses (default: false) */
   readonly closeOnBackdropClick?: boolean
+  /** Make the center panel fully transparent with no shadow (default: false) */
+  readonly transparent?: boolean
 }
