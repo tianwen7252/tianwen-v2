@@ -11,7 +11,7 @@ const employees: readonly Employee[] = [
   {
     id: 'emp-001',
     name: 'Alex',
-    avatar: 'images/aminals/1308845.png',
+    avatar: 'images/aminals/doberman.png',
     status: 'active',
     shiftType: 'regular',
     employeeNo: 'E001',
@@ -23,7 +23,7 @@ const employees: readonly Employee[] = [
   {
     id: 'emp-002',
     name: 'Mia',
-    avatar: 'images/aminals/780258.png',
+    avatar: 'images/aminals/puppy.png',
     status: 'active',
     shiftType: 'regular',
     employeeNo: 'E002',
@@ -239,5 +239,51 @@ describe('RecordsTableView', () => {
     // Table should still render headers but no body rows
     expect(screen.getByText('Alex')).toBeTruthy()
     expect(screen.queryByText('未打卡')).toBeNull()
+  })
+
+  // Font size compliance tests — project rule: no text-sm or smaller
+  it('should not use text-sm or text-[10px] on any rendered element', () => {
+    const cells = makeCellsWithAttendance(employees, {
+      'emp-001': [regularAttendance],
+      'emp-002': [vacationAttendance],
+    })
+    const { container } = render(
+      <RecordsTableView {...defaultProps} dayRows={[makeDayRow({ cells })]} />,
+    )
+    const allElements = container.querySelectorAll('*')
+    const forbidden = [
+      'text-sm',
+      'text-xs',
+      'text-[10px]',
+      'text-[11px]',
+      'text-[12px]',
+      'text-[13px]',
+    ]
+    allElements.forEach(el => {
+      const cls = el.className ?? ''
+      forbidden.forEach(f => {
+        expect(
+          cls,
+          `Element has forbidden font class "${f}": ${cls}`,
+        ).not.toContain(f)
+      })
+    })
+  })
+
+  it('should not use font-semibold on any rendered element', () => {
+    const cells = makeCellsWithAttendance(employees, {
+      'emp-001': [regularAttendance],
+    })
+    const { container } = render(
+      <RecordsTableView {...defaultProps} dayRows={[makeDayRow({ cells })]} />,
+    )
+    const allElements = container.querySelectorAll('*')
+    allElements.forEach(el => {
+      const cls = el.className ?? ''
+      expect(
+        cls,
+        `Element has forbidden class "font-semibold": ${cls}`,
+      ).not.toContain('font-semibold')
+    })
   })
 })

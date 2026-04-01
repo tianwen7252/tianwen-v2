@@ -10,6 +10,7 @@ import { useQuery } from '@tanstack/react-query'
 import { UserRound } from 'lucide-react'
 import { getEmployeeRepo } from '@/lib/repositories/provider'
 import { useGoogleAuth } from '@/hooks/use-google-auth'
+import { resolveAvatarSrc } from '@/lib/resolve-avatar-src'
 import { ConfirmModal } from '@/components/modal/modal'
 import { RippleButton } from '@/components/ui/ripple-button'
 import { cn } from '@/lib/cn'
@@ -36,7 +37,15 @@ export function HeaderUserMenu() {
   })
 
   // Avatar priority: employee avatar > Google picture > text initial
-  const avatarSrc = matchedEmployee?.avatar ?? googleUser?.picture
+  // Employee avatar is stored as filename-only; resolve to full absolute path before use
+  const employeeAvatarSrc = matchedEmployee?.avatar
+    ? (() => {
+        const resolved = resolveAvatarSrc(matchedEmployee.avatar)
+        // Ensure local paths are absolute to avoid nested route resolution issues
+        return resolved.startsWith('images/') ? `/${resolved}` : resolved
+      })()
+    : undefined
+  const avatarSrc = employeeAvatarSrc ?? googleUser?.picture
   const displayName = googleUser?.name ?? ''
 
   function handleLogout() {

@@ -3,6 +3,8 @@
  * Searches for a folder named "backup" then lists files within it.
  */
 
+import { AuthExpiredError } from './errors'
+
 // ── Types ───────────────────────────────────────────────────────────────────
 
 export interface DriveFile {
@@ -44,6 +46,9 @@ async function findBackupFolder(accessToken: string): Promise<string | null> {
   })
 
   if (!response.ok) {
+    if (response.status === 401) {
+      throw new AuthExpiredError()
+    }
     throw new Error(
       `Google Drive API error: ${response.status} ${response.statusText}`,
     )
@@ -84,6 +89,9 @@ export async function listDriveBackupFiles(
   })
 
   if (!response.ok) {
+    if (response.status === 401) {
+      throw new AuthExpiredError()
+    }
     throw new Error(
       `Google Drive API error: ${response.status} ${response.statusText}`,
     )
@@ -108,6 +116,9 @@ export async function downloadDriveFile(
   })
 
   if (!response.ok) {
+    if (response.status === 401) {
+      throw new AuthExpiredError()
+    }
     throw new Error(
       `Google Drive download error: ${response.status} ${response.statusText}`,
     )

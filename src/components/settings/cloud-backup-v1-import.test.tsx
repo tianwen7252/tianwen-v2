@@ -6,6 +6,7 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { AuthExpiredError } from '@/lib/errors'
 
 // ── Mocks ───────────────────────────────────────────────────────────────────
 
@@ -22,10 +23,12 @@ vi.mock('@/stores/app-store', () => ({
 }))
 
 const mockLogin = vi.fn()
+const mockHandleAuthError = vi.fn()
 vi.mock('@/hooks/use-google-auth', () => ({
   useGoogleAuth: () => ({
     login: mockLogin,
     isLoggedIn: mockAppStoreState.googleUser !== null,
+    handleAuthError: mockHandleAuthError,
   }),
 }))
 
@@ -189,6 +192,36 @@ describe('CloudBackupV1Import', () => {
           screen.getByText('此操作可能覆蓋現有資料，確定要繼續嗎？'),
         ).toBeTruthy()
       })
+    })
+
+    // ── AuthExpiredError handling ──────────────────────────────────────────
+
+    it('calls handleAuthError when listDriveBackupFiles throws AuthExpiredError', async () => {
+      mockListDriveBackupFiles.mockRejectedValue(new AuthExpiredError())
+
+      render(<CloudBackupV1Import />)
+
+      await waitFor(() => {
+        expect(mockHandleAuthError).toHaveBeenCalledOnce()
+        expect(mockHandleAuthError).toHaveBeenCalledWith(
+          expect.any(AuthExpiredError),
+        )
+      })
+    })
+
+    it('does NOT call handleAuthError for a generic Drive error', async () => {
+      mockListDriveBackupFiles.mockRejectedValue(
+        new Error('Google Drive API error: 500 Internal Server Error'),
+      )
+
+      render(<CloudBackupV1Import />)
+
+      // Wait for loading to settle
+      await waitFor(() => {
+        expect(mockListDriveBackupFiles).toHaveBeenCalled()
+      })
+
+      expect(mockHandleAuthError).not.toHaveBeenCalled()
     })
   })
 })

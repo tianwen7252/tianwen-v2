@@ -2,7 +2,7 @@ import { useRef, useEffect, useState, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Minus, Plus, X } from 'lucide-react'
 import { cn } from '@/lib/cn'
-import { Button } from '@/components/ui/button'
+import { RippleButton } from '@/components/ui/ripple-button'
 import {
   Popover,
   PopoverTrigger,
@@ -10,6 +10,18 @@ import {
 } from '@/components/ui/popover'
 import { BorderBeam } from '@/components/ui/border-beam'
 import type { CartItem } from '@/stores/order-store'
+
+// Shared button class constants to avoid duplication
+const iconBtnCn =
+  'inline-flex size-8 items-center justify-center rounded-md outline-none ' +
+  'hover:bg-accent hover:text-accent-foreground ' +
+  'focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 ' +
+  'disabled:pointer-events-none disabled:opacity-50'
+
+const popoverBtnCn =
+  'inline-flex h-8 flex-1 items-center justify-center rounded-md px-3 text-base outline-none ' +
+  'focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 ' +
+  'disabled:pointer-events-none disabled:opacity-50'
 
 export interface OrderItemRowProps {
   readonly item: CartItem
@@ -100,14 +112,13 @@ export function OrderItemRow({
 
         {/* Quantity controls */}
         <div className="flex items-center gap-1">
-          <Button
-            variant="ghost"
-            size="icon-sm"
+          <RippleButton
             aria-label="decrease"
             onClick={handleDecrease}
+            className={iconBtnCn}
           >
             <Minus className="size-3" />
-          </Button>
+          </RippleButton>
 
           <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
             <PopoverTrigger asChild>
@@ -148,34 +159,36 @@ export function OrderItemRow({
                   style={{ userSelect: 'text' }}
                 />
                 <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="flex-1"
+                  <RippleButton
+                    className={cn(
+                      popoverBtnCn,
+                      'border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground',
+                    )}
                     onClick={() => setPopoverOpen(false)}
                   >
                     {t('common.cancel')}
-                  </Button>
-                  <Button
-                    size="sm"
-                    className="flex-1 bg-primary text-primary-foreground"
+                  </RippleButton>
+                  <RippleButton
+                    className={cn(
+                      popoverBtnCn,
+                      'bg-primary text-primary-foreground',
+                    )}
                     onClick={handleConfirm}
                   >
                     {t('common.confirm')}
-                  </Button>
+                  </RippleButton>
                 </div>
               </div>
             </PopoverContent>
           </Popover>
 
-          <Button
-            variant="ghost"
-            size="icon-sm"
+          <RippleButton
             aria-label="increase"
             onClick={handleIncrease}
+            className={iconBtnCn}
           >
             <Plus className="size-3" />
-          </Button>
+          </RippleButton>
         </div>
 
         {/* Price */}
@@ -184,15 +197,16 @@ export function OrderItemRow({
         </span>
 
         {/* Remove button */}
-        <Button
-          variant="ghost"
-          size="icon-sm"
+        <RippleButton
           aria-label="remove"
           onClick={() => onRemove(item.id)}
-          className="text-muted-foreground hover:text-destructive"
+          className={cn(
+            iconBtnCn,
+            'text-muted-foreground hover:text-destructive',
+          )}
         >
           <X className="size-3" />
-        </Button>
+        </RippleButton>
       </div>
 
       {/* Note (only shown when non-empty) */}

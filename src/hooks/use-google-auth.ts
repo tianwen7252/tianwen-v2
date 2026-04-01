@@ -9,6 +9,7 @@ import { useTranslation } from 'react-i18next'
 import { useAppStore, isAdminUser, TIANWEN_SUB } from '@/stores/app-store'
 import type { GoogleUser } from '@/stores/app-store'
 import { notify } from '@/components/ui/sonner'
+import { AuthExpiredError } from '@/lib/errors'
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -122,11 +123,24 @@ export function useGoogleAuth() {
     notify.success(t('auth.logoutSuccess'))
   }, [appLogout, t])
 
+  // Handle auth errors from Google API calls.
+  // On AuthExpiredError: logs the user out and shows a toast notification.
+  const handleAuthError = useCallback(
+    (err: unknown) => {
+      if (err instanceof AuthExpiredError) {
+        appLogout()
+        notify.error(t('auth.sessionExpired'))
+      }
+    },
+    [appLogout, t],
+  )
+
   return {
     googleUser,
     isLoggedIn,
     isAdmin,
     login,
     logout,
+    handleAuthError,
   }
 }

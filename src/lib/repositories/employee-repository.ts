@@ -13,6 +13,22 @@ export interface EmployeeRepository {
     data: Partial<CreateEmployee>,
   ): Promise<Employee | undefined>
   remove(id: string): Promise<boolean>
+  /**
+   * Link a Google account to an employee record.
+   * Sets google_sub and google_email for the given employee id.
+   * Returns the updated employee, or undefined if not found.
+   */
+  bindGoogleAccount(
+    employeeId: string,
+    googleSub: string,
+    googleEmail: string,
+  ): Promise<Employee | undefined>
+  /**
+   * Unlink a Google account from an employee record.
+   * Clears google_sub and google_email for the given employee id.
+   * Returns the updated employee, or undefined if not found.
+   */
+  unbindGoogleAccount(employeeId: string): Promise<Employee | undefined>
 }
 
 /**
@@ -33,6 +49,10 @@ function toEmployee(row: Record<string, unknown>): Employee {
       row['resignation_date'] != null
         ? String(row['resignation_date'])
         : undefined,
+    googleSub:
+      row['google_sub'] != null ? String(row['google_sub']) : undefined,
+    googleEmail:
+      row['google_email'] != null ? String(row['google_email']) : undefined,
     createdAt: Number(row['created_at']),
     updatedAt: Number(row['updated_at']),
   }
@@ -156,6 +176,34 @@ export function createEmployeeRepository(
     async remove(id: string) {
       await db.exec('DELETE FROM employees WHERE id = ?', [id])
       return true
+    },
+
+    async bindGoogleAccount(
+      employeeId: string,
+      googleSub: string,
+      googleEmail: string,
+    ) {
+      const existing = await this.findById(employeeId)
+      if (!existing) return undefined
+
+      await db.exec(
+        'UPDATE employees SET google_sub = ?, google_email = ?, updated_at = ? WHERE id = ?',
+        [googleSub, googleEmail, Date.now(), employeeId],
+      )
+      const updated = await this.findById(employeeId)
+      return updated!
+    },
+
+    async unbindGoogleAccount(employeeId: string) {
+      const existing = await this.findById(employeeId)
+      if (!existing) return undefined
+
+      await db.exec(
+        'UPDATE employees SET google_sub = NULL, google_email = NULL, updated_at = ? WHERE id = ?',
+        [Date.now(), employeeId],
+      )
+      const updated = await this.findById(employeeId)
+      return updated!
     },
   }
 }

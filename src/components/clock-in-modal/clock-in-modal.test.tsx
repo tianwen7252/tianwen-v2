@@ -10,7 +10,7 @@ import type { ClockInAction } from './clock-in-modal'
 const baseEmployee: Employee = {
   id: 'emp-001',
   name: 'Alex',
-  avatar: 'images/aminals/1308845.png',
+  avatar: 'images/aminals/doberman.png',
   status: 'active',
   shiftType: 'regular',
   employeeNo: 'E001',
@@ -114,7 +114,7 @@ describe('ClockInModal', () => {
     const avatar = screen.getByAltText('avatar')
     expect(avatar).toBeTruthy()
     expect((avatar as HTMLImageElement).src).toContain(
-      'images/aminals/1308845.png',
+      'images/aminals/doberman.png',
     )
   })
 

@@ -43,7 +43,7 @@ vi.mock('@/lib/repositories', () => ({
 const testEmployee: Employee = {
   id: 'emp-001',
   name: 'Alex',
-  avatar: 'images/aminals/1308845.png',
+  avatar: 'images/aminals/doberman.png',
   status: 'active',
   shiftType: 'regular',
   employeeNo: 'E001',

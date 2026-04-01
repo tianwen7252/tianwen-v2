@@ -17,7 +17,7 @@ describe('employeeFormSchema', () => {
     it('should accept valid employee data with all fields', () => {
       const data: EmployeeFormValues = {
         name: 'Test Employee',
-        avatar: 'images/aminals/1308845.png',
+        avatar: 'images/aminals/doberman.png',
         shiftType: 'regular',
         isAdmin: false,
         hireDate: '2024-01-15',

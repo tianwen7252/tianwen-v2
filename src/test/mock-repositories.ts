@@ -152,6 +152,40 @@ export const mockEmployeeRepo = {
     employees = employees.filter(e => e.id !== id)
     return employees.length < before
   },
+
+  async bindGoogleAccount(
+    employeeId: string,
+    googleSub: string,
+    googleEmail: string,
+  ): Promise<Employee | undefined> {
+    const index = employees.findIndex(e => e.id === employeeId)
+    if (index === -1) return undefined
+
+    const updated: Employee = {
+      ...employees[index]!,
+      googleSub,
+      googleEmail,
+      updatedAt: Date.now(),
+    }
+    employees = employees.map((e, i) => (i === index ? updated : e))
+    return updated
+  },
+
+  async unbindGoogleAccount(
+    employeeId: string,
+  ): Promise<Employee | undefined> {
+    const index = employees.findIndex(e => e.id === employeeId)
+    if (index === -1) return undefined
+
+    const updated: Employee = {
+      ...employees[index]!,
+      googleSub: undefined,
+      googleEmail: undefined,
+      updatedAt: Date.now(),
+    }
+    employees = employees.map((e, i) => (i === index ? updated : e))
+    return updated
+  },
 }
 
 // ─── Mock Attendance Repository ────────────────────────────────────────────

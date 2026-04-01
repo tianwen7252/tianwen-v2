@@ -1,6 +1,6 @@
 # Jira 整合（MCP）
 
-**Jira Project:** [DEV](https://tianwen7252.atlassian.net/jira/software/projects/DEV/boards)
+**Jira Project:** [V2](https://tianwen7252.atlassian.net/jira/software/projects/V2/boards)
 
 所有 Jira 操作透過 **Atlassian MCP server**（`mcp-atlassian`）執行
 

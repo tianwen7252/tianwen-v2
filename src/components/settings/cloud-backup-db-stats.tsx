@@ -35,13 +35,17 @@ export function CloudBackupDbStats() {
                 {tables.map(table => (
                   <tr key={table.tableName} className="border-b">
                     <td className="px-2 py-1">{table.tableName}</td>
-                    <td className="px-2 py-1 text-right">{table.rowCount}</td>
+                    <td className="px-2 py-1 text-right">
+                      {table.rowCount.toLocaleString('zh-TW')}
+                    </td>
                   </tr>
                 ))}
                 {/* Total row */}
                 <tr className="border-t-2">
                   <td className="px-2 py-1">{t('backup.totalRows')}</td>
-                  <td className="px-2 py-1 text-right">{totalRows}</td>
+                  <td className="px-2 py-1 text-right">
+                    {totalRows.toLocaleString('zh-TW')}
+                  </td>
                 </tr>
               </tbody>
             </table>

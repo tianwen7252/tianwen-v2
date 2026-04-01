@@ -94,7 +94,7 @@ export function ModalPreview() {
                 marginBottom: 12,
               }}
             >
-              <AvatarImage avatar="/images/aminals/1326387.png" size={120} />
+              <AvatarImage avatar="/images/aminals/tiger.png" size={120} />
             </div>
             <div
               style={{
@@ -215,7 +215,7 @@ export function ModalPreview() {
                 marginBottom: 12,
               }}
             >
-              <AvatarImage avatar="/images/aminals/780258.png" size={120} />
+              <AvatarImage avatar="/images/aminals/puppy.png" size={120} />
             </div>
             <div className="w-full space-y-4">
               <div>
@@ -273,7 +273,7 @@ export function ModalPreview() {
                 marginBottom: 12,
               }}
             >
-              <AvatarImage avatar="/images/aminals/1326387.png" size={120} />
+              <AvatarImage avatar="/images/aminals/tiger.png" size={120} />
             </div>
             <div
               style={{

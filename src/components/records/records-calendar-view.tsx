@@ -75,7 +75,7 @@ function DayCellContent({
               <button
                 key={att.id}
                 type="button"
-                className="rounded border border-[#f88181] bg-[#fff5f5] px-1.5 py-1 text-sm text-[#f88181] cursor-pointer text-left"
+                className="rounded border border-[#f88181] bg-[#fff5f5] px-1.5 py-1 text-base text-[#f88181] cursor-pointer text-left"
                 onClick={e => {
                   e.stopPropagation()
                   onEditRecord(employee, day.date, att)
@@ -97,7 +97,7 @@ function DayCellContent({
             <button
               key={att.id}
               type="button"
-              className="rounded border border-[#f2d680] px-1.5 py-1 text-sm text-[#334155] cursor-pointer hover:border-[#e6c45a] text-left"
+              className="rounded border border-[#f2d680] px-1.5 py-1 text-base text-[#334155] cursor-pointer hover:border-[#e6c45a] text-left"
               onClick={e => {
                 e.stopPropagation()
                 onEditRecord(employee, day.date, att)
@@ -167,7 +167,7 @@ export function RecordsCalendarView({
                     {dateNum}
                   </span>
                   {day.isToday && (
-                    <span className="rounded-full bg-[#3b82f6] px-2 py-0.5 text-[10px] font-bold text-white">
+                    <span className="rounded-full bg-[#3b82f6] px-2 py-0.5 text-base font-bold text-white">
                       {t('records.todayBadge')}
                     </span>
                   )}

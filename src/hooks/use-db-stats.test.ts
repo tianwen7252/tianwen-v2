@@ -130,7 +130,7 @@ describe('useDbStats', () => {
     expect(result.current.totalRows).toBe(0)
   })
 
-  it('queries all 12 expected tables', async () => {
+  it('queries all 13 expected tables', async () => {
     mockExec.mockResolvedValue({ rows: [{ count: 0 }], changes: 0 })
 
     const { result } = renderHook(() => useDbStats(), {
@@ -154,6 +154,7 @@ describe('useDbStats', () => {
       'order_items',
       'order_types',
       'orders',
+      'price_change_logs',
     ]
     const tableNames = result.current.tables.map(t => t.tableName)
     expect(tableNames).toEqual(expectedTables)
