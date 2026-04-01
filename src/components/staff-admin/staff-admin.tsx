@@ -18,13 +18,13 @@ import type { EmployeeFormValues } from '@/lib/form-schemas'
 
 /**
  * StaffAdmin component - Employee management CRUD interface.
- * Renders a table of employees with add/edit/delete/bind-Google capabilities.
+ * Renders a table of employees with add/edit/delete/link-Google capabilities.
  * Uses React Hook Form + Zod for form validation.
  */
 export function StaffAdmin() {
   const { t } = useTranslation()
-  const isAdmin = useAppStore(s => s.isAdmin)
-  const googleUser = useAppStore(s => s.googleUser)
+  const isAdmin = useAppStore((s) => s.isAdmin)
+  const googleUser = useAppStore((s) => s.googleUser)
 
   const [refreshKey, setRefreshKey] = useState(0)
   const employees = useDbQuery(
@@ -35,6 +35,11 @@ export function StaffAdmin() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<Employee | null>(null)
+  const [linkGoogleTarget, setLinkGoogleTarget] = useState<Employee | null>(
+    null,
+  )
+  const [unlinkGoogleTarget, setUnlinkGoogleTarget] =
+    useState<Employee | null>(null)
 
   const form = useForm<EmployeeFormValues>({
     resolver: zodResolver(employeeFormSchema),
@@ -43,7 +48,7 @@ export function StaffAdmin() {
 
   // Refresh employee list from database
   const refreshEmployees = useCallback(() => {
-    setRefreshKey(k => k + 1)
+    setRefreshKey((k) => k + 1)
   }, [])
 
   // Open add modal
@@ -147,20 +152,47 @@ export function StaffAdmin() {
     setDeleteTarget(null)
   }, [])
 
-  // Bind Google account — uses the currently logged-in Google user's sub and email
-  const handleBindGoogle = useCallback(
-    async (employeeId: string) => {
-      if (!googleUser) return
-      await getEmployeeRepo().bindGoogleAccount(
-        employeeId,
-        googleUser.sub,
-        googleUser.email,
-      )
-      notify.success(t('staff.bindGoogleSuccess'))
-      refreshEmployees()
-    },
-    [googleUser, refreshEmployees, t],
-  )
+  // Initiate link Google confirmation
+  const handleLinkGoogleClick = useCallback((employee: Employee) => {
+    setLinkGoogleTarget(employee)
+  }, [])
+
+  // Confirm link Google account
+  const handleLinkGoogleConfirm = useCallback(async () => {
+    if (!linkGoogleTarget || !googleUser) return
+    await getEmployeeRepo().bindGoogleAccount(
+      linkGoogleTarget.id,
+      googleUser.sub,
+      googleUser.email,
+    )
+    notify.success(t('staff.linkGoogleSuccess'))
+    refreshEmployees()
+    setLinkGoogleTarget(null)
+  }, [linkGoogleTarget, googleUser, refreshEmployees, t])
+
+  // Cancel link Google
+  const handleLinkGoogleCancel = useCallback(() => {
+    setLinkGoogleTarget(null)
+  }, [])
+
+  // Initiate unlink Google confirmation
+  const handleUnlinkGoogleClick = useCallback((employee: Employee) => {
+    setUnlinkGoogleTarget(employee)
+  }, [])
+
+  // Confirm unlink Google account
+  const handleUnlinkGoogleConfirm = useCallback(async () => {
+    if (!unlinkGoogleTarget) return
+    await getEmployeeRepo().unbindGoogleAccount(unlinkGoogleTarget.id)
+    notify.success(t('staff.unlinkGoogleSuccess'))
+    refreshEmployees()
+    setUnlinkGoogleTarget(null)
+  }, [unlinkGoogleTarget, refreshEmployees, t])
+
+  // Cancel unlink Google
+  const handleUnlinkGoogleCancel = useCallback(() => {
+    setUnlinkGoogleTarget(null)
+  }, [])
 
   return (
     <div className="p-6">
@@ -203,14 +235,15 @@ export function StaffAdmin() {
             </tr>
           </thead>
           <tbody>
-            {employees.map(employee => (
+            {employees.map((employee) => (
               <EmployeeRow
                 key={employee.id}
                 employee={employee}
                 isCurrentUserAdmin={isAdmin}
                 onEdit={handleEdit}
                 onDelete={handleDeleteClick}
-                onBindGoogle={handleBindGoogle}
+                onLinkGoogle={handleLinkGoogleClick}
+                onUnlinkGoogle={handleUnlinkGoogleClick}
               />
             ))}
           </tbody>
@@ -219,6 +252,7 @@ export function StaffAdmin() {
 
       {/* Add/Edit Modal */}
       <Modal
+        width={860}
         open={isModalOpen}
         title={
           editingEmployee ? t('staff.editEmployee') : t('staff.addEmployee')
@@ -230,14 +264,14 @@ export function StaffAdmin() {
           <div className="flex justify-center gap-3">
             <button
               type="button"
-              className="rounded-lg border border-border px-6 py-2 text-sm text-muted-foreground hover:bg-accent"
+              className="rounded-lg border border-border px-6 py-2 text-md text-muted-foreground hover:bg-accent"
               onClick={handleClose}
             >
               {t('common.cancel')}
             </button>
             <button
               type="button"
-              className="rounded-lg bg-primary px-6 py-2 text-sm text-primary-foreground hover:bg-primary/90"
+              className="rounded-lg bg-primary px-6 py-2 text-md text-primary-foreground hover:bg-primary/90"
               onClick={handleSubmit}
             >
               {t('common.confirm')}
@@ -263,6 +297,49 @@ export function StaffAdmin() {
             <AvatarImage avatar={deleteTarget.avatar} size={48} />
             <p className="text-sm text-foreground">
               {t('staff.confirmDeleteMessage', { name: deleteTarget.name })}
+            </p>
+          </div>
+        )}
+      </ConfirmModal>
+
+      {/* Link Google Confirmation Modal */}
+      <ConfirmModal
+        open={!!linkGoogleTarget}
+        title={t('staff.linkGoogleConfirmTitle')}
+        variant="blue"
+        shineColor="blue"
+        onConfirm={handleLinkGoogleConfirm}
+        onCancel={handleLinkGoogleCancel}
+      >
+        {linkGoogleTarget && (
+          <div className="flex flex-col items-center gap-2">
+            <AvatarImage avatar={linkGoogleTarget.avatar} size={48} />
+            <p className="text-center text-md text-foreground">
+              {t('staff.linkGoogleConfirmMessage', {
+                employeeName: linkGoogleTarget.name,
+                googleName: googleUser?.name ?? googleUser?.email ?? '',
+              })}
+            </p>
+          </div>
+        )}
+      </ConfirmModal>
+
+      {/* Unlink Google Confirmation Modal */}
+      <ConfirmModal
+        open={!!unlinkGoogleTarget}
+        title={t('staff.unlinkGoogleConfirmTitle')}
+        variant="red"
+        shineColor="red"
+        onConfirm={handleUnlinkGoogleConfirm}
+        onCancel={handleUnlinkGoogleCancel}
+      >
+        {unlinkGoogleTarget && (
+          <div className="flex flex-col items-center gap-2">
+            <AvatarImage avatar={unlinkGoogleTarget.avatar} size={48} />
+            <p className="text-center text-md text-foreground">
+              {t('staff.unlinkGoogleConfirmMessage', {
+                employeeName: unlinkGoogleTarget.name,
+              })}
             </p>
           </div>
         )}

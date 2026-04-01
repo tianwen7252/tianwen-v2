@@ -1,7 +1,8 @@
 /**
  * EmployeeRow — single row in the employee management table.
  * Shows employee number with status tags, avatar+name, dates, shift, and actions.
- * Admins see a "Bind Google" button for employees without a bound Google account.
+ * Admins see a "Link Google" button for employees without a linked Google account,
+ * and an "Unlink" button for employees with a linked account.
  */
 
 import { useTranslation } from 'react-i18next'
@@ -16,7 +17,8 @@ export interface EmployeeRowProps {
   readonly isCurrentUserAdmin: boolean
   readonly onEdit: (employee: Employee) => void
   readonly onDelete: (employee: Employee) => void
-  readonly onBindGoogle: (employeeId: string) => void
+  readonly onLinkGoogle: (employee: Employee) => void
+  readonly onUnlinkGoogle: (employee: Employee) => void
 }
 
 export function EmployeeRow({
@@ -24,36 +26,35 @@ export function EmployeeRow({
   isCurrentUserAdmin,
   onEdit,
   onDelete,
-  onBindGoogle,
+  onLinkGoogle,
+  onUnlinkGoogle,
 }: EmployeeRowProps) {
   const { t } = useTranslation()
   const shiftLabel =
     SHIFT_LABEL_MAP.get(employee.shiftType) ?? employee.shiftType
-  const isGoogleBound = employee.googleSub != null
+  const isGoogleLinked = employee.googleSub != null
 
   return (
     <tr className="border-b border-border last:border-b-0 hover:bg-muted/30">
       {/* Employee number with tags */}
       <td className="px-4 py-3">
         <div className="flex flex-col gap-1">
-          <span className="font-mono text-sm">{employee.employeeNo}</span>
-          <div className="flex flex-wrap gap-1">
-            {employee.isAdmin && (
-              <span className="rounded-md bg-amber-100 px-1.5 py-0.5 text-sm text-amber-800">
-                {t('staff.admin')}
-              </span>
-            )}
-            {isGoogleBound && (
-              <span className="rounded-md bg-blue-100 px-1.5 py-0.5 text-sm text-blue-800">
-                {t('staff.googleBound')}
-              </span>
-            )}
-            {employee.status === 'inactive' && (
-              <span className="rounded-md bg-red-100 px-1.5 py-0.5 text-sm text-red-800">
-                {t('staff.resigned')}
-              </span>
-            )}
-          </div>
+          <span className="font-mono text-md">{employee.employeeNo}</span>
+          {employee.isAdmin && (
+            <span className="w-fit rounded-md bg-amber-100 px-1.5 py-0.5 text-md text-amber-800">
+              {t('staff.admin')}
+            </span>
+          )}
+          {isGoogleLinked && (
+            <span className="w-fit rounded-md bg-blue-100 px-1.5 py-0.5 text-md text-blue-800">
+              {t('staff.googleLinked')}
+            </span>
+          )}
+          {employee.status === 'inactive' && (
+            <span className="w-fit rounded-md bg-red-100 px-1.5 py-0.5 text-md text-red-800">
+              {t('staff.resigned')}
+            </span>
+          )}
         </div>
       </td>
 
@@ -61,7 +62,7 @@ export function EmployeeRow({
       <td className="px-4 py-3">
         <div className="flex items-center gap-2">
           <AvatarImage avatar={employee.avatar} size={32} />
-          <span className="text-sm text-foreground">{employee.name}</span>
+          <span className="text-md text-foreground">{employee.name}</span>
         </div>
       </td>
 
@@ -77,7 +78,7 @@ export function EmployeeRow({
 
       {/* Shift type */}
       <td className="px-4 py-3">
-        <span className="rounded-full bg-muted px-2.5 py-0.5 text-sm text-muted-foreground">
+        <span className="rounded-full bg-muted px-2.5 py-0.5 text-md text-muted-foreground">
           {shiftLabel}
         </span>
       </td>
@@ -101,13 +102,22 @@ export function EmployeeRow({
           >
             <Trash2 size={16} />
           </button>
-          {isCurrentUserAdmin && !isGoogleBound && (
+          {isCurrentUserAdmin && !isGoogleLinked && (
             <RippleButton
-              className="rounded-lg bg-muted px-2.5 py-1 text-sm text-muted-foreground hover:bg-accent hover:text-foreground"
+              className="rounded-lg bg-muted px-2.5 py-1 text-md text-muted-foreground hover:bg-accent hover:text-foreground"
               rippleColor="rgba(0, 0, 0, 0.08)"
-              onClick={() => onBindGoogle(employee.id)}
+              onClick={() => onLinkGoogle(employee)}
             >
-              {t('staff.bindGoogle')}
+              {t('staff.linkGoogle')}
+            </RippleButton>
+          )}
+          {isCurrentUserAdmin && isGoogleLinked && (
+            <RippleButton
+              className="rounded-lg bg-muted px-2.5 py-1 text-md text-red-500 hover:bg-red-50 hover:text-red-600"
+              rippleColor="rgba(0, 0, 0, 0.08)"
+              onClick={() => onUnlinkGoogle(employee)}
+            >
+              {t('staff.unlinkGoogle')}
             </RippleButton>
           )}
         </div>

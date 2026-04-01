@@ -14,7 +14,7 @@ export interface EmployeeRepository {
   ): Promise<Employee | undefined>
   remove(id: string): Promise<boolean>
   /**
-   * Bind a Google account to an employee record.
+   * Link a Google account to an employee record.
    * Sets google_sub and google_email for the given employee id.
    * Returns the updated employee, or undefined if not found.
    */
@@ -23,6 +23,12 @@ export interface EmployeeRepository {
     googleSub: string,
     googleEmail: string,
   ): Promise<Employee | undefined>
+  /**
+   * Unlink a Google account from an employee record.
+   * Clears google_sub and google_email for the given employee id.
+   * Returns the updated employee, or undefined if not found.
+   */
+  unbindGoogleAccount(employeeId: string): Promise<Employee | undefined>
 }
 
 /**
@@ -183,6 +189,18 @@ export function createEmployeeRepository(
       await db.exec(
         'UPDATE employees SET google_sub = ?, google_email = ?, updated_at = ? WHERE id = ?',
         [googleSub, googleEmail, Date.now(), employeeId],
+      )
+      const updated = await this.findById(employeeId)
+      return updated!
+    },
+
+    async unbindGoogleAccount(employeeId: string) {
+      const existing = await this.findById(employeeId)
+      if (!existing) return undefined
+
+      await db.exec(
+        'UPDATE employees SET google_sub = NULL, google_email = NULL, updated_at = ? WHERE id = ?',
+        [Date.now(), employeeId],
       )
       const updated = await this.findById(employeeId)
       return updated!

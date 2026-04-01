@@ -170,6 +170,22 @@ export const mockEmployeeRepo = {
     employees = employees.map((e, i) => (i === index ? updated : e))
     return updated
   },
+
+  async unbindGoogleAccount(
+    employeeId: string,
+  ): Promise<Employee | undefined> {
+    const index = employees.findIndex(e => e.id === employeeId)
+    if (index === -1) return undefined
+
+    const updated: Employee = {
+      ...employees[index]!,
+      googleSub: undefined,
+      googleEmail: undefined,
+      updatedAt: Date.now(),
+    }
+    employees = employees.map((e, i) => (i === index ? updated : e))
+    return updated
+  },
 }
 
 // ─── Mock Attendance Repository ────────────────────────────────────────────

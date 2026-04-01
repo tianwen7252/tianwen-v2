@@ -51,10 +51,15 @@
     "toastAdded": "Employee added",
     "toastUpdated": "Employee updated",
     "toastDeleted": "Employee deleted",
-    "bindGoogle": "Bind Google",
-    "googleBound": "Google Bound",
-    "bindGoogleSuccess": "Google account bound successfully",
-    "bindGoogleConfirm": "Confirm binding Google account to this employee?"
+    "linkGoogle": "Link Google",
+    "unlinkGoogle": "Unlink",
+    "googleLinked": "Google Linked",
+    "linkGoogleSuccess": "Google account linked successfully",
+    "unlinkGoogleSuccess": "Google account unlinked",
+    "linkGoogleConfirmTitle": "Confirm Link Google Account",
+    "linkGoogleConfirmMessage": "Link Google account \"{{googleName}}\" to employee \"{{employeeName}}\"?",
+    "unlinkGoogleConfirmTitle": "Confirm Unlink",
+    "unlinkGoogleConfirmMessage": "Unlink Google account from employee \"{{employeeName}}\"?"
   },
   "clockIn": {
     "today": "Today",

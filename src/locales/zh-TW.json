@@ -51,10 +51,15 @@
     "toastAdded": "員工已新增",
     "toastUpdated": "員工資料已更新",
     "toastDeleted": "員工已刪除",
-    "bindGoogle": "綁定Google",
-    "googleBound": "已綁定Google",
-    "bindGoogleSuccess": "Google帳號綁定成功",
-    "bindGoogleConfirm": "確認綁定Google帳號至此員工？"
+    "linkGoogle": "連結Google",
+    "unlinkGoogle": "取消連結",
+    "googleLinked": "已連結Google",
+    "linkGoogleSuccess": "Google帳號連結成功",
+    "unlinkGoogleSuccess": "已取消Google帳號連結",
+    "linkGoogleConfirmTitle": "確認連結Google帳號",
+    "linkGoogleConfirmMessage": "確定要將目前登入的Google帳號「{{googleName}}」連結至員工「{{employeeName}}」嗎？",
+    "unlinkGoogleConfirmTitle": "確認取消連結",
+    "unlinkGoogleConfirmMessage": "確定要取消員工「{{employeeName}}」的Google帳號連結嗎？"
   },
   "clockIn": {
     "today": "今天",

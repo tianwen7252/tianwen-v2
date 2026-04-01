@@ -1,6 +1,6 @@
 /**
  * Tests for EmployeeRow component.
- * Covers Google account binding tag display and bind button visibility.
+ * Covers Google account linking tag display, link/unlink button visibility.
  */
 
 import { describe, it, expect, vi } from 'vitest'
@@ -59,6 +59,14 @@ function renderInTable(ui: React.ReactElement) {
   )
 }
 
+const defaultRowProps = {
+  isCurrentUserAdmin: false,
+  onEdit: vi.fn(),
+  onDelete: vi.fn(),
+  onLinkGoogle: vi.fn(),
+  onUnlinkGoogle: vi.fn(),
+}
+
 // ─── Tests ───────────────────────────────────────────────────────────────────
 
 describe('EmployeeRow', () => {
@@ -68,13 +76,7 @@ describe('EmployeeRow', () => {
     it('renders employee name', () => {
       const employee = makeEmployee({ name: 'Alex' })
       renderInTable(
-        <EmployeeRow
-          employee={employee}
-          isCurrentUserAdmin={false}
-          onEdit={vi.fn()}
-          onDelete={vi.fn()}
-          onBindGoogle={vi.fn()}
-        />,
+        <EmployeeRow employee={employee} {...defaultRowProps} />,
       )
       expect(screen.getByText('Alex')).toBeTruthy()
     })
@@ -82,13 +84,7 @@ describe('EmployeeRow', () => {
     it('renders employee number', () => {
       const employee = makeEmployee({ employeeNo: 'E001' })
       renderInTable(
-        <EmployeeRow
-          employee={employee}
-          isCurrentUserAdmin={false}
-          onEdit={vi.fn()}
-          onDelete={vi.fn()}
-          onBindGoogle={vi.fn()}
-        />,
+        <EmployeeRow employee={employee} {...defaultRowProps} />,
       )
       expect(screen.getByText('E001')).toBeTruthy()
     })
@@ -96,13 +92,7 @@ describe('EmployeeRow', () => {
     it('shows admin tag when employee is admin', () => {
       const employee = makeEmployee({ isAdmin: true })
       renderInTable(
-        <EmployeeRow
-          employee={employee}
-          isCurrentUserAdmin={false}
-          onEdit={vi.fn()}
-          onDelete={vi.fn()}
-          onBindGoogle={vi.fn()}
-        />,
+        <EmployeeRow employee={employee} {...defaultRowProps} />,
       )
       expect(screen.getByText('管理員')).toBeTruthy()
     })
@@ -110,13 +100,7 @@ describe('EmployeeRow', () => {
     it('does not show admin tag when employee is not admin', () => {
       const employee = makeEmployee({ isAdmin: false })
       renderInTable(
-        <EmployeeRow
-          employee={employee}
-          isCurrentUserAdmin={false}
-          onEdit={vi.fn()}
-          onDelete={vi.fn()}
-          onBindGoogle={vi.fn()}
-        />,
+        <EmployeeRow employee={employee} {...defaultRowProps} />,
       )
       expect(screen.queryByText('管理員')).toBeNull()
     })
@@ -124,151 +108,180 @@ describe('EmployeeRow', () => {
     it('shows resigned tag when employee is inactive', () => {
       const employee = makeEmployee({ status: 'inactive' })
       renderInTable(
-        <EmployeeRow
-          employee={employee}
-          isCurrentUserAdmin={false}
-          onEdit={vi.fn()}
-          onDelete={vi.fn()}
-          onBindGoogle={vi.fn()}
-        />,
+        <EmployeeRow employee={employee} {...defaultRowProps} />,
       )
       expect(screen.getByText('已離職')).toBeTruthy()
     })
   })
 
-  // ─── Google bound tag ──────────────────────────────────────────────────────
+  // ─── Google linked tag ─────────────────────────────────────────────────────
 
-  describe('Google bound tag', () => {
-    it('shows "已綁定Google" tag when googleSub is set', () => {
+  describe('Google linked tag', () => {
+    it('shows "已連結Google" tag when googleSub is set', () => {
       const employee = makeEmployee({
         googleSub: '112232479673923380065',
         googleEmail: 'alex@gmail.com',
       })
       renderInTable(
-        <EmployeeRow
-          employee={employee}
-          isCurrentUserAdmin={false}
-          onEdit={vi.fn()}
-          onDelete={vi.fn()}
-          onBindGoogle={vi.fn()}
-        />,
+        <EmployeeRow employee={employee} {...defaultRowProps} />,
       )
-      expect(screen.getByText('已綁定Google')).toBeTruthy()
+      expect(screen.getByText('已連結Google')).toBeTruthy()
     })
 
-    it('does not show "已綁定Google" tag when googleSub is undefined', () => {
+    it('does not show "已連結Google" tag when googleSub is undefined', () => {
       const employee = makeEmployee({ googleSub: undefined })
       renderInTable(
-        <EmployeeRow
-          employee={employee}
-          isCurrentUserAdmin={false}
-          onEdit={vi.fn()}
-          onDelete={vi.fn()}
-          onBindGoogle={vi.fn()}
-        />,
+        <EmployeeRow employee={employee} {...defaultRowProps} />,
       )
-      expect(screen.queryByText('已綁定Google')).toBeNull()
+      expect(screen.queryByText('已連結Google')).toBeNull()
     })
 
-    it('shows "已綁定Google" tag below the admin tag', () => {
+    it('shows "已連結Google" tag below the admin tag', () => {
       const employee = makeEmployee({
         isAdmin: true,
         googleSub: 'sub-123',
       })
       renderInTable(
-        <EmployeeRow
-          employee={employee}
-          isCurrentUserAdmin={false}
-          onEdit={vi.fn()}
-          onDelete={vi.fn()}
-          onBindGoogle={vi.fn()}
-        />,
+        <EmployeeRow employee={employee} {...defaultRowProps} />,
       )
       const adminTag = screen.getByText('管理員')
-      const googleTag = screen.getByText('已綁定Google')
-      // Both should be visible
+      const googleTag = screen.getByText('已連結Google')
       expect(adminTag).toBeTruthy()
       expect(googleTag).toBeTruthy()
+      // Google tag should appear after admin tag in DOM order (separate lines)
+      const container = adminTag.closest('td')!
+      const tags = container.querySelectorAll('span')
+      const adminIndex = Array.from(tags).indexOf(adminTag.closest('span')!)
+      const googleIndex = Array.from(tags).indexOf(googleTag.closest('span')!)
+      expect(googleIndex).toBeGreaterThan(adminIndex)
     })
   })
 
-  // ─── Bind Google button ────────────────────────────────────────────────────
+  // ─── Link Google button ────────────────────────────────────────────────────
 
-  describe('Bind Google button', () => {
-    it('shows bind button when current user is admin', () => {
+  describe('Link Google button', () => {
+    it('shows link button when current user is admin and employee not linked', () => {
       const employee = makeEmployee({ googleSub: undefined })
       renderInTable(
         <EmployeeRow
           employee={employee}
+          {...defaultRowProps}
           isCurrentUserAdmin={true}
-          onEdit={vi.fn()}
-          onDelete={vi.fn()}
-          onBindGoogle={vi.fn()}
         />,
       )
-      expect(screen.getByText('綁定Google')).toBeTruthy()
+      expect(screen.getByText('連結Google')).toBeTruthy()
     })
 
-    it('does not show bind button when current user is not admin', () => {
+    it('does not show link button when current user is not admin', () => {
       const employee = makeEmployee({ googleSub: undefined })
       renderInTable(
         <EmployeeRow
           employee={employee}
+          {...defaultRowProps}
           isCurrentUserAdmin={false}
-          onEdit={vi.fn()}
-          onDelete={vi.fn()}
-          onBindGoogle={vi.fn()}
         />,
       )
-      expect(screen.queryByText('綁定Google')).toBeNull()
+      expect(screen.queryByText('連結Google')).toBeNull()
     })
 
-    it('calls onBindGoogle with employee id when bind button is clicked', async () => {
+    it('calls onLinkGoogle with employee when link button is clicked', async () => {
       const user = userEvent.setup()
-      const onBindGoogle = vi.fn()
+      const onLinkGoogle = vi.fn()
       const employee = makeEmployee({ id: 'emp-001', googleSub: undefined })
       renderInTable(
         <EmployeeRow
           employee={employee}
+          {...defaultRowProps}
           isCurrentUserAdmin={true}
-          onEdit={vi.fn()}
-          onDelete={vi.fn()}
-          onBindGoogle={onBindGoogle}
+          onLinkGoogle={onLinkGoogle}
         />,
       )
 
-      await user.click(screen.getByText('綁定Google'))
+      await user.click(screen.getByText('連結Google'))
 
-      expect(onBindGoogle).toHaveBeenCalledWith('emp-001')
+      expect(onLinkGoogle).toHaveBeenCalledWith(employee)
     })
 
-    it('hides bind button when employee already has googleSub bound', () => {
+    it('hides link button when employee already has googleSub linked', () => {
       const employee = makeEmployee({
         googleSub: 'already-bound-sub',
       })
       renderInTable(
         <EmployeeRow
           employee={employee}
+          {...defaultRowProps}
           isCurrentUserAdmin={true}
-          onEdit={vi.fn()}
-          onDelete={vi.fn()}
-          onBindGoogle={vi.fn()}
         />,
       )
-      // When already bound, no bind button
-      expect(screen.queryByText('綁定Google')).toBeNull()
+      expect(screen.queryByText('連結Google')).toBeNull()
     })
+  })
 
-    it('edit and delete buttons are always visible', () => {
-      const employee = makeEmployee()
+  // ─── Unlink Google button ──────────────────────────────────────────────────
+
+  describe('Unlink Google button', () => {
+    it('shows unlink button when admin and employee is linked', () => {
+      const employee = makeEmployee({ googleSub: 'sub-123' })
       renderInTable(
         <EmployeeRow
           employee={employee}
-          isCurrentUserAdmin={false}
-          onEdit={vi.fn()}
-          onDelete={vi.fn()}
-          onBindGoogle={vi.fn()}
+          {...defaultRowProps}
+          isCurrentUserAdmin={true}
         />,
+      )
+      expect(screen.getByText('取消連結')).toBeTruthy()
+    })
+
+    it('does not show unlink button when not admin', () => {
+      const employee = makeEmployee({ googleSub: 'sub-123' })
+      renderInTable(
+        <EmployeeRow
+          employee={employee}
+          {...defaultRowProps}
+          isCurrentUserAdmin={false}
+        />,
+      )
+      expect(screen.queryByText('取消連結')).toBeNull()
+    })
+
+    it('does not show unlink button when employee is not linked', () => {
+      const employee = makeEmployee({ googleSub: undefined })
+      renderInTable(
+        <EmployeeRow
+          employee={employee}
+          {...defaultRowProps}
+          isCurrentUserAdmin={true}
+        />,
+      )
+      expect(screen.queryByText('取消連結')).toBeNull()
+    })
+
+    it('calls onUnlinkGoogle with employee when unlink button is clicked', async () => {
+      const user = userEvent.setup()
+      const onUnlinkGoogle = vi.fn()
+      const employee = makeEmployee({ googleSub: 'sub-123' })
+      renderInTable(
+        <EmployeeRow
+          employee={employee}
+          {...defaultRowProps}
+          isCurrentUserAdmin={true}
+          onUnlinkGoogle={onUnlinkGoogle}
+        />,
+      )
+
+      await user.click(screen.getByText('取消連結'))
+
+      expect(onUnlinkGoogle).toHaveBeenCalledWith(employee)
+    })
+  })
+
+  // ─── Edit / Delete buttons ─────────────────────────────────────────────────
+
+  describe('edit and delete buttons', () => {
+    it('edit and delete buttons are always visible', () => {
+      const employee = makeEmployee()
+      renderInTable(
+        <EmployeeRow employee={employee} {...defaultRowProps} />,
       )
       expect(screen.getByLabelText('編輯')).toBeTruthy()
       expect(screen.getByLabelText('刪除')).toBeTruthy()
@@ -281,10 +294,8 @@ describe('EmployeeRow', () => {
       renderInTable(
         <EmployeeRow
           employee={employee}
-          isCurrentUserAdmin={false}
+          {...defaultRowProps}
           onEdit={onEdit}
-          onDelete={vi.fn()}
-          onBindGoogle={vi.fn()}
         />,
       )
 
@@ -300,10 +311,8 @@ describe('EmployeeRow', () => {
       renderInTable(
         <EmployeeRow
           employee={employee}
-          isCurrentUserAdmin={false}
-          onEdit={vi.fn()}
+          {...defaultRowProps}
           onDelete={onDelete}
-          onBindGoogle={vi.fn()}
         />,
       )
 

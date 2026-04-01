@@ -1,10 +1,10 @@
 /**
- * Tests for StaffAdmin — Google account binding integration.
- * Covers handleBindGoogle handler, bind button visibility, and success toast.
+ * Tests for StaffAdmin — Google account linking/unlinking integration.
+ * Covers confirm modal flow, link/unlink handlers, and success toasts.
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, within, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { StaffAdmin } from './staff-admin'
 import {
@@ -140,7 +140,7 @@ function setupNonAdminStore() {
 
 // ─── Tests ───────────────────────────────────────────────────────────────────
 
-describe('StaffAdmin — Google account binding', () => {
+describe('StaffAdmin — Google account linking', () => {
   beforeEach(() => {
     resetMockRepositories()
     vi.clearAllMocks()
@@ -150,42 +150,71 @@ describe('StaffAdmin — Google account binding', () => {
     resetMockRepositories()
   })
 
-  describe('bind button visibility', () => {
-    it('shows "綁定Google" button in action column when current user is admin', async () => {
+  describe('link button visibility', () => {
+    it('shows "連結Google" button when current user is admin', async () => {
       setupAdminStore()
       render(<StaffAdmin />)
 
-      // Wait for employees to load
       await screen.findByText('Alex')
 
-      const bindButtons = screen.getAllByText('綁定Google')
-      expect(bindButtons.length).toBeGreaterThan(0)
+      const linkButtons = screen.getAllByText('連結Google')
+      expect(linkButtons.length).toBeGreaterThan(0)
     })
 
-    it('does not show "綁定Google" button when current user is not admin', async () => {
+    it('does not show "連結Google" button when current user is not admin', async () => {
       setupNonAdminStore()
       render(<StaffAdmin />)
 
       await screen.findByText('Alex')
 
-      expect(screen.queryByText('綁定Google')).toBeNull()
+      expect(screen.queryByText('連結Google')).toBeNull()
     })
   })
 
-  describe('handleBindGoogle', () => {
-    it('calls bindGoogleAccount on the repo with correct args', async () => {
+  describe('link Google flow', () => {
+    it('shows confirm modal with employee and Google name when link button clicked', async () => {
       setupAdminStore()
       const user = userEvent.setup()
 
-      // Add bindGoogleAccount spy to mock repo
+      render(<StaffAdmin />)
+      await screen.findByText('Alex')
+
+      const linkButtons = screen.getAllByText('連結Google')
+      await user.click(linkButtons[0]!)
+
+      // Confirm modal should appear with link title
+      const modal = screen.getByRole('dialog', {
+        name: '確認連結Google帳號',
+      })
+      expect(modal).toBeTruthy()
+
+      // Should show both employee name and Google account name
+      expect(
+        within(modal).getByText(/Alex/, { exact: false }),
+      ).toBeTruthy()
+      expect(
+        within(modal).getByText(/Admin User/, { exact: false }),
+      ).toBeTruthy()
+    })
+
+    it('calls bindGoogleAccount after confirming link', async () => {
+      setupAdminStore()
+      const user = userEvent.setup()
+
       const repo = getEmployeeRepo()
       const bindSpy = vi.spyOn(repo, 'bindGoogleAccount')
 
       render(<StaffAdmin />)
       await screen.findByText('Alex')
 
-      const bindButtons = screen.getAllByText('綁定Google')
-      await user.click(bindButtons[0]!)
+      const linkButtons = screen.getAllByText('連結Google')
+      await user.click(linkButtons[0]!)
+
+      // Confirm in modal
+      const modal = screen.getByRole('dialog', {
+        name: '確認連結Google帳號',
+      })
+      await user.click(within(modal).getByText('確認'))
 
       await waitFor(() => {
         expect(bindSpy).toHaveBeenCalledWith(
@@ -196,40 +225,140 @@ describe('StaffAdmin — Google account binding', () => {
       })
     })
 
-    it('shows success toast after binding Google account', async () => {
+    it('shows success toast after linking Google account', async () => {
       setupAdminStore()
       const user = userEvent.setup()
 
       render(<StaffAdmin />)
       await screen.findByText('Alex')
 
-      const bindButtons = screen.getAllByText('綁定Google')
-      await user.click(bindButtons[0]!)
+      const linkButtons = screen.getAllByText('連結Google')
+      await user.click(linkButtons[0]!)
+
+      const modal = screen.getByRole('dialog', {
+        name: '確認連結Google帳號',
+      })
+      await user.click(within(modal).getByText('確認'))
 
       await waitFor(() => {
-        expect(mockNotify.success).toHaveBeenCalledWith('Google帳號綁定成功')
+        expect(mockNotify.success).toHaveBeenCalledWith('Google帳號連結成功')
       })
     })
 
-    it('refreshes employee list after binding', async () => {
+    it('does not call bindGoogleAccount when cancel is clicked', async () => {
       setupAdminStore()
       const user = userEvent.setup()
+
       const repo = getEmployeeRepo()
-      const findAllSpy = vi.spyOn(repo, 'findAll')
-      const initialCallCount = findAllSpy.mock.calls.length
+      const bindSpy = vi.spyOn(repo, 'bindGoogleAccount')
 
       render(<StaffAdmin />)
       await screen.findByText('Alex')
 
-      const countAfterLoad = findAllSpy.mock.calls.length
+      const linkButtons = screen.getAllByText('連結Google')
+      await user.click(linkButtons[0]!)
 
-      const bindButtons = screen.getAllByText('綁定Google')
-      await user.click(bindButtons[0]!)
+      const modal = screen.getByRole('dialog', {
+        name: '確認連結Google帳號',
+      })
+      await user.click(within(modal).getByText('取消'))
+
+      expect(bindSpy).not.toHaveBeenCalled()
+      expect(screen.queryByRole('dialog', { name: '確認連結Google帳號' })).toBeNull()
+    })
+  })
+
+  describe('unlink Google flow', () => {
+    it('shows "取消連結" button for linked employees when admin', async () => {
+      setupAdminStore()
+
+      // Pre-link an employee
+      const repo = getEmployeeRepo()
+      const employees = await repo.findAll()
+      await repo.bindGoogleAccount(
+        employees[0]!.id,
+        'sub-123',
+        'alex@gmail.com',
+      )
+
+      render(<StaffAdmin />)
+      await screen.findByText('Alex')
+
+      expect(screen.getByText('取消連結')).toBeTruthy()
+    })
+
+    it('shows confirm modal when unlink button is clicked', async () => {
+      setupAdminStore()
+      const user = userEvent.setup()
+
+      const repo = getEmployeeRepo()
+      const employees = await repo.findAll()
+      await repo.bindGoogleAccount(
+        employees[0]!.id,
+        'sub-123',
+        'alex@gmail.com',
+      )
+
+      render(<StaffAdmin />)
+      await screen.findByText('Alex')
+
+      await user.click(screen.getByText('取消連結'))
+
+      const modal = screen.getByRole('dialog', { name: '確認取消連結' })
+      expect(modal).toBeTruthy()
+      expect(
+        within(modal).getByText(/Alex/, { exact: false }),
+      ).toBeTruthy()
+    })
+
+    it('calls unbindGoogleAccount after confirming unlink', async () => {
+      setupAdminStore()
+      const user = userEvent.setup()
+
+      const repo = getEmployeeRepo()
+      const employees = await repo.findAll()
+      await repo.bindGoogleAccount(
+        employees[0]!.id,
+        'sub-123',
+        'alex@gmail.com',
+      )
+      const unbindSpy = vi.spyOn(repo, 'unbindGoogleAccount')
+
+      render(<StaffAdmin />)
+      await screen.findByText('Alex')
+
+      await user.click(screen.getByText('取消連結'))
+
+      const modal = screen.getByRole('dialog', { name: '確認取消連結' })
+      await user.click(within(modal).getByText('確認'))
 
       await waitFor(() => {
-        expect(findAllSpy.mock.calls.length).toBeGreaterThan(
-          countAfterLoad + initialCallCount,
-        )
+        expect(unbindSpy).toHaveBeenCalledWith(employees[0]!.id)
+      })
+    })
+
+    it('shows success toast after unlinking', async () => {
+      setupAdminStore()
+      const user = userEvent.setup()
+
+      const repo = getEmployeeRepo()
+      const employees = await repo.findAll()
+      await repo.bindGoogleAccount(
+        employees[0]!.id,
+        'sub-123',
+        'alex@gmail.com',
+      )
+
+      render(<StaffAdmin />)
+      await screen.findByText('Alex')
+
+      await user.click(screen.getByText('取消連結'))
+
+      const modal = screen.getByRole('dialog', { name: '確認取消連結' })
+      await user.click(within(modal).getByText('確認'))
+
+      await waitFor(() => {
+        expect(mockNotify.success).toHaveBeenCalledWith('已取消Google帳號連結')
       })
     })
   })
