@@ -8,12 +8,12 @@ import { resolveAvatarSrc } from './resolve-avatar-src'
 describe('resolveAvatarSrc', () => {
   describe('filename-only input (new format)', () => {
     it('prepends base path for a plain filename', () => {
-      expect(resolveAvatarSrc('1308845.png')).toBe('images/aminals/1308845.png')
+      expect(resolveAvatarSrc('doberman.png')).toBe('images/aminals/doberman.png')
     })
 
     it('prepends base path for any .png filename', () => {
-      expect(resolveAvatarSrc('10738692.png')).toBe(
-        'images/aminals/10738692.png',
+      expect(resolveAvatarSrc('deer.png')).toBe(
+        'images/aminals/deer.png',
       )
     })
 
@@ -24,14 +24,14 @@ describe('resolveAvatarSrc', () => {
 
   describe('backward compatibility — full local paths (old DB records)', () => {
     it('returns full path as-is when it already contains a slash', () => {
-      expect(resolveAvatarSrc('images/aminals/1308845.png')).toBe(
-        'images/aminals/1308845.png',
+      expect(resolveAvatarSrc('images/aminals/doberman.png')).toBe(
+        'images/aminals/doberman.png',
       )
     })
 
     it('returns absolute path as-is', () => {
-      expect(resolveAvatarSrc('/images/aminals/780258.png')).toBe(
-        '/images/aminals/780258.png',
+      expect(resolveAvatarSrc('/images/aminals/puppy.png')).toBe(
+        '/images/aminals/puppy.png',
       )
     })
 

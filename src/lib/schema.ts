@@ -314,10 +314,46 @@ function runMigrations(exec: (sql: string) => void): void {
   )
 
   // DEV-100: Strip images/aminals/ prefix from employee avatars.
-  // Avatar values are now stored as filename-only (e.g. '1308845.png').
+  // Avatar values are now stored as filename-only (e.g. 'doberman.png').
   exec(
     "UPDATE employees SET avatar = REPLACE(avatar, 'images/aminals/', '') WHERE avatar LIKE 'images/aminals/%'",
   )
+
+  // V2-176: Rename numeric avatar filenames to English animal names.
+  const avatarRenames: ReadonlyArray<readonly [string, string]> = [
+    ['1308845.png', 'doberman.png'],
+    ['780258.png', 'puppy.png'],
+    ['780260.png', 'cat.png'],
+    ['1326387.png', 'tiger.png'],
+    ['1326405.png', 'chick.png'],
+    ['2829735.png', 'terrier.png'],
+    ['1326390.png', 'fox.png'],
+    ['840492.png', 'fish.png'],
+    ['1049013.png', 'whale.png'],
+    ['414686.png', 'bear.png'],
+    ['1810917.png', 'giraffe.png'],
+    ['1862418.png', 'parrot.png'],
+    ['2523618.png', 'cow.png'],
+    ['3500055.png', 'lion.png'],
+    ['3500329.png', 'sparrow.png'],
+    ['3544763.png', 'elephant.png'],
+    ['3940404.png', 'pufferfish.png'],
+    ['3940412.png', 'alpaca.png'],
+    ['4322991.png', 'kitten.png'],
+    ['4775480.png', 'frog.png'],
+    ['4775505.png', 'rabbit.png'],
+    ['4775529.png', 'pig.png'],
+    ['4775608.png', 'tabby.png'],
+    ['4775614.png', 'panda.png'],
+    ['4775621.png', 'eagle.png'],
+    ['4775646.png', 'koala.png'],
+    ['10738692.png', 'deer.png'],
+  ]
+  for (const [oldName, newName] of avatarRenames) {
+    exec(
+      `UPDATE employees SET avatar = '${newName}' WHERE avatar = '${oldName}'`,
+    )
+  }
 
   // DEV-102: Add google_sub and google_email columns for Google account binding.
   try {

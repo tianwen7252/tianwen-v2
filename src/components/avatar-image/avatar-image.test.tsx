@@ -22,23 +22,23 @@ describe('AvatarImage', () => {
   })
 
   it('should render image for legacy full local path avatar (backward compat)', () => {
-    render(<AvatarImage avatar="images/aminals/1049013.png" />)
+    render(<AvatarImage avatar="images/aminals/whale.png" />)
     const img = screen.getByAltText('avatar')
     expect(img).toBeTruthy()
-    expect(img.getAttribute('src')).toBe('/images/aminals/1049013.png')
+    expect(img.getAttribute('src')).toBe('/images/aminals/whale.png')
   })
 
   it('should render image for filename-only avatar (new format)', () => {
-    render(<AvatarImage avatar="1049013.png" />)
+    render(<AvatarImage avatar="whale.png" />)
     const img = screen.getByAltText('avatar')
     expect(img).toBeTruthy()
-    expect(img.getAttribute('src')).toBe('/images/aminals/1049013.png')
+    expect(img.getAttribute('src')).toBe('/images/aminals/whale.png')
   })
 
   it('should render image for filename-only avatar without path prefix confusion', () => {
-    render(<AvatarImage avatar="780258.png" />)
+    render(<AvatarImage avatar="puppy.png" />)
     const img = screen.getByAltText('avatar')
-    expect(img.getAttribute('src')).toBe('/images/aminals/780258.png')
+    expect(img.getAttribute('src')).toBe('/images/aminals/puppy.png')
   })
 
   it('should apply custom size', () => {

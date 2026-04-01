@@ -1,6 +1,6 @@
 /**
  * Utility for resolving employee avatar values to full image src paths.
- * DB stores filename-only values (e.g. '1308845.png').
+ * DB stores filename-only values (e.g. 'doberman.png').
  * Legacy data may store full paths or HTTP URLs — these are returned as-is.
  */
 

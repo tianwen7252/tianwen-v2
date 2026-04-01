@@ -109,5 +109,17 @@ describe('schema', () => {
       )
       expect(avatarMigration).toBeDefined()
     })
+
+    it('V2-176: should run migration to rename numeric avatar filenames to English animal names', () => {
+      const mockExec = vi.fn()
+      initSchema(mockExec)
+      const calls = mockExec.mock.calls.map((c: unknown[]) => c[0] as string)
+      const renameMigration = calls.find(
+        (sql: string) =>
+          sql.includes("avatar = 'doberman.png'") &&
+          sql.includes("'1308845.png'"),
+      )
+      expect(renameMigration).toBeDefined()
+    })
   })
 })

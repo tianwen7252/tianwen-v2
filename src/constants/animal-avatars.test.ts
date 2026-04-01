@@ -35,15 +35,15 @@ describe('ANIMAL_AVATARS', () => {
     }
   })
 
-  it('contains known avatar id 1308845', () => {
-    const found = ANIMAL_AVATARS.find(a => a.id === '1308845')
+  it('contains known avatar id doberman', () => {
+    const found = ANIMAL_AVATARS.find(a => a.id === 'doberman')
     expect(found).toBeDefined()
-    expect(found?.path).toBe('1308845.png')
+    expect(found?.path).toBe('doberman.png')
   })
 
-  it('contains known avatar id 10738692', () => {
-    const found = ANIMAL_AVATARS.find(a => a.id === '10738692')
+  it('contains known avatar id deer', () => {
+    const found = ANIMAL_AVATARS.find(a => a.id === 'deer')
     expect(found).toBeDefined()
-    expect(found?.path).toBe('10738692.png')
+    expect(found?.path).toBe('deer.png')
   })
 })

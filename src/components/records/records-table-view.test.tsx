@@ -11,7 +11,7 @@ const employees: readonly Employee[] = [
   {
     id: 'emp-001',
     name: 'Alex',
-    avatar: 'images/aminals/1308845.png',
+    avatar: 'images/aminals/doberman.png',
     status: 'active',
     shiftType: 'regular',
     employeeNo: 'E001',
@@ -23,7 +23,7 @@ const employees: readonly Employee[] = [
   {
     id: 'emp-002',
     name: 'Mia',
-    avatar: 'images/aminals/780258.png',
+    avatar: 'images/aminals/puppy.png',
     status: 'active',
     shiftType: 'regular',
     employeeNo: 'E002',

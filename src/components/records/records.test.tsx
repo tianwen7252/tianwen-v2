@@ -9,7 +9,7 @@ const mockEmployees: Employee[] = [
   {
     id: 'emp-001',
     name: 'Alex',
-    avatar: 'images/aminals/1308845.png',
+    avatar: 'images/aminals/doberman.png',
     status: 'active',
     shiftType: 'regular',
     employeeNo: 'E001',
@@ -21,7 +21,7 @@ const mockEmployees: Employee[] = [
   {
     id: 'emp-002',
     name: 'Mia',
-    avatar: 'images/aminals/780258.png',
+    avatar: 'images/aminals/puppy.png',
     status: 'active',
     shiftType: 'regular',
     employeeNo: 'E002',
@@ -32,13 +32,16 @@ const mockEmployees: Employee[] = [
   },
 ]
 
+// Use today's date so the attendance appears in the default (current month) view
+const todayStr = new Date().toISOString().slice(0, 10)
+
 const mockAttendances: Attendance[] = [
   {
     id: 'att-001',
     employeeId: 'emp-001',
-    date: '2026-03-21',
-    clockIn: new Date('2026-03-21T08:00:00').getTime(),
-    clockOut: new Date('2026-03-21T17:00:00').getTime(),
+    date: todayStr,
+    clockIn: new Date(`${todayStr}T08:00:00`).getTime(),
+    clockOut: new Date(`${todayStr}T17:00:00`).getTime(),
     type: 'regular',
   },
 ]
@@ -52,8 +55,8 @@ const mockRepos = vi.hoisted(() => ({
     create: vi.fn(async () => ({
       id: 'att-new',
       employeeId: 'emp-001',
-      date: '2026-03-21',
-      clockIn: 1742536800000,
+      date: todayStr,
+      clockIn: new Date(`${todayStr}T08:00:00`).getTime(),
       type: 'regular' as const,
     })),
     update: vi.fn(async () => undefined),
