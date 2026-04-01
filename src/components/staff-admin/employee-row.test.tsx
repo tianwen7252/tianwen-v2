@@ -160,8 +160,8 @@ describe('EmployeeRow', () => {
   // ─── Link Google button ────────────────────────────────────────────────────
 
   describe('Link Google button', () => {
-    it('shows link button when current user is admin and employee not linked', () => {
-      const employee = makeEmployee({ googleSub: undefined })
+    it('shows link button when current user is admin and employee is admin and not linked', () => {
+      const employee = makeEmployee({ isAdmin: true, googleSub: undefined })
       renderInTable(
         <EmployeeRow
           employee={employee}
@@ -173,7 +173,7 @@ describe('EmployeeRow', () => {
     })
 
     it('does not show link button when current user is not admin', () => {
-      const employee = makeEmployee({ googleSub: undefined })
+      const employee = makeEmployee({ isAdmin: true, googleSub: undefined })
       renderInTable(
         <EmployeeRow
           employee={employee}
@@ -184,10 +184,22 @@ describe('EmployeeRow', () => {
       expect(screen.queryByText('連結Google')).toBeNull()
     })
 
+    it('does not show link button when employee is not admin', () => {
+      const employee = makeEmployee({ isAdmin: false, googleSub: undefined })
+      renderInTable(
+        <EmployeeRow
+          employee={employee}
+          {...defaultRowProps}
+          isCurrentUserAdmin={true}
+        />,
+      )
+      expect(screen.queryByText('連結Google')).toBeNull()
+    })
+
     it('calls onLinkGoogle with employee when link button is clicked', async () => {
       const user = userEvent.setup()
       const onLinkGoogle = vi.fn()
-      const employee = makeEmployee({ id: 'emp-001', googleSub: undefined })
+      const employee = makeEmployee({ id: 'emp-001', isAdmin: true, googleSub: undefined })
       renderInTable(
         <EmployeeRow
           employee={employee}
@@ -204,6 +216,7 @@ describe('EmployeeRow', () => {
 
     it('hides link button when employee already has googleSub linked', () => {
       const employee = makeEmployee({
+        isAdmin: true,
         googleSub: 'already-bound-sub',
       })
       renderInTable(
@@ -220,8 +233,8 @@ describe('EmployeeRow', () => {
   // ─── Unlink Google button ──────────────────────────────────────────────────
 
   describe('Unlink Google button', () => {
-    it('shows unlink button when admin and employee is linked', () => {
-      const employee = makeEmployee({ googleSub: 'sub-123' })
+    it('shows unlink button when current user is admin, employee is admin and linked', () => {
+      const employee = makeEmployee({ isAdmin: true, googleSub: 'sub-123' })
       renderInTable(
         <EmployeeRow
           employee={employee}
@@ -232,8 +245,8 @@ describe('EmployeeRow', () => {
       expect(screen.getByText('取消連結')).toBeTruthy()
     })
 
-    it('does not show unlink button when not admin', () => {
-      const employee = makeEmployee({ googleSub: 'sub-123' })
+    it('does not show unlink button when current user is not admin', () => {
+      const employee = makeEmployee({ isAdmin: true, googleSub: 'sub-123' })
       renderInTable(
         <EmployeeRow
           employee={employee}
@@ -244,8 +257,20 @@ describe('EmployeeRow', () => {
       expect(screen.queryByText('取消連結')).toBeNull()
     })
 
+    it('does not show unlink button when employee is not admin', () => {
+      const employee = makeEmployee({ isAdmin: false, googleSub: 'sub-123' })
+      renderInTable(
+        <EmployeeRow
+          employee={employee}
+          {...defaultRowProps}
+          isCurrentUserAdmin={true}
+        />,
+      )
+      expect(screen.queryByText('取消連結')).toBeNull()
+    })
+
     it('does not show unlink button when employee is not linked', () => {
-      const employee = makeEmployee({ googleSub: undefined })
+      const employee = makeEmployee({ isAdmin: true, googleSub: undefined })
       renderInTable(
         <EmployeeRow
           employee={employee}
@@ -259,7 +284,7 @@ describe('EmployeeRow', () => {
     it('calls onUnlinkGoogle with employee when unlink button is clicked', async () => {
       const user = userEvent.setup()
       const onUnlinkGoogle = vi.fn()
-      const employee = makeEmployee({ googleSub: 'sub-123' })
+      const employee = makeEmployee({ isAdmin: true, googleSub: 'sub-123' })
       renderInTable(
         <EmployeeRow
           employee={employee}

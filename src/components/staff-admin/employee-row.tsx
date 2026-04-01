@@ -102,7 +102,7 @@ export function EmployeeRow({
           >
             <Trash2 size={16} />
           </button>
-          {isCurrentUserAdmin && !isGoogleLinked && (
+          {isCurrentUserAdmin && employee.isAdmin && !isGoogleLinked && (
             <RippleButton
               className="rounded-lg bg-muted px-2.5 py-1 text-md text-muted-foreground hover:bg-accent hover:text-foreground"
               rippleColor="rgba(0, 0, 0, 0.08)"
@@ -111,7 +111,7 @@ export function EmployeeRow({
               {t('staff.linkGoogle')}
             </RippleButton>
           )}
-          {isCurrentUserAdmin && isGoogleLinked && (
+          {isCurrentUserAdmin && employee.isAdmin && isGoogleLinked && (
             <RippleButton
               className="rounded-lg bg-muted px-2.5 py-1 text-md text-red-500 hover:bg-red-50 hover:text-red-600"
               rippleColor="rgba(0, 0, 0, 0.08)"

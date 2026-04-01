@@ -157,9 +157,23 @@ export function StaffAdmin() {
     setLinkGoogleTarget(employee)
   }, [])
 
-  // Confirm link Google account
+  // Confirm link Google account — admin-only, rejects duplicates
   const handleLinkGoogleConfirm = useCallback(async () => {
-    if (!linkGoogleTarget || !googleUser) return
+    if (!linkGoogleTarget || !googleUser || !isAdmin) return
+
+    // Prevent linking the same Google account to multiple employees
+    const allEmployees = await getEmployeeRepo().findAll()
+    const alreadyLinked = allEmployees.find(
+      (e) => e.googleSub === googleUser.sub && e.id !== linkGoogleTarget.id,
+    )
+    if (alreadyLinked) {
+      notify.warning(
+        t('staff.linkGoogleDuplicate', { name: alreadyLinked.name }),
+      )
+      setLinkGoogleTarget(null)
+      return
+    }
+
     await getEmployeeRepo().bindGoogleAccount(
       linkGoogleTarget.id,
       googleUser.sub,
@@ -168,7 +182,7 @@ export function StaffAdmin() {
     notify.success(t('staff.linkGoogleSuccess'))
     refreshEmployees()
     setLinkGoogleTarget(null)
-  }, [linkGoogleTarget, googleUser, refreshEmployees, t])
+  }, [linkGoogleTarget, googleUser, isAdmin, refreshEmployees, t])
 
   // Cancel link Google
   const handleLinkGoogleCancel = useCallback(() => {
@@ -180,14 +194,14 @@ export function StaffAdmin() {
     setUnlinkGoogleTarget(employee)
   }, [])
 
-  // Confirm unlink Google account
+  // Confirm unlink Google account — admin-only
   const handleUnlinkGoogleConfirm = useCallback(async () => {
-    if (!unlinkGoogleTarget) return
+    if (!unlinkGoogleTarget || !isAdmin) return
     await getEmployeeRepo().unbindGoogleAccount(unlinkGoogleTarget.id)
     notify.success(t('staff.unlinkGoogleSuccess'))
     refreshEmployees()
     setUnlinkGoogleTarget(null)
-  }, [unlinkGoogleTarget, refreshEmployees, t])
+  }, [unlinkGoogleTarget, isAdmin, refreshEmployees, t])
 
   // Cancel unlink Google
   const handleUnlinkGoogleCancel = useCallback(() => {

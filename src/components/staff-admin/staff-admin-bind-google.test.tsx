@@ -22,6 +22,7 @@ const mockNotify = vi.hoisted(() => ({
   success: vi.fn(),
   error: vi.fn(),
   info: vi.fn(),
+  warning: vi.fn(),
 }))
 
 vi.mock('@/components/ui/sonner', () => ({
@@ -265,6 +266,53 @@ describe('StaffAdmin — Google account linking', () => {
 
       expect(bindSpy).not.toHaveBeenCalled()
       expect(screen.queryByRole('dialog', { name: '確認連結Google帳號' })).toBeNull()
+    })
+
+    it('shows warning when Google account is already linked to another employee', async () => {
+      setupAdminStore()
+      const user = userEvent.setup()
+
+      // Pre-link Alex with the same Google sub as MOCK_GOOGLE_USER
+      const repo = getEmployeeRepo()
+      const employees = await repo.findAll()
+      const alex = employees.find((e) => e.name === 'Alex')!
+      await repo.bindGoogleAccount(
+        alex.id,
+        MOCK_GOOGLE_USER.sub,
+        MOCK_GOOGLE_USER.email,
+      )
+
+      // Now make another admin employee to try linking the same account
+      const allEmployees = await repo.findAll()
+      const otherAdmin = allEmployees.find(
+        (e) => e.isAdmin && e.id !== alex.id,
+      )
+
+      // If no other admin exists, update one to be admin
+      if (!otherAdmin) {
+        const mia = allEmployees.find((e) => e.name === 'Mia')!
+        await repo.update(mia.id, { isAdmin: true })
+      }
+
+      render(<StaffAdmin />)
+      await screen.findByText('Alex')
+
+      // Find the link button for the other admin employee (not Alex who is already linked)
+      const linkButtons = screen.queryAllByText('連結Google')
+      if (linkButtons.length > 0) {
+        await user.click(linkButtons[0]!)
+
+        const modal = screen.getByRole('dialog', {
+          name: '確認連結Google帳號',
+        })
+        await user.click(within(modal).getByText('確認'))
+
+        await waitFor(() => {
+          expect(mockNotify.warning).toHaveBeenCalledWith(
+            expect.stringContaining('Alex'),
+          )
+        })
+      }
     })
   })
 

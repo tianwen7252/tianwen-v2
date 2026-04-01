@@ -58,6 +58,7 @@
     "unlinkGoogleSuccess": "Google account unlinked",
     "linkGoogleConfirmTitle": "Confirm Link Google Account",
     "linkGoogleConfirmMessage": "Link Google account \"{{googleName}}\" to employee \"{{employeeName}}\"?",
+    "linkGoogleDuplicate": "This Google account is already linked to employee \"{{name}}\"",
     "unlinkGoogleConfirmTitle": "Confirm Unlink",
     "unlinkGoogleConfirmMessage": "Unlink Google account from employee \"{{employeeName}}\"?"
   },

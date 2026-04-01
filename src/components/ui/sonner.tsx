@@ -54,8 +54,8 @@ function NotificationToast({
         >
           {icon}
         </div>
-        <div className="flex flex-col overflow-hidden">
-          <figcaption className="flex flex-row items-center whitespace-pre text-base dark:text-white">
+        <div className="flex min-w-0 flex-col">
+          <figcaption className="flex flex-row items-center text-base dark:text-white">
             <span style={{ color }}>{message}</span>
             {time && (
               <>
