@@ -10,7 +10,7 @@ import { useTranslation } from 'react-i18next'
 import { Settings, Code } from 'lucide-react'
 import { OrderPage } from '@/pages/order'
 import { NotFoundPage } from '@/pages/not-found'
-import { ModalPreview, NotifyPreview, TestDataPreview } from '@/pages/preview'
+import { ModalPreview, NotifyPreview, SwPreview, TestDataPreview } from '@/pages/preview'
 import { ClockInPage } from '@/pages/clock-in'
 import { SettingsPage } from '@/pages/settings'
 import { SystemInfo } from '@/components/settings/system-info'
@@ -218,6 +218,12 @@ function DevIndex() {
           (Toast Notifications)
         </li>
         <li>
+          <Link to="/dev/sw" className="text-primary underline">
+            SW Update
+          </Link>{' '}
+          (Service Worker prompts)
+        </li>
+        <li>
           <Link to="/dev/test-data" className="text-primary underline">
             Test Data
           </Link>{' '}
@@ -238,6 +244,12 @@ const devNotifyRoute = createRoute({
   getParentRoute: () => devRoute,
   path: '/notify',
   component: NotifyPreview,
+})
+
+const devSwRoute = createRoute({
+  getParentRoute: () => devRoute,
+  path: '/sw',
+  component: SwPreview,
 })
 
 const devTestDataRoute = createRoute({
@@ -344,6 +356,7 @@ export const routeTree = rootRoute.addChildren([
     devIndexRoute,
     devModalRoute,
     devNotifyRoute,
+    devSwRoute,
     devTestDataRoute,
   ]),
 ])

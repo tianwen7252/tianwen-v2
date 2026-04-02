@@ -102,6 +102,7 @@
     "table": "表格",
     "calendar": "月曆",
     "searchPlaceholder": "搜尋員工姓名",
+    "allEmployees": "全部員工",
     "today": "今天",
     "todayBadge": "今日",
     "hint": "點擊儲存格即可直接編輯打卡時間",
@@ -601,5 +602,11 @@
         "days": "天數"
       }
     }
+  },
+  "sw": {
+    "updateAvailable": "有新版本可用",
+    "update": "更新",
+    "later": "稍後",
+    "offlineReady": "已可離線使用"
   }
 }

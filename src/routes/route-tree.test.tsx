@@ -13,6 +13,7 @@ vi.mock('@/pages/not-found', () => ({
 vi.mock('@/pages/preview', () => ({
   ModalPreview: () => null,
   NotifyPreview: () => null,
+  SwPreview: () => null,
   TestDataPreview: () => null,
 }))
 

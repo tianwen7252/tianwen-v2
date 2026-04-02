@@ -178,7 +178,7 @@ describe('RecordsCalendarView', () => {
       <RecordsCalendarView {...defaultProps} calendarGrid={gridWithToday} />,
     )
     const todayCell = screen.getByTestId('calendar-cell-2026-03-21')
-    expect(todayCell.className).toContain('border-blue-200')
+    expect(todayCell.className).toContain('border-blue-grey')
   })
 
   it('should apply reduced opacity class to outside-month cells', () => {
@@ -190,10 +190,22 @@ describe('RecordsCalendarView', () => {
     expect(outsideCells.length).toBeGreaterThan(0)
   })
 
-  it('should show employee clock times in cards', () => {
+  it('should show employee name and avatar in attendance cells', () => {
     const gridWithAtt = buildGridWithAttendance()
     render(<RecordsCalendarView {...defaultProps} calendarGrid={gridWithAtt} />)
-    expect(screen.getByText('08:00 - 17:00')).toBeTruthy()
+    // Employee names should appear next to their attendance
+    expect(screen.getByText('Alex')).toBeTruthy()
+    expect(screen.getByText('Mia')).toBeTruthy()
+    // Avatars should render as img elements
+    const avatars = screen.getAllByAltText('avatar')
+    expect(avatars.length).toBe(2)
+  })
+
+  it('should show total hours for employee attendance', () => {
+    const gridWithAtt = buildGridWithAttendance()
+    render(<RecordsCalendarView {...defaultProps} calendarGrid={gridWithAtt} />)
+    // 08:00 - 17:00 = 9h
+    expect(screen.getByText('9h')).toBeTruthy()
   })
 
   it('should show vacation label on vacation attendance cards', () => {
@@ -219,7 +231,7 @@ describe('RecordsCalendarView', () => {
     expect(onCellClick).toHaveBeenCalledWith('2026-03-16')
   })
 
-  it('should call onEditRecord when an employee attendance card is clicked', async () => {
+  it('should call onEditRecord when an employee attendance row is clicked', async () => {
     const user = userEvent.setup()
     const onEditRecord = vi.fn()
     const gridWithAtt = buildGridWithAttendance()
@@ -231,7 +243,7 @@ describe('RecordsCalendarView', () => {
       />,
     )
 
-    await user.click(screen.getByText('08:00 - 17:00'))
+    await user.click(screen.getByText('9h'))
     expect(onEditRecord).toHaveBeenCalledWith(
       employees[0],
       '2026-03-16',
@@ -244,7 +256,7 @@ describe('RecordsCalendarView', () => {
     // Sunday (day 0) cells should have weekend class
     const sundayCells = screen
       .getAllByTestId(/^calendar-cell-/)
-      .filter(el => el.className.includes('bg-[#f8fafc50]'))
+      .filter(el => el.className.includes('bg-lemon-chiffon/20'))
     expect(sundayCells.length).toBeGreaterThan(0)
   })
 
