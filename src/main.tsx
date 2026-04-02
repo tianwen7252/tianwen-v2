@@ -23,6 +23,7 @@ import {
 } from '@/lib/worker-database'
 import { initRepositories } from '@/lib/repositories'
 import { installGlobalErrorLogger } from '@/lib/error-logger'
+import { DatabaseLockedScreen } from '@/components/database-locked'
 
 // Initialize i18n before rendering (side-effect import)
 import './lib/i18n'
@@ -103,6 +104,20 @@ async function bootstrap() {
 
 bootstrap().catch(err => {
   const msg = err instanceof Error ? err.message : String(err)
+
+  // OPFS exclusive-lock error: another tab already holds the database
+  const isOpfsLocked =
+    msg.includes('Access Handles cannot be created') ||
+    msg.includes('NoModificationAllowedError')
+
+  if (isOpfsLocked) {
+    createRoot(rootElement).render(
+      <StrictMode>
+        <DatabaseLockedScreen />
+      </StrictMode>,
+    )
+    return
+  }
 
   const container = document.createElement('div')
   container.style.cssText =

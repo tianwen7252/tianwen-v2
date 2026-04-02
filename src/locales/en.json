@@ -145,7 +145,8 @@
     "unknown": "Unknown error",
     "appError": "Application error occurred",
     "settingsError": "Settings page error occurred",
-    "clockInError": "Clock-in page error occurred"
+    "clockInError": "Clock-in page error occurred",
+    "databaseLocked": "For PWA security reasons, the database can only be used in a single browser tab"
   },
   "order": {
     "title": "Order",
