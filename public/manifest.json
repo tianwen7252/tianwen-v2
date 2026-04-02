@@ -3,15 +3,26 @@
   "short_name": "天文",
   "version": "2.0.0-alpha",
   "description": "天文餐廳 POS 點餐管理系統",
-  "start_url": "/",
+  "start_url": ".?v=2.1.0-alpha",
   "scope": "/",
   "display": "standalone",
   "orientation": "landscape",
   "theme_color": "#7f956a",
   "background_color": "#fdfdfd",
   "icons": [
-    { "src": "/icons/icon-192x192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "/icons/icon-512x512.png", "sizes": "512x512", "type": "image/png" }
+    {
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
   ],
-  "categories": ["business", "productivity"]
+  "categories": [
+    "business",
+    "productivity"
+  ]
 }
