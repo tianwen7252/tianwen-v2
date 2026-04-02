@@ -7,6 +7,10 @@ import { useSwUpdate } from '@/hooks/use-sw-update'
 const mockUpdateApp = vi.fn()
 const mockDismissPrompt = vi.fn()
 
+const mockNotify = vi.hoisted(() => ({
+  info: vi.fn(),
+}))
+
 vi.mock('@/hooks/use-sw-update', () => ({
   useSwUpdate: vi.fn(() => ({
     needRefresh: false,
@@ -14,6 +18,10 @@ vi.mock('@/hooks/use-sw-update', () => ({
     updateApp: mockUpdateApp,
     dismissPrompt: mockDismissPrompt,
   })),
+}))
+
+vi.mock('@/components/ui/sonner', () => ({
+  notify: mockNotify,
 }))
 
 const mockUseSwUpdate = vi.mocked(useSwUpdate)
@@ -31,11 +39,11 @@ describe('SwUpdatePrompt', () => {
 
   it('should render nothing when no update and not offline ready', () => {
     const { container } = render(<SwUpdatePrompt />)
-
-    expect(container.innerHTML).toBe('')
+    // ConfirmModal with open=false renders nothing visible
+    expect(container.textContent).toBe('')
   })
 
-  it('should show update banner with "有新版本可用" when needRefresh is true', () => {
+  it('should show ConfirmModal with update title when needRefresh is true', () => {
     mockUseSwUpdate.mockReturnValue({
       needRefresh: true,
       offlineReady: false,
@@ -45,10 +53,12 @@ describe('SwUpdatePrompt', () => {
 
     render(<SwUpdatePrompt />)
 
-    expect(screen.getByText('有新版本可用')).toBeDefined()
+    // ConfirmModal renders title in multiple places; use getAllByText
+    const titles = screen.getAllByText('有新版本可用')
+    expect(titles.length).toBeGreaterThan(0)
   })
 
-  it('should show "更新" and "稍後" buttons in update banner', () => {
+  it('should show "更新" and "稍後" buttons in ConfirmModal', () => {
     mockUseSwUpdate.mockReturnValue({
       needRefresh: true,
       offlineReady: false,
@@ -62,7 +72,7 @@ describe('SwUpdatePrompt', () => {
     expect(screen.getByText('稍後')).toBeDefined()
   })
 
-  it('should show "已可離線使用" when offlineReady is true', () => {
+  it('should call notify.info when offlineReady is true', () => {
     mockUseSwUpdate.mockReturnValue({
       needRefresh: false,
       offlineReady: true,
@@ -72,7 +82,10 @@ describe('SwUpdatePrompt', () => {
 
     render(<SwUpdatePrompt />)
 
-    expect(screen.getByText('已可離線使用')).toBeDefined()
+    expect(mockNotify.info).toHaveBeenCalledWith('已可離線使用', {
+      position: 'top-center',
+    })
+    expect(mockDismissPrompt).toHaveBeenCalled()
   })
 
   it('should call updateApp when clicking "更新"', async () => {

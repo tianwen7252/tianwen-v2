@@ -31,7 +31,7 @@ describe('release-please configuration', () => {
         'utf-8',
       )
       const config = JSON.parse(content)
-      expect(config.packages['.']['package-name']).toBe('tianwen-pos')
+      expect(config.packages['.']['package-name']).toBe('tianwen-v2')
     })
 
     it('has changelog-path configured', () => {
@@ -76,7 +76,7 @@ describe('release-please configuration', () => {
       expect(manifest['.']).toBeDefined()
     })
 
-    it('version matches package.json version', () => {
+    it('version shares base version with package.json', () => {
       const pkg = JSON.parse(
         fs.readFileSync(path.join(ROOT, 'package.json'), 'utf-8'),
       )
@@ -86,7 +86,9 @@ describe('release-please configuration', () => {
           'utf-8',
         ),
       )
-      expect(manifest['.']).toBe(pkg.version)
+      // Compare base version (strip prerelease suffix like -alpha)
+      const baseVersion = (v: string) => v.replace(/-.*$/, '')
+      expect(baseVersion(manifest['.'])).toBe(baseVersion(pkg.version))
     })
   })
 

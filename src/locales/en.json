@@ -102,6 +102,7 @@
     "table": "Table",
     "calendar": "Calendar",
     "searchPlaceholder": "Search employee name",
+    "allEmployees": "All Employees",
     "today": "Today",
     "todayBadge": "Today",
     "hint": "Click on a cell to edit clock time directly",
@@ -601,5 +602,11 @@
         "days": "Days"
       }
     }
+  },
+  "sw": {
+    "updateAvailable": "A new version is available",
+    "update": "Update",
+    "later": "Later",
+    "offlineReady": "Ready for offline use"
   }
 }

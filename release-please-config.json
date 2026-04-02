@@ -3,7 +3,8 @@
   "release-type": "node",
   "packages": {
     ".": {
-      "package-name": "tianwen-pos",
+      "package-name": "tianwen-v2",
+      "include-component-in-tag": false,
       "changelog-path": "CHANGELOG.md",
       "bump-minor-pre-major": true,
       "bump-patch-for-minor-pre-major": true,

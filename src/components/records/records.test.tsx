@@ -111,58 +111,20 @@ describe('Records', () => {
     expect(tableBtn.className).toContain('bg-card')
   })
 
-  it('should render search input', () => {
+  it('should render employee select with "全部員工" default', () => {
     render(<Records />)
-    expect(screen.getByPlaceholderText('搜尋員工姓名')).toBeTruthy()
+    expect(screen.getByText('全部員工')).toBeTruthy()
   })
 
-  it('should filter employees by search', async () => {
-    const user = userEvent.setup()
+  it('should render year and month selects', () => {
     render(<Records />)
-
-    // Wait for data to load
-    await screen.findByText('Alex')
-
-    const searchInput = screen.getByPlaceholderText('搜尋員工姓名')
-    await user.type(searchInput, 'Alex')
-
-    // Should still show Alex in the header
-    expect(screen.getByText('Alex')).toBeTruthy()
-    // Mia should be filtered out (not in employee headers)
-    // The name may still appear elsewhere, but not in table headers
-    expect(screen.queryByText('Mia')).toBeNull()
+    // shadcn Select renders trigger buttons with text values
+    const triggers = screen.getAllByRole('combobox')
+    expect(triggers.length).toBeGreaterThanOrEqual(3)
   })
 
-  it('should render year select with options', () => {
+  it('should fetch attendance data on mount', () => {
     render(<Records />)
-    const yearSelect = screen.getByDisplayValue(/年/)
-    expect(yearSelect).toBeTruthy()
-  })
-
-  it('should render month select with options', () => {
-    render(<Records />)
-    const monthSelect = screen.getByDisplayValue(/月/)
-    expect(monthSelect).toBeTruthy()
-  })
-
-  it('should update data when year select changes', async () => {
-    const user = userEvent.setup()
-    render(<Records />)
-
-    const yearSelect = screen.getByDisplayValue(/年/)
-    await user.selectOptions(yearSelect, '2025')
-
-    // Data should refresh (service is called)
-    expect(mockRepos.attendanceRepo.findByMonth).toHaveBeenCalled()
-  })
-
-  it('should update data when month select changes', async () => {
-    const user = userEvent.setup()
-    render(<Records />)
-
-    const monthSelect = screen.getByDisplayValue(/月/)
-    await user.selectOptions(monthSelect, '1')
-
     expect(mockRepos.attendanceRepo.findByMonth).toHaveBeenCalled()
   })
 

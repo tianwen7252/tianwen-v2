@@ -1,49 +1,36 @@
 /**
- * Toast-style banner for service worker update notifications.
- * Shows "有新版本可用" with update/dismiss buttons when a new SW is waiting.
- * Shows "已可離線使用" briefly when precaching completes.
+ * Service worker update prompt.
+ * Shows ConfirmModal when a new SW is waiting.
+ * Shows notify.info when precaching completes (offline ready).
  */
 
 import { useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useSwUpdate } from '@/hooks/use-sw-update'
+import { ConfirmModal } from '@/components/modal'
+import { notify } from '@/components/ui/sonner'
 
 export function SwUpdatePrompt() {
+  const { t } = useTranslation()
   const { needRefresh, offlineReady, updateApp, dismissPrompt } = useSwUpdate()
 
-  // Auto-dismiss offline-ready message after 5 seconds
+  // Show info toast when offline ready
   useEffect(() => {
     if (offlineReady) {
-      const timer = setTimeout(dismissPrompt, 5000)
-      return () => clearTimeout(timer)
+      notify.info(t('sw.offlineReady'), { position: 'top-center' })
+      dismissPrompt()
     }
-  }, [offlineReady, dismissPrompt])
-
-  if (!needRefresh && !offlineReady) return null
+  }, [offlineReady, dismissPrompt, t])
 
   return (
-    <div className="fixed bottom-4 left-1/2 z-50 -translate-x-1/2 rounded-xl border border-border bg-card px-6 py-3 shadow-lg">
-      {needRefresh && (
-        <div className="flex items-center gap-4">
-          <span className="text-sm">有新版本可用</span>
-          <button
-            type="button"
-            className="rounded-lg bg-primary px-3 py-1 text-sm font-semibold text-primary-foreground"
-            onClick={updateApp}
-          >
-            更新
-          </button>
-          <button
-            type="button"
-            className="text-sm text-muted-foreground hover:text-foreground"
-            onClick={dismissPrompt}
-          >
-            稍後
-          </button>
-        </div>
-      )}
-      {offlineReady && !needRefresh && (
-        <span className="text-sm text-muted-foreground">已可離線使用</span>
-      )}
-    </div>
+    <ConfirmModal
+      open={needRefresh}
+      animated
+      title={t('sw.updateAvailable')}
+      confirmText={t('sw.update')}
+      cancelText={t('sw.later')}
+      onConfirm={updateApp}
+      onCancel={dismissPrompt}
+    />
   )
 }

@@ -9,9 +9,15 @@ import dayjs from 'dayjs'
 import { LayoutList, Calendar, Info } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import {
   buildDayRows,
   buildCalendarGrid,
-  filterEmployeesByName,
   getYearOptions,
   getMonthOptions,
 } from '@/lib/records-utils'
@@ -47,7 +53,7 @@ export function Records() {
   const { t } = useTranslation()
   const now = dayjs()
   const [viewMode, setViewMode] = useState<ViewMode>('table')
-  const [searchQuery, setSearchQuery] = useState('')
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState<string>('all')
   const [selectedYear, setSelectedYear] = useState(now.year())
   const [selectedMonth, setSelectedMonth] = useState(now.month() + 1)
   const [modalState, setModalState] = useState<ModalState>(INITIAL_MODAL_STATE)
@@ -69,10 +75,13 @@ export function Records() {
     [] as Attendance[],
   )
 
-  // Filter employees by search
+  // Filter employees by selection
   const filteredEmployees = useMemo(
-    () => filterEmployeesByName(allEmployees, searchQuery),
-    [allEmployees, searchQuery],
+    () =>
+      selectedEmployeeId === 'all'
+        ? allEmployees
+        : allEmployees.filter(emp => emp.id === selectedEmployeeId),
+    [allEmployees, selectedEmployeeId],
   )
 
   // Build view data
@@ -187,38 +196,55 @@ export function Records() {
 
       {/* Filter bar */}
       <div className="mb-4 grid w-full grid-cols-[2fr_1fr_1fr_auto] items-center gap-3">
-        <input
-          type="text"
-          placeholder={t('records.searchPlaceholder')}
-          value={searchQuery}
-          onChange={e => setSearchQuery(e.target.value)}
-          className="w-full rounded-lg border border-border bg-card px-3 py-1.5 text-base"
-        />
-        <select
-          value={selectedYear}
-          onChange={e => setSelectedYear(Number(e.target.value))}
-          className="w-full rounded-lg border border-border bg-card px-3 py-1.5 text-base"
+        <Select
+          value={selectedEmployeeId}
+          onValueChange={setSelectedEmployeeId}
         >
-          {yearOptions.map(opt => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
-        <select
-          value={selectedMonth}
-          onChange={e => setSelectedMonth(Number(e.target.value))}
-          className="w-full rounded-lg border border-border bg-card px-3 py-1.5 text-base"
+          <SelectTrigger className="w-full h-[38px] rounded-lg text-base">
+            <SelectValue placeholder={t('records.searchPlaceholder')} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">{t('records.allEmployees')}</SelectItem>
+            {allEmployees.map(emp => (
+              <SelectItem key={emp.id} value={emp.id}>
+                {emp.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select
+          value={String(selectedYear)}
+          onValueChange={v => setSelectedYear(Number(v))}
         >
-          {monthOptions.map(opt => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
+          <SelectTrigger className="w-full h-[38px] rounded-lg text-base">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {yearOptions.map(opt => (
+              <SelectItem key={opt.value} value={String(opt.value)}>
+                {opt.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select
+          value={String(selectedMonth)}
+          onValueChange={v => setSelectedMonth(Number(v))}
+        >
+          <SelectTrigger className="w-full h-[38px] rounded-lg text-base">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {monthOptions.map(opt => (
+              <SelectItem key={opt.value} value={String(opt.value)}>
+                {opt.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         <button
           type="button"
-          className="rounded-lg border border-[#7f956a] bg-transparent px-3 py-1.5 text-base font-medium text-[#7f956a] transition-colors hover:bg-[#7f956a] hover:text-white"
+          className="h-[38px] rounded-lg border border-border bg-card px-3 text-base font-medium text-foreground transition-colors hover:bg-muted"
           onClick={handleTodayClick}
         >
           {t('records.today')}
