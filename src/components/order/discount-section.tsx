@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { X } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { RippleButton } from '@/components/ui/ripple-button'
 import type { Discount } from '@/stores/order-store'
 
 export interface DiscountSectionProps {
@@ -29,15 +29,13 @@ export function DiscountSection({
               className="inline-flex items-center gap-1 rounded-full bg-muted px-3 py-1 text-base"
             >
               {discount.label} -${discount.amount.toLocaleString()}
-              <Button
-                variant="ghost"
-                size="icon-xs"
+              <RippleButton
                 aria-label="remove"
                 onClick={() => onRemoveDiscount(discount.id)}
-                className="size-4 hover:text-destructive"
+                className="inline-flex size-6 items-center justify-center rounded outline-none hover:text-destructive focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
               >
                 <X className="size-3" />
-              </Button>
+              </RippleButton>
             </span>
           ))}
         </div>

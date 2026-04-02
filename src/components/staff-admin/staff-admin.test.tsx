@@ -369,16 +369,27 @@ describe('StaffAdmin', () => {
       expect((regularRadio as HTMLInputElement).checked).toBe(false)
     })
 
-    it('should toggle admin checkbox', async () => {
+    it('should toggle admin permission via Switch (not checkbox)', async () => {
       const user = userEvent.setup()
       render(<StaffAdmin />)
       await user.click(screen.getByRole('button', { name: /新增員工/ }))
 
-      const adminCheckbox = screen.getByLabelText('管理員權限')
-      expect((adminCheckbox as HTMLInputElement).checked).toBe(false)
+      // Admin toggle must use a Switch (role="switch"), not a checkbox
+      const adminSwitch = screen.getByRole('switch', { name: '管理員權限' })
+      expect(adminSwitch.getAttribute('data-state')).toBe('unchecked')
 
-      await user.click(adminCheckbox)
-      expect((adminCheckbox as HTMLInputElement).checked).toBe(true)
+      await user.click(adminSwitch)
+      expect(adminSwitch.getAttribute('data-state')).toBe('checked')
+    })
+
+    it('should not have a checkbox for admin permission', async () => {
+      const user = userEvent.setup()
+      render(<StaffAdmin />)
+      await user.click(screen.getByRole('button', { name: /新增員工/ }))
+
+      // There should be no checkbox input for admin permission
+      const checkboxes = screen.queryAllByRole('checkbox')
+      expect(checkboxes.length).toBe(0)
     })
 
     it('should set hire date', async () => {
@@ -408,6 +419,23 @@ describe('StaffAdmin', () => {
       // Avatar grid should contain animal avatar buttons
       const avatarButtons = screen.getAllByTestId('avatar-option')
       expect(avatarButtons.length).toBe(27) // All ANIMAL_AVATARS
+    })
+
+    it('should render avatar images at size 64', async () => {
+      const user = userEvent.setup()
+      render(<StaffAdmin />)
+      await user.click(screen.getByRole('button', { name: /新增員工/ }))
+
+      // Avatar images inside the picker must be 64px — not 28px
+      const avatarImages = screen
+        .getAllByTestId('avatar-image')
+        // Filter to only avatar-option images (inside the picker grid)
+        .filter(img => img.closest('[data-testid="avatar-option"]') !== null)
+      expect(avatarImages.length).toBeGreaterThan(0)
+      avatarImages.forEach(img => {
+        expect((img as HTMLImageElement).style.width).toBe('64px')
+        expect((img as HTMLImageElement).style.height).toBe('64px')
+      })
     })
 
     it('should select avatar when clicked', async () => {

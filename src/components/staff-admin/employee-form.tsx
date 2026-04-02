@@ -1,12 +1,13 @@
 /**
  * EmployeeForm — form content for the add/edit employee modal.
  * Uses React Hook Form for state management and Zod for validation.
- * Includes name input, shift type radio, admin checkbox, date inputs, and avatar picker.
+ * Includes name input, shift type radio, admin Switch toggle, date inputs, and avatar picker.
  */
 
 import { useTranslation } from 'react-i18next'
 import type { UseFormReturn } from 'react-hook-form'
 import { AvatarImage } from '@/components/avatar-image'
+import { Switch } from '@/components/ui/switch'
 import { ANIMAL_AVATARS } from '@/constants/animal-avatars'
 import { SHIFT_TYPES } from '@/constants/shift-types'
 import type { EmployeeFormValues } from '@/lib/form-schemas'
@@ -50,7 +51,7 @@ export function EmployeeForm({ form, isEditing }: EmployeeFormProps) {
           {t('staff.shiftType')}
         </label>
         <div className="flex gap-4">
-          {SHIFT_TYPES.map(shift => (
+          {SHIFT_TYPES.map((shift) => (
             <label key={shift.key} className="flex items-center gap-1.5">
               <input
                 type="radio"
@@ -63,13 +64,16 @@ export function EmployeeForm({ form, isEditing }: EmployeeFormProps) {
         </div>
       </div>
 
-      {/* Admin checkbox */}
-      <div>
-        <label className="flex items-center gap-2">
-          <input type="checkbox" {...register('isAdmin')} />
-          <span className="text-sm font-medium text-foreground">
-            {t('staff.adminPermission')}
-          </span>
+      {/* Admin permission toggle */}
+      <div className="flex items-center gap-2">
+        <Switch
+          id="is-admin"
+          checked={watch('isAdmin')}
+          onCheckedChange={(val) => setValue('isAdmin', val)}
+          aria-label={t('staff.adminPermission')}
+        />
+        <label htmlFor="is-admin" className="text-foreground">
+          {t('staff.adminPermission')}
         </label>
       </div>
 
@@ -112,8 +116,8 @@ export function EmployeeForm({ form, isEditing }: EmployeeFormProps) {
         <label className="mb-1 block text-sm font-medium text-foreground">
           {t('staff.avatar')}
         </label>
-        <div className="grid grid-cols-9 gap-1.5">
-          {ANIMAL_AVATARS.map(animal => (
+        <div className="grid grid-cols-9 gap-2">
+          {ANIMAL_AVATARS.map((animal) => (
             <button
               key={animal.id}
               type="button"
@@ -126,7 +130,7 @@ export function EmployeeForm({ form, isEditing }: EmployeeFormProps) {
               }`}
               onClick={() => setValue('avatar', animal.path)}
             >
-              <AvatarImage avatar={animal.path} size={28} />
+              <AvatarImage avatar={animal.path} size={64} />
             </button>
           ))}
         </div>

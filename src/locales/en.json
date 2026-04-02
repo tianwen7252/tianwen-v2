@@ -50,7 +50,17 @@
     "confirmDelete": "Confirm Delete",
     "toastAdded": "Employee added",
     "toastUpdated": "Employee updated",
-    "toastDeleted": "Employee deleted"
+    "toastDeleted": "Employee deleted",
+    "linkGoogle": "Link Google",
+    "unlinkGoogle": "Unlink",
+    "googleLinked": "Google Linked",
+    "linkGoogleSuccess": "Google account linked successfully",
+    "unlinkGoogleSuccess": "Google account unlinked",
+    "linkGoogleConfirmTitle": "Confirm Link Google Account",
+    "linkGoogleConfirmMessage": "Link Google account \"{{googleName}}\" to employee \"{{employeeName}}\"?",
+    "linkGoogleDuplicate": "This Google account is already linked to employee \"{{name}}\"",
+    "unlinkGoogleConfirmTitle": "Confirm Unlink",
+    "unlinkGoogleConfirmMessage": "Unlink Google account from employee \"{{employeeName}}\"?"
   },
   "clockIn": {
     "today": "Today",
@@ -127,14 +137,16 @@
     "logoutSuccess": "Logged out",
     "loginSuccess": "Logged in: {{name}}",
     "loginError": "Login failed, please try again",
-    "loginViaHeader": "Please click the login button in the header"
+    "loginViaHeader": "Please click the login button in the header",
+    "sessionExpired": "Session expired, please sign in again"
   },
   "error": {
     "title": "Error Occurred",
     "unknown": "Unknown error",
     "appError": "Application error occurred",
     "settingsError": "Settings page error occurred",
-    "clockInError": "Clock-in page error occurred"
+    "clockInError": "Clock-in page error occurred",
+    "databaseLocked": "For PWA security reasons, the database can only be used in a single browser tab"
   },
   "order": {
     "title": "Order",
@@ -551,6 +563,10 @@
     "v1FileAction": "Action",
     "v1ImportBtn": "Import",
     "v1Importing": "Importing..."
+  },
+  "announcement": {
+    "adminName": "Boss Eric",
+    "loggedIn": "Logged In"
   },
   "preview": {
     "testData": {

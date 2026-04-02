@@ -46,12 +46,40 @@ interface AppActions {
 
 const STORAGE_KEY_USER = 'admin-info'
 const STORAGE_KEY_TOKEN = 'gapi-token'
+const STORAGE_KEY_LOGIN_AT = 'login-at'
+
+const SESSION_DURATION_MS = 7 * 24 * 60 * 60 * 1000 // 7 days
+
+/**
+ * Checks whether the stored login timestamp is still within the valid
+ * session window (7 days). Returns false if no timestamp exists or if
+ * the session has expired. Does not modify localStorage.
+ */
+export function isSessionValid(): boolean {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_LOGIN_AT)
+    if (raw === null) return false
+    const loginAt = Number(raw)
+    if (!Number.isFinite(loginAt)) return false
+    return Date.now() - loginAt < SESSION_DURATION_MS
+  } catch {
+    return false
+  }
+}
 
 function loadPersistedUser(): {
   user: GoogleUser | null
   token: string | null
 } {
   try {
+    if (!isSessionValid()) {
+      // Clear stale data so the next login starts fresh
+      localStorage.removeItem(STORAGE_KEY_USER)
+      localStorage.removeItem(STORAGE_KEY_TOKEN)
+      localStorage.removeItem(STORAGE_KEY_LOGIN_AT)
+      return { user: null, token: null }
+    }
+
     const userJson = localStorage.getItem(STORAGE_KEY_USER)
     const token = localStorage.getItem(STORAGE_KEY_TOKEN)
     if (userJson && token) {
@@ -67,6 +95,7 @@ function persistUser(user: GoogleUser, token: string): void {
   try {
     localStorage.setItem(STORAGE_KEY_USER, JSON.stringify(user))
     localStorage.setItem(STORAGE_KEY_TOKEN, token)
+    localStorage.setItem(STORAGE_KEY_LOGIN_AT, String(Date.now()))
   } catch {
     // Ignore storage errors
   }
@@ -76,6 +105,7 @@ function clearPersistedUser(): void {
   try {
     localStorage.removeItem(STORAGE_KEY_USER)
     localStorage.removeItem(STORAGE_KEY_TOKEN)
+    localStorage.removeItem(STORAGE_KEY_LOGIN_AT)
   } catch {
     // Ignore storage errors
   }
@@ -83,13 +113,16 @@ function clearPersistedUser(): void {
 
 // ─── Admin whitelist (V1 compatible) ────────────────────────────────────────
 
-const ADMIN_SUBS = [
+export const ADMIN_SUBS = [
   '112232479673923380065', // Tianwen
   '108824661831026509560', // dev
-]
+] as const
+
+/** Tianwen (owner) Google sub ID */
+export const TIANWEN_SUB = ADMIN_SUBS[0]
 
 export function isAdminUser(sub: string): boolean {
-  return ADMIN_SUBS.includes(sub)
+  return (ADMIN_SUBS as readonly string[]).includes(sub)
 }
 
 // ─── Store ───────────────────────────────────────────────────────────────────
@@ -102,7 +135,6 @@ export const useAppStore = create<AppState & AppActions>(set => ({
   isAdmin: persisted.user ? isAdminUser(persisted.user.sub) : false,
   currentEmployeeId: persisted.user?.sub ?? null,
   fontSize: 18,
-
   setGoogleUser: (user, accessToken, isAdmin) => {
     persistUser(user, accessToken)
     set({

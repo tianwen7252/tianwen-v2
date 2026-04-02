@@ -50,7 +50,17 @@
     "confirmDelete": "確認刪除",
     "toastAdded": "員工已新增",
     "toastUpdated": "員工資料已更新",
-    "toastDeleted": "員工已刪除"
+    "toastDeleted": "員工已刪除",
+    "linkGoogle": "連結Google",
+    "unlinkGoogle": "取消連結",
+    "googleLinked": "已連結Google",
+    "linkGoogleSuccess": "Google帳號連結成功",
+    "unlinkGoogleSuccess": "已取消Google帳號連結",
+    "linkGoogleConfirmTitle": "確認連結Google帳號",
+    "linkGoogleConfirmMessage": "確定要將目前登入的Google帳號「{{googleName}}」連結至員工「{{employeeName}}」嗎？",
+    "linkGoogleDuplicate": "此Google帳號已連結至員工「{{name}}」，無法重複連結",
+    "unlinkGoogleConfirmTitle": "確認取消連結",
+    "unlinkGoogleConfirmMessage": "確定要取消員工「{{employeeName}}」的Google帳號連結嗎？"
   },
   "clockIn": {
     "today": "今天",
@@ -127,14 +137,16 @@
     "logoutSuccess": "已登出",
     "loginSuccess": "已登入：{{name}}",
     "loginError": "登入失敗，請重試",
-    "loginViaHeader": "請點擊右上角的登入按鈕"
+    "loginViaHeader": "請點擊右上角的登入按鈕",
+    "sessionExpired": "登入已過期，請重新登入"
   },
   "error": {
     "title": "發生錯誤",
     "unknown": "未知錯誤",
     "appError": "應用程式發生錯誤",
     "settingsError": "設定頁面發生錯誤",
-    "clockInError": "打卡頁面發生錯誤"
+    "clockInError": "打卡頁面發生錯誤",
+    "databaseLocked": "基於PWA的安全性考量，資料庫僅供單一網頁分頁使用"
   },
   "order": {
     "title": "點餐",
@@ -551,6 +563,10 @@
     "v1FileAction": "操作",
     "v1ImportBtn": "匯入",
     "v1Importing": "匯入中..."
+  },
+  "announcement": {
+    "adminName": "天文老闆Eric",
+    "loggedIn": "已登入"
   },
   "preview": {
     "testData": {

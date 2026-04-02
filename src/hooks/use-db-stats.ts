@@ -37,6 +37,7 @@ const DB_TABLES = [
   'custom_order_names',
   'error_logs',
   'backup_logs',
+  'price_change_logs',
 ] as const
 
 const STALE_TIME_MS = 30_000

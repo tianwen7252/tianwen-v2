@@ -9,7 +9,7 @@ const mockEmployees: Employee[] = [
   {
     id: 'emp-001',
     name: 'Alex',
-    avatar: 'images/aminals/1308845.png',
+    avatar: 'images/aminals/doberman.png',
     status: 'active',
     shiftType: 'regular',
     employeeNo: 'E001',
@@ -21,7 +21,7 @@ const mockEmployees: Employee[] = [
   {
     id: 'emp-002',
     name: 'Mia',
-    avatar: 'images/aminals/780258.png',
+    avatar: 'images/aminals/puppy.png',
     status: 'active',
     shiftType: 'regular',
     employeeNo: 'E002',
@@ -32,13 +32,16 @@ const mockEmployees: Employee[] = [
   },
 ]
 
+// Use today's date so the attendance appears in the default (current month) view
+const todayStr = new Date().toISOString().slice(0, 10)
+
 const mockAttendances: Attendance[] = [
   {
     id: 'att-001',
     employeeId: 'emp-001',
-    date: '2026-03-21',
-    clockIn: new Date('2026-03-21T08:00:00').getTime(),
-    clockOut: new Date('2026-03-21T17:00:00').getTime(),
+    date: todayStr,
+    clockIn: new Date(`${todayStr}T08:00:00`).getTime(),
+    clockOut: new Date(`${todayStr}T17:00:00`).getTime(),
     type: 'regular',
   },
 ]
@@ -52,8 +55,8 @@ const mockRepos = vi.hoisted(() => ({
     create: vi.fn(async () => ({
       id: 'att-new',
       employeeId: 'emp-001',
-      date: '2026-03-21',
-      clockIn: 1742536800000,
+      date: todayStr,
+      clockIn: new Date(`${todayStr}T08:00:00`).getTime(),
       type: 'regular' as const,
     })),
     update: vi.fn(async () => undefined),
@@ -196,5 +199,40 @@ describe('Records', () => {
     // Click on an attendance card to trigger edit
     await user.click(timeRange)
     expect(screen.getAllByText('編輯打卡紀錄')).toHaveLength(2)
+  })
+
+  // Font size compliance tests — project rule: no text-sm or smaller
+  it('should not use text-sm or smaller on filter bar or hint elements', () => {
+    const { container } = render(<Records />)
+    const allElements = container.querySelectorAll('*')
+    const forbidden = [
+      'text-sm',
+      'text-xs',
+      'text-[10px]',
+      'text-[11px]',
+      'text-[12px]',
+      'text-[13px]',
+    ]
+    allElements.forEach(el => {
+      const cls = el.className ?? ''
+      forbidden.forEach(f => {
+        expect(
+          cls,
+          `Element has forbidden font class "${f}": ${cls}`,
+        ).not.toContain(f)
+      })
+    })
+  })
+
+  it('should not use font-semibold on any rendered element in Records', () => {
+    const { container } = render(<Records />)
+    const allElements = container.querySelectorAll('*')
+    allElements.forEach(el => {
+      const cls = el.className ?? ''
+      expect(
+        cls,
+        `Element has forbidden class "font-semibold": ${cls}`,
+      ).not.toContain('font-semibold')
+    })
   })
 })

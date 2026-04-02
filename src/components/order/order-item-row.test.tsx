@@ -171,4 +171,38 @@ describe('OrderItemRow', () => {
     expect(onUpdateQuantity).not.toHaveBeenCalled()
     expect(onUpdateNote).not.toHaveBeenCalled()
   })
+
+  it('should use RippleButton (not shadcn Button) for all action buttons', () => {
+    const item = makeCartItem()
+    const { container } = render(
+      <OrderItemRow item={item} {...defaultHandlers} />,
+    )
+    // shadcn Button renders with data-slot="button" — must not be present
+    expect(container.querySelectorAll('[data-slot="button"]').length).toBe(0)
+    // RippleButton renders with "relative overflow-hidden" classes
+    // Expected: decrease, increase, remove buttons = 3 visible RippleButtons
+    const rippleButtons = container.querySelectorAll(
+      'button.relative.overflow-hidden',
+    )
+    expect(rippleButtons.length).toBeGreaterThanOrEqual(3)
+  })
+
+  it('should use RippleButton for popover cancel and confirm buttons', async () => {
+    const item = makeCartItem({ quantity: 2 })
+    const user = userEvent.setup()
+    render(<OrderItemRow item={item} {...defaultHandlers} />)
+    // Open the quantity popover
+    await user.click(screen.getByText('x2'))
+    // Radix UI renders PopoverContent in a portal — query from document.body
+    // All buttons (including cancel/confirm in popover) must be RippleButtons
+    const allRippleButtons = document.body.querySelectorAll(
+      'button.relative.overflow-hidden',
+    )
+    // Should include decrease, increase, remove, cancel, confirm = at least 5
+    expect(allRippleButtons.length).toBeGreaterThanOrEqual(5)
+    // No shadcn Button anywhere
+    expect(document.body.querySelectorAll('[data-slot="button"]').length).toBe(
+      0,
+    )
+  })
 })

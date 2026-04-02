@@ -6,9 +6,10 @@
 
 import { useRef, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useAppStore, isAdminUser } from '@/stores/app-store'
+import { useAppStore, isAdminUser, TIANWEN_SUB } from '@/stores/app-store'
 import type { GoogleUser } from '@/stores/app-store'
 import { notify } from '@/components/ui/sonner'
+import { AuthExpiredError } from '@/lib/errors'
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -52,10 +53,10 @@ declare global {
 
 export function useGoogleAuth() {
   const { t } = useTranslation()
-  const googleUser = useAppStore(s => s.googleUser)
-  const setGoogleUser = useAppStore(s => s.setGoogleUser)
-  const appLogout = useAppStore(s => s.logout)
-  const isAdmin = useAppStore(s => s.isAdmin)
+  const googleUser = useAppStore((s) => s.googleUser)
+  const setGoogleUser = useAppStore((s) => s.setGoogleUser)
+  const appLogout = useAppStore((s) => s.logout)
+  const isAdmin = useAppStore((s) => s.isAdmin)
 
   const tokenClientRef = useRef<TokenClient | null>(null)
 
@@ -78,7 +79,21 @@ export function useGoogleAuth() {
         const userInfo = (await res.json()) as GoogleUser
         const admin = isAdminUser(userInfo.sub)
         setGoogleUser(userInfo, tokenResponse.access_token, admin)
-        notify.success(t('auth.loginSuccess', { name: userInfo.name }))
+
+        // Tianwen admin gets a centered info toast
+        if (userInfo.sub === TIANWEN_SUB) {
+          notify.info(
+            t('auth.loginSuccess', {
+              name: userInfo.name,
+            }),
+            {
+              description: '歡迎天文賴老闆!',
+              position: 'top-center',
+            },
+          )
+        } else {
+          notify.success(t('auth.loginSuccess', { name: userInfo.name }))
+        }
       } catch (err) {
         notify.error(
           t('auth.loginError') +
@@ -114,11 +129,24 @@ export function useGoogleAuth() {
     notify.success(t('auth.logoutSuccess'))
   }, [appLogout, t])
 
+  // Handle auth errors from Google API calls.
+  // On AuthExpiredError: logs the user out and shows a toast notification.
+  const handleAuthError = useCallback(
+    (err: unknown) => {
+      if (err instanceof AuthExpiredError) {
+        appLogout()
+        notify.error(t('auth.sessionExpired'))
+      }
+    },
+    [appLogout, t],
+  )
+
   return {
     googleUser,
     isLoggedIn,
     isAdmin,
     login,
     logout,
+    handleAuthError,
   }
 }

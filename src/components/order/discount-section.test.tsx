@@ -105,4 +105,21 @@ describe('DiscountSection', () => {
     render(<DiscountSection discounts={discounts} onRemoveDiscount={vi.fn()} />)
     expect(screen.getByText(/特殊折扣 \(VIP\)/)).toBeTruthy()
   })
+
+  it('should use RippleButton (not shadcn Button) for remove buttons', () => {
+    const discounts = [
+      makeDiscount({ id: 'disc-1', label: '會員折扣', amount: 50 }),
+      makeDiscount({ id: 'disc-2', label: '早鳥優惠', amount: 30 }),
+    ]
+    const { container } = render(
+      <DiscountSection discounts={discounts} onRemoveDiscount={vi.fn()} />,
+    )
+    // shadcn Button renders with data-slot="button" — must not be present
+    expect(container.querySelectorAll('[data-slot="button"]').length).toBe(0)
+    // RippleButton renders with "relative overflow-hidden" classes
+    const rippleButtons = container.querySelectorAll(
+      'button.relative.overflow-hidden',
+    )
+    expect(rippleButtons.length).toBe(2)
+  })
 })

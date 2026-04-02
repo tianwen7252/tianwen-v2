@@ -11,7 +11,7 @@ const employees: readonly Employee[] = [
   {
     id: 'emp-001',
     name: 'Alex',
-    avatar: 'images/aminals/1308845.png',
+    avatar: 'images/aminals/doberman.png',
     status: 'active',
     shiftType: 'regular',
     employeeNo: 'E001',
@@ -23,7 +23,7 @@ const employees: readonly Employee[] = [
   {
     id: 'emp-002',
     name: 'Mia',
-    avatar: 'images/aminals/780258.png',
+    avatar: 'images/aminals/puppy.png',
     status: 'active',
     shiftType: 'regular',
     employeeNo: 'E002',
@@ -246,5 +246,31 @@ describe('RecordsCalendarView', () => {
       .getAllByTestId(/^calendar-cell-/)
       .filter(el => el.className.includes('bg-[#f8fafc50]'))
     expect(sundayCells.length).toBeGreaterThan(0)
+  })
+
+  // Font size compliance tests — project rule: no text-sm or smaller
+  it('should not use text-sm or text-[10px] on any rendered element', () => {
+    const gridWithAtt = buildGridWithAttendance()
+    const { container } = render(
+      <RecordsCalendarView {...defaultProps} calendarGrid={gridWithAtt} />,
+    )
+    const allElements = container.querySelectorAll('*')
+    const forbidden = [
+      'text-sm',
+      'text-xs',
+      'text-[10px]',
+      'text-[11px]',
+      'text-[12px]',
+      'text-[13px]',
+    ]
+    allElements.forEach(el => {
+      const cls = el.className ?? ''
+      forbidden.forEach(f => {
+        expect(
+          cls,
+          `Element has forbidden font class "${f}": ${cls}`,
+        ).not.toContain(f)
+      })
+    })
   })
 })

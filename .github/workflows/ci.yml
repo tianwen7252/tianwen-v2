@@ -3,11 +3,11 @@ name: CI
 on:
   push:
     branches-ignore:
-      - master
+      - main
       - pages
   pull_request:
     branches:
-      - master
+      - main
       - develop
 
 jobs:

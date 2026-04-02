@@ -1,30 +1,50 @@
-# React + TypeScript + Vite
+# Tianwen App
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Restaurant POS (Point of Sale) management system, built as a Progressive Web App (PWA).
 
-Currently, two official plugins are available:
+## Tech Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Framework**: React 19 + TypeScript
+- **Routing**: TanStack Router
+- **UI**: shadcn/ui + Radix UI + Tailwind CSS v4
+- **State**: Zustand + TanStack Query
+- **Forms**: React Hook Form + Zod
+- **Database**: SQLite WASM (OPFS)
+- **Backup**: Cloudflare R2 (via Vercel Functions)
+- **Charts**: Recharts
+- **i18n**: react-i18next
+- **Build**: Vite 8 + SWC
+- **Testing**: Vitest + Testing Library + Playwright
+- **Lint/Format**: Oxlint + Oxfmt
+- **Deployment**: GitHub Pages (via Release Please)
 
-## Expanding the ESLint configuration
+## Getting Started
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
-
-- Configure the top-level `parserOptions` property like this:
-
-```js
-export default {
-  // other rules...
-  parserOptions: {
-    ecmaVersion: 'latest',
-    sourceType: 'module',
-    project: ['./tsconfig.json', './tsconfig.node.json'],
-    tsconfigRootDir: __dirname,
-  },
-}
+```bash
+nvm use v24
+pnpm install
+pnpm dev
 ```
 
-- Replace `plugin:@typescript-eslint/recommended` to `plugin:@typescript-eslint/recommended-type-checked` or `plugin:@typescript-eslint/strict-type-checked`
-- Optionally add `plugin:@typescript-eslint/stylistic-type-checked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and add `plugin:react/recommended` & `plugin:react/jsx-runtime` to the `extends` list
+## Scripts
+
+| Command | Description |
+|---------|-------------|
+| `pnpm dev` | Start dev server |
+| `pnpm build` | Type-check and build for production |
+| `pnpm test` | Run unit tests |
+| `pnpm test:watch` | Run tests in watch mode |
+| `pnpm coverage` | Run tests with coverage |
+| `pnpm lint` | Lint with Oxlint |
+| `pnpm format` | Format with Oxfmt |
+
+## Git Workflow
+
+- **main** — production branch, deployed via Release Please
+- **develop** — integration branch for feature development
+- Feature branches merge into `develop` via PR
+- `develop` merges into `main` for releases
+
+## License
+
+Private

@@ -21,17 +21,17 @@ export const DELETE_SEED_DATA = false
 // ─── Employee Avatars ───────────────────────────────────────────────────────
 
 export const EMPLOYEE_AVATARS = {
-  alex: 'images/aminals/1308845.png',
-  mia: 'images/aminals/780258.png',
-  david: 'images/aminals/780260.png',
-  grace: 'images/aminals/1326387.png',
-  mark: 'images/aminals/1326405.png',
-  jason: 'images/aminals/2829735.png',
-  sophie: 'images/aminals/1326390.png',
-  ryan: 'images/aminals/1810917.png',
-  emma: 'images/aminals/1862418.png',
-  kevin: 'images/aminals/2523618.png',
-  olivia: 'images/aminals/3500055.png',
+  alex: 'images/aminals/doberman.png',
+  mia: 'images/aminals/puppy.png',
+  david: 'images/aminals/cat.png',
+  grace: 'images/aminals/tiger.png',
+  mark: 'images/aminals/chick.png',
+  jason: 'images/aminals/terrier.png',
+  sophie: 'images/aminals/fox.png',
+  ryan: 'images/aminals/giraffe.png',
+  emma: 'images/aminals/parrot.png',
+  kevin: 'images/aminals/cow.png',
+  olivia: 'images/aminals/lion.png',
 } as const
 
 // ─── Employee Data ──────────────────────────────────────────────────────────

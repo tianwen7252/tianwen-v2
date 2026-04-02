@@ -17,6 +17,10 @@ export const employeeSchema = z.object({
   isAdmin: z.boolean().default(false),
   hireDate: z.string().optional(),
   resignationDate: z.string().optional(),
+  /** Google OAuth subject identifier — set when the employee binds their Google account. */
+  googleSub: z.string().optional(),
+  /** Google account email — set when the employee binds their Google account. */
+  googleEmail: z.string().optional(),
   createdAt: z.number(),
   updatedAt: z.number(),
 })

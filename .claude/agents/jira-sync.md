@@ -37,7 +37,7 @@ Show all plan files and their Jira sync state:
 ## How to Run jira-utils Commands
 
 ```bash
-cd /Users/ryanroll/repos/github/tianwen7252.github.io
+cd /Users/ryanroll/repos/github/tianwen-v2
 node ~/.claude/scripts/jira-utils.js <command> [args...]
 ```
 

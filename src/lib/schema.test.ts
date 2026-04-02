@@ -96,5 +96,30 @@ describe('schema', () => {
         'ALTER TABLE commondity_types RENAME TO commodity_types',
       )
     })
+
+    it('DEV-100: should run migration to strip images/aminals/ prefix from employee avatars', () => {
+      const mockExec = vi.fn()
+      initSchema(mockExec)
+      const calls = mockExec.mock.calls.map((c: unknown[]) => c[0] as string)
+      const avatarMigration = calls.find(
+        (sql: string) =>
+          sql.includes('REPLACE') &&
+          sql.includes('images/aminals/') &&
+          sql.includes('employees'),
+      )
+      expect(avatarMigration).toBeDefined()
+    })
+
+    it('V2-176: should run migration to rename numeric avatar filenames to English animal names', () => {
+      const mockExec = vi.fn()
+      initSchema(mockExec)
+      const calls = mockExec.mock.calls.map((c: unknown[]) => c[0] as string)
+      const renameMigration = calls.find(
+        (sql: string) =>
+          sql.includes("avatar = 'doberman.png'") &&
+          sql.includes("'1308845.png'"),
+      )
+      expect(renameMigration).toBeDefined()
+    })
   })
 })
