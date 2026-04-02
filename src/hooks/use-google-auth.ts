@@ -53,10 +53,10 @@ declare global {
 
 export function useGoogleAuth() {
   const { t } = useTranslation()
-  const googleUser = useAppStore(s => s.googleUser)
-  const setGoogleUser = useAppStore(s => s.setGoogleUser)
-  const appLogout = useAppStore(s => s.logout)
-  const isAdmin = useAppStore(s => s.isAdmin)
+  const googleUser = useAppStore((s) => s.googleUser)
+  const setGoogleUser = useAppStore((s) => s.setGoogleUser)
+  const appLogout = useAppStore((s) => s.logout)
+  const isAdmin = useAppStore((s) => s.isAdmin)
 
   const tokenClientRef = useRef<TokenClient | null>(null)
 
@@ -82,9 +82,15 @@ export function useGoogleAuth() {
 
         // Tianwen admin gets a centered info toast
         if (userInfo.sub === TIANWEN_SUB) {
-          notify.info(t('auth.loginSuccess', { name: userInfo.name }), {
-            position: 'top-center',
-          })
+          notify.info(
+            t('auth.loginSuccess', {
+              name: userInfo.name,
+            }),
+            {
+              description: '歡迎天文賴老闆!',
+              position: 'top-center',
+            },
+          )
         } else {
           notify.success(t('auth.loginSuccess', { name: userInfo.name }))
         }

@@ -145,7 +145,8 @@
     "unknown": "未知錯誤",
     "appError": "應用程式發生錯誤",
     "settingsError": "設定頁面發生錯誤",
-    "clockInError": "打卡頁面發生錯誤"
+    "clockInError": "打卡頁面發生錯誤",
+    "databaseLocked": "基於PWA的安全性考量，資料庫僅供單一網頁分頁使用"
   },
   "order": {
     "title": "點餐",
