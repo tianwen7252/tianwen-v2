@@ -59,6 +59,7 @@ function makeOrder(overrides: Partial<Order> = {}): Order {
         quantity: 2,
         includesSoup: true,
         createdAt: 1700000000000,
+        updatedAt: 1700000000000,
       },
     ],
     discounts: [],

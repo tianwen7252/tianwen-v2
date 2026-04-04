@@ -14,6 +14,8 @@ const makeAttendance = (overrides: Partial<Attendance> = {}): Attendance => ({
   employeeId: 'emp-1',
   date: '2025-06-15',
   type: 'regular',
+  createdAt: Date.now(),
+  updatedAt: Date.now(),
   ...overrides,
 })
 

@@ -26,6 +26,7 @@ function toPriceChangeLog(row: Record<string, unknown>): PriceChangeLog {
     newPrice: Number(row['new_price']),
     editor: String(row['editor']),
     createdAt: Number(row['created_at']),
+    updatedAt: Number(row['updated_at']),
   }
 }
 

@@ -66,6 +66,8 @@ describe('AttendanceRepository', () => {
           clock_in: 1742018400000,
           clock_out: 1742050800000,
           type: 'regular',
+          created_at: 1742018400000,
+          updated_at: 1742018400000,
         },
         {
           id: 'att-101',
@@ -74,6 +76,8 @@ describe('AttendanceRepository', () => {
           clock_in: 1741586400000,
           clock_out: null,
           type: 'paid_leave',
+          created_at: 1741586400000,
+          updated_at: 1741586400000,
         },
       ]
 
@@ -93,6 +97,8 @@ describe('AttendanceRepository', () => {
         clockIn: 1742018400000,
         clockOut: 1742050800000,
         type: 'regular',
+        createdAt: 1742018400000,
+        updatedAt: 1742018400000,
       })
       expect(result[1]).toEqual({
         id: 'att-101',
@@ -101,6 +107,8 @@ describe('AttendanceRepository', () => {
         clockIn: 1741586400000,
         clockOut: undefined,
         type: 'paid_leave',
+        createdAt: 1741586400000,
+        updatedAt: 1741586400000,
       })
     })
 

@@ -28,6 +28,8 @@ function toAttendance(row: Record<string, unknown>): Attendance {
     clockIn: row['clock_in'] != null ? Number(row['clock_in']) : undefined,
     clockOut: row['clock_out'] != null ? Number(row['clock_out']) : undefined,
     type: (row['type'] as Attendance['type']) ?? 'regular',
+    createdAt: Number(row['created_at']),
+    updatedAt: Number(row['updated_at']),
   }
 }
 

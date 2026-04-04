@@ -35,6 +35,7 @@ function toBackupLog(row: Record<string, unknown>): BackupLog {
     errorMessage:
       row['error_message'] != null ? String(row['error_message']) : null,
     createdAt: Number(row['created_at']),
+    updatedAt: Number(row['updated_at']),
   }
 }
 

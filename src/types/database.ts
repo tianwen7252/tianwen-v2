@@ -88,4 +88,6 @@ export interface Attendance {
   readonly clockIn?: number
   readonly clockOut?: number
   readonly type: AttendanceType
+  readonly createdAt: number
+  readonly updatedAt: number
 }

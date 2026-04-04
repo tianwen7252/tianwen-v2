@@ -189,8 +189,8 @@ describe('SystemInfo', () => {
 
     it('displays schema version number', () => {
       renderWithProviders(<SystemInfo />)
-      // SCHEMA_VERSION is 1
-      expect(screen.getByText('1')).toBeTruthy()
+      // SCHEMA_VERSION is 2
+      expect(screen.getByText('2')).toBeTruthy()
     })
   })
 

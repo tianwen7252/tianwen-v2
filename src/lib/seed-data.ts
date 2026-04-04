@@ -70,6 +70,7 @@ export function buildSeedAttendances(): readonly Attendance[] {
   const baseTime = dayjs(today)
 
   return ATTENDANCE_SEEDS.map(seed => {
+    const now = Date.now()
     const result: Attendance = {
       id: seed.id,
       employeeId: seed.employeeId,
@@ -79,6 +80,8 @@ export function buildSeedAttendances(): readonly Attendance[] {
         .minute(seed.clockInMinute)
         .valueOf(),
       type: seed.type,
+      createdAt: now,
+      updatedAt: now,
     }
     if (seed.clockOutHour != null && seed.clockOutMinute != null) {
       return {

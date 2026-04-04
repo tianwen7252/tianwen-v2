@@ -20,6 +20,7 @@ function toErrorLog(row: Record<string, unknown>): ErrorLog {
     source: String(row['source']),
     stack: row['stack'] != null ? String(row['stack']) : null,
     createdAt: Number(row['created_at']),
+    updatedAt: Number(row['updated_at']),
   }
 }
 

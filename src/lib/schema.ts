@@ -3,7 +3,7 @@
  * Mirrors the V1 Dexie/IndexedDB data model with SQL-native improvements.
  */
 
-export const SCHEMA_VERSION = 1
+export const SCHEMA_VERSION = 2
 
 // SQL statements for creating the database schema
 export const CREATE_TABLES = `
@@ -36,6 +36,10 @@ export const CREATE_TABLES = `
     FOREIGN KEY (type_id) REFERENCES commodity_types(type_id)
   );
 
+  CREATE INDEX IF NOT EXISTS idx_commodities_name ON commodities(name);
+  CREATE INDEX IF NOT EXISTS idx_commodities_type_id ON commodities(type_id);
+  CREATE INDEX IF NOT EXISTS idx_commodities_type_on_market ON commodities(type_id, on_market);
+
   -- Orders
   CREATE TABLE IF NOT EXISTS orders (
     id TEXT PRIMARY KEY,
@@ -51,6 +55,8 @@ export const CREATE_TABLES = `
   );
 
   CREATE INDEX IF NOT EXISTS idx_orders_created_at ON orders(created_at);
+  CREATE INDEX IF NOT EXISTS idx_orders_number ON orders(number);
+  CREATE INDEX IF NOT EXISTS idx_orders_created_at_editor ON orders(created_at, editor);
 
   -- Order types
   CREATE TABLE IF NOT EXISTS order_types (
@@ -82,8 +88,10 @@ export const CREATE_TABLES = `
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
     avatar TEXT,
-    status TEXT NOT NULL DEFAULT 'active',
-    shift_type TEXT DEFAULT 'regular',
+    status TEXT NOT NULL DEFAULT 'active'
+      CHECK (status IN ('active', 'inactive')),
+    shift_type TEXT DEFAULT 'regular'
+      CHECK (shift_type IN ('regular', 'shift')),
     employee_no TEXT UNIQUE,
     is_admin INTEGER NOT NULL DEFAULT 0,
     hire_date TEXT,
@@ -92,6 +100,8 @@ export const CREATE_TABLES = `
     updated_at INTEGER NOT NULL DEFAULT (unixepoch('now') * 1000)
   );
 
+  CREATE INDEX IF NOT EXISTS idx_employees_name ON employees(name);
+
   -- Attendance records
   CREATE TABLE IF NOT EXISTS attendances (
     id TEXT PRIMARY KEY,
@@ -99,7 +109,10 @@ export const CREATE_TABLES = `
     date TEXT NOT NULL,
     clock_in INTEGER,
     clock_out INTEGER,
-    type TEXT NOT NULL DEFAULT 'regular',
+    type TEXT NOT NULL DEFAULT 'regular'
+      CHECK (type IN ('regular', 'paid_leave', 'sick_leave', 'personal_leave', 'absent')),
+    created_at INTEGER NOT NULL DEFAULT (unixepoch('now') * 1000),
+    updated_at INTEGER NOT NULL DEFAULT (unixepoch('now') * 1000),
     FOREIGN KEY (employee_id) REFERENCES employees(id)
   );
 
@@ -116,7 +129,9 @@ export const CREATE_TABLES = `
     quantity INTEGER NOT NULL DEFAULT 1,
     includes_soup INTEGER NOT NULL DEFAULT 0,
     created_at INTEGER NOT NULL DEFAULT (unixepoch('now') * 1000),
-    FOREIGN KEY (order_id) REFERENCES orders(id)
+    updated_at INTEGER NOT NULL DEFAULT (unixepoch('now') * 1000),
+    FOREIGN KEY (order_id) REFERENCES orders(id),
+    FOREIGN KEY (commodity_id) REFERENCES commodities(id)
   );
 
   CREATE INDEX IF NOT EXISTS idx_order_items_order_id ON order_items(order_id);
@@ -128,6 +143,7 @@ export const CREATE_TABLES = `
     label TEXT NOT NULL,
     amount REAL NOT NULL DEFAULT 0,
     created_at INTEGER NOT NULL DEFAULT (unixepoch('now') * 1000),
+    updated_at INTEGER NOT NULL DEFAULT (unixepoch('now') * 1000),
     FOREIGN KEY (order_id) REFERENCES orders(id)
   );
 
@@ -137,7 +153,8 @@ export const CREATE_TABLES = `
   CREATE TABLE IF NOT EXISTS custom_order_names (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL UNIQUE,
-    created_at INTEGER NOT NULL DEFAULT (unixepoch('now') * 1000)
+    created_at INTEGER NOT NULL DEFAULT (unixepoch('now') * 1000),
+    updated_at INTEGER NOT NULL DEFAULT (unixepoch('now') * 1000)
   );
 
   -- Error logs
@@ -146,7 +163,8 @@ export const CREATE_TABLES = `
     message TEXT NOT NULL,
     source TEXT NOT NULL DEFAULT '',
     stack TEXT,
-    created_at INTEGER NOT NULL DEFAULT (unixepoch('now') * 1000)
+    created_at INTEGER NOT NULL DEFAULT (unixepoch('now') * 1000),
+    updated_at INTEGER NOT NULL DEFAULT (unixepoch('now') * 1000)
   );
 
   CREATE INDEX IF NOT EXISTS idx_error_logs_created_at ON error_logs(created_at);
@@ -154,13 +172,16 @@ export const CREATE_TABLES = `
   -- Backup logs
   CREATE TABLE IF NOT EXISTS backup_logs (
     id TEXT PRIMARY KEY,
-    type TEXT NOT NULL DEFAULT 'manual',
-    status TEXT NOT NULL DEFAULT 'success',
+    type TEXT NOT NULL DEFAULT 'manual'
+      CHECK (type IN ('manual', 'auto', 'v1-import')),
+    status TEXT NOT NULL DEFAULT 'success'
+      CHECK (status IN ('success', 'failed')),
     filename TEXT,
     size INTEGER DEFAULT 0,
     duration_ms INTEGER DEFAULT 0,
     error_message TEXT,
-    created_at INTEGER NOT NULL DEFAULT (unixepoch('now') * 1000)
+    created_at INTEGER NOT NULL DEFAULT (unixepoch('now') * 1000),
+    updated_at INTEGER NOT NULL DEFAULT (unixepoch('now') * 1000)
   );
 
   CREATE INDEX IF NOT EXISTS idx_backup_logs_created_at ON backup_logs(created_at);
@@ -173,7 +194,9 @@ export const CREATE_TABLES = `
     old_price REAL NOT NULL,
     new_price REAL NOT NULL,
     editor TEXT NOT NULL DEFAULT '',
-    created_at INTEGER NOT NULL DEFAULT (unixepoch('now') * 1000)
+    created_at INTEGER NOT NULL DEFAULT (unixepoch('now') * 1000),
+    updated_at INTEGER NOT NULL DEFAULT (unixepoch('now') * 1000),
+    FOREIGN KEY (commodity_id) REFERENCES commodities(id)
   );
 
   CREATE INDEX IF NOT EXISTS idx_price_change_logs_created_at ON price_change_logs(created_at);
@@ -366,6 +389,49 @@ function runMigrations(exec: (sql: string) => void): void {
   } catch {
     // Column already exists -- safe to ignore
   }
+
+  // V2-188: Add missing updated_at columns for audit trail.
+  // SQLite cannot add FK or CHECK constraints to existing tables,
+  // so those only apply to fresh databases via CREATE_TABLES.
+  const auditColumns: ReadonlyArray<readonly [string, string]> = [
+    ['attendances', 'created_at'],
+    ['attendances', 'updated_at'],
+    ['order_items', 'updated_at'],
+    ['order_discounts', 'updated_at'],
+    ['custom_order_names', 'updated_at'],
+    ['error_logs', 'updated_at'],
+    ['backup_logs', 'updated_at'],
+    ['price_change_logs', 'updated_at'],
+  ]
+  for (const [table, column] of auditColumns) {
+    try {
+      exec(
+        `ALTER TABLE ${table} ADD COLUMN ${column} INTEGER NOT NULL DEFAULT (unixepoch('now') * 1000)`,
+      )
+    } catch {
+      // Column already exists -- safe to ignore
+    }
+  }
+
+  // V2-189: Add missing indexes for query performance.
+  exec(
+    'CREATE INDEX IF NOT EXISTS idx_orders_number ON orders(number)',
+  )
+  exec(
+    'CREATE INDEX IF NOT EXISTS idx_orders_created_at_editor ON orders(created_at, editor)',
+  )
+  exec(
+    'CREATE INDEX IF NOT EXISTS idx_commodities_name ON commodities(name)',
+  )
+  exec(
+    'CREATE INDEX IF NOT EXISTS idx_commodities_type_id ON commodities(type_id)',
+  )
+  exec(
+    'CREATE INDEX IF NOT EXISTS idx_commodities_type_on_market ON commodities(type_id, on_market)',
+  )
+  exec(
+    'CREATE INDEX IF NOT EXISTS idx_employees_name ON employees(name)',
+  )
 }
 
 /**
@@ -374,6 +440,8 @@ function runMigrations(exec: (sql: string) => void): void {
  */
 export function initSchema(exec: (sql: string) => void): void {
   exec('PRAGMA foreign_keys = ON')
+  // WAL mode is not supported by opfs-sahpool VFS; use default journal mode.
+  exec('PRAGMA synchronous = NORMAL')
   exec(CREATE_TABLES)
   runMigrations(exec)
 }

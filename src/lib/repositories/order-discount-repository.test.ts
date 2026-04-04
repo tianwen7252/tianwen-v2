@@ -50,6 +50,7 @@ describe('OrderDiscountRepository', () => {
             label: '員工折扣',
             amount: 20,
             created_at: 1700000000000,
+            updated_at: 1700000000000,
           },
         ],
         changes: 0,
@@ -65,6 +66,7 @@ describe('OrderDiscountRepository', () => {
         label: '員工折扣',
         amount: 20,
         createdAt: 1700000000000,
+        updatedAt: 1700000000000,
       })
     })
 

@@ -41,6 +41,8 @@ const regularAttendance: Attendance = {
   clockIn: new Date('2026-03-16T08:00:00').getTime(),
   clockOut: new Date('2026-03-16T17:00:00').getTime(),
   type: 'regular',
+  createdAt: Date.now(),
+  updatedAt: Date.now(),
 }
 
 const vacationAttendance: Attendance = {
@@ -49,6 +51,8 @@ const vacationAttendance: Attendance = {
   date: '2026-03-16',
   clockIn: new Date('2026-03-16T08:00:00').getTime(),
   type: 'paid_leave',
+  createdAt: Date.now(),
+  updatedAt: Date.now(),
 }
 
 function makeCalendarDay(overrides: Partial<CalendarDay> = {}): CalendarDay {
