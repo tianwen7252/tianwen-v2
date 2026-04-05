@@ -1367,6 +1367,7 @@ describe('useOrderStore', () => {
           quantity: 2,
           includesSoup: true,
           createdAt: 1700000000001,
+          updatedAt: 1700000000001,
         },
         {
           id: 'item-002',
@@ -1377,6 +1378,7 @@ describe('useOrderStore', () => {
           quantity: 1,
           includesSoup: false,
           createdAt: 1700000000002,
+          updatedAt: 1700000000002,
         },
       ],
       discounts: [
@@ -1386,6 +1388,7 @@ describe('useOrderStore', () => {
           label: '會員折扣',
           amount: 50,
           createdAt: 1700000000003,
+          updatedAt: 1700000000003,
         },
       ],
     }
@@ -1446,6 +1449,7 @@ describe('useOrderStore', () => {
             quantity: 1,
             includesSoup: true,
             createdAt: 1700000000001,
+            updatedAt: 1700000000001,
           },
           {
             id: 'item-003',
@@ -1456,6 +1460,7 @@ describe('useOrderStore', () => {
             quantity: 1,
             includesSoup: false,
             createdAt: 1700000000004,
+            updatedAt: 1700000000004,
           },
         ],
       }

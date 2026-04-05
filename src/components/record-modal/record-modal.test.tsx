@@ -50,6 +50,8 @@ const testAttendance: Attendance = {
   clockIn: new Date('2026-03-21T08:00:00').getTime(),
   clockOut: new Date('2026-03-21T17:00:00').getTime(),
   type: 'regular',
+  createdAt: Date.now(),
+  updatedAt: Date.now(),
 }
 
 const vacationAttendance: Attendance = {
@@ -58,6 +60,8 @@ const vacationAttendance: Attendance = {
   date: '2026-03-21',
   clockIn: new Date('2026-03-21T08:00:00').getTime(),
   type: 'paid_leave',
+  createdAt: Date.now(),
+  updatedAt: Date.now(),
 }
 
 const defaultAddProps = {

@@ -99,6 +99,7 @@ describe('OrderItemRepository', () => {
             quantity: 3,
             includes_soup: 1,
             created_at: 1700000000000,
+            updated_at: 1700000000000,
           },
         ],
         changes: 0,
@@ -117,6 +118,7 @@ describe('OrderItemRepository', () => {
         quantity: 3,
         includesSoup: true,
         createdAt: 1700000000000,
+        updatedAt: 1700000000000,
       })
     })
 

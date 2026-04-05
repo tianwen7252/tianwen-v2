@@ -21,6 +21,7 @@ function toOrderItem(row: Record<string, unknown>): OrderItem {
     quantity: Number(row['quantity']),
     includesSoup: Number(row['includes_soup']) !== 0,
     createdAt: Number(row['created_at']),
+    updatedAt: Number(row['updated_at']),
   }
 }
 

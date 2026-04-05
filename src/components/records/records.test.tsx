@@ -43,6 +43,8 @@ const mockAttendances: Attendance[] = [
     clockIn: new Date(`${todayStr}T08:00:00`).getTime(),
     clockOut: new Date(`${todayStr}T17:00:00`).getTime(),
     type: 'regular',
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
   },
 ]
 

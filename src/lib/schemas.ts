@@ -51,10 +51,14 @@ export const attendanceSchema = z.object({
   clockIn: z.number().optional(),
   clockOut: z.number().optional(),
   type: attendanceTypeEnum.default('regular'),
+  createdAt: z.number(),
+  updatedAt: z.number(),
 })
 
 export const createAttendanceSchema = attendanceSchema.omit({
   id: true,
+  createdAt: true,
+  updatedAt: true,
 })
 
 export type AttendanceType = z.infer<typeof attendanceTypeEnum>
@@ -140,11 +144,13 @@ export const orderItemSchema = z.object({
   quantity: z.number().int().min(1),
   includesSoup: z.boolean().default(false),
   createdAt: z.number(),
+  updatedAt: z.number(),
 })
 
 export const createOrderItemSchema = orderItemSchema.omit({
   id: true,
   createdAt: true,
+  updatedAt: true,
 })
 
 export type OrderItem = z.infer<typeof orderItemSchema>
@@ -159,11 +165,13 @@ export const orderDiscountSchema = z.object({
   label: z.string(),
   amount: z.number(),
   createdAt: z.number(),
+  updatedAt: z.number(),
 })
 
 export const createOrderDiscountSchema = orderDiscountSchema.omit({
   id: true,
   createdAt: true,
+  updatedAt: true,
 })
 
 export type OrderDiscount = z.infer<typeof orderDiscountSchema>
@@ -225,11 +233,13 @@ export const customOrderNameSchema = z.object({
   id: z.string(),
   name: z.string().min(1),
   createdAt: z.number(),
+  updatedAt: z.number(),
 })
 
 export const createCustomOrderNameSchema = customOrderNameSchema.omit({
   id: true,
   createdAt: true,
+  updatedAt: true,
 })
 
 export type CustomOrderName = z.infer<typeof customOrderNameSchema>
@@ -243,6 +253,7 @@ export const errorLogSchema = z.object({
   source: z.string(),
   stack: z.string().nullable(),
   createdAt: z.number(),
+  updatedAt: z.number(),
 })
 
 export type ErrorLog = z.infer<typeof errorLogSchema>
@@ -261,6 +272,7 @@ export const backupLogSchema = z.object({
   durationMs: z.number().default(0),
   errorMessage: z.string().nullable(),
   createdAt: z.number(),
+  updatedAt: z.number(),
 })
 
 export type BackupLog = z.infer<typeof backupLogSchema>
@@ -291,6 +303,7 @@ export const priceChangeLogSchema = z.object({
   newPrice: z.number(),
   editor: z.string().default(''),
   createdAt: z.number(),
+  updatedAt: z.number(),
 })
 
 export type PriceChangeLog = z.infer<typeof priceChangeLogSchema>

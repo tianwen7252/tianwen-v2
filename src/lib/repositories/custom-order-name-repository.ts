@@ -17,6 +17,7 @@ function toCustomOrderName(row: Record<string, unknown>): CustomOrderName {
     id: String(row['id']),
     name: String(row['name']),
     createdAt: Number(row['created_at']),
+    updatedAt: Number(row['updated_at']),
   }
 }
 

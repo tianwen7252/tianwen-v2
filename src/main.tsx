@@ -77,6 +77,13 @@ async function bootstrap() {
     type: 'module',
   })
 
+  // Terminate the worker on page hide so iPad Safari releases OPFS
+  // access handles before the next page context (e.g. reload, PWA update)
+  // tries to acquire them. Without this, the next init races against stale
+  // handles and throws InvalidStateError.
+  const handlePageHide = () => worker.terminate()
+  window.addEventListener('pagehide', handlePageHide)
+
   await waitForWorkerReady(worker)
   const resetData = shouldResetDefaultData()
   await initWorkerDb(
@@ -105,10 +112,12 @@ async function bootstrap() {
 bootstrap().catch(err => {
   const msg = err instanceof Error ? err.message : String(err)
 
-  // OPFS exclusive-lock error: another tab already holds the database
+  // OPFS exclusive-lock error: another tab already holds the database,
+  // or iPad Safari has not yet released handles from a previous context.
   const isOpfsLocked =
     msg.includes('Access Handles cannot be created') ||
-    msg.includes('NoModificationAllowedError')
+    msg.includes('NoModificationAllowedError') ||
+    msg.includes('InvalidStateError')
 
   if (isOpfsLocked) {
     createRoot(rootElement).render(

@@ -47,6 +47,7 @@ describe('BackupLogRepository', () => {
               duration_ms: 3500,
               error_message: null,
               created_at: now,
+              updated_at: now,
             },
           ],
           changes: 0,
@@ -82,6 +83,7 @@ describe('BackupLogRepository', () => {
         durationMs: 3500,
         errorMessage: null,
         createdAt: now,
+        updatedAt: now,
       })
     })
 
@@ -105,6 +107,7 @@ describe('BackupLogRepository', () => {
               duration_ms: 500,
               error_message: 'Network timeout',
               created_at: now,
+              updated_at: now,
             },
           ],
           changes: 0,
@@ -141,6 +144,7 @@ describe('BackupLogRepository', () => {
         durationMs: 500,
         errorMessage: 'Network timeout',
         createdAt: now,
+        updatedAt: now,
       })
     })
 
@@ -164,6 +168,7 @@ describe('BackupLogRepository', () => {
               duration_ms: 0,
               error_message: null,
               created_at: now,
+              updated_at: now,
             },
           ],
           changes: 0,
@@ -186,6 +191,7 @@ describe('BackupLogRepository', () => {
         durationMs: 0,
         errorMessage: null,
         createdAt: now,
+        updatedAt: now,
       })
     })
 
@@ -217,6 +223,7 @@ describe('BackupLogRepository', () => {
           duration_ms: 100,
           error_message: null,
           created_at: 1700000002000,
+          updated_at: 1700000002000,
         },
         {
           id: 'log-2',
@@ -227,6 +234,7 @@ describe('BackupLogRepository', () => {
           duration_ms: 200,
           error_message: null,
           created_at: 1700000001000,
+          updated_at: 1700000001000,
         },
       ]
 
@@ -255,6 +263,7 @@ describe('BackupLogRepository', () => {
         durationMs: 100,
         errorMessage: null,
         createdAt: 1700000002000,
+        updatedAt: 1700000002000,
       })
       expect(result[1]).toEqual({
         id: 'log-2',
@@ -265,6 +274,7 @@ describe('BackupLogRepository', () => {
         durationMs: 200,
         errorMessage: null,
         createdAt: 1700000001000,
+        updatedAt: 1700000001000,
       })
     })
 
@@ -397,6 +407,7 @@ describe('BackupLogRepository', () => {
             duration_ms: 1234,
             error_message: null,
             created_at: 1700000000000,
+            updated_at: 1700000000000,
           },
         ],
         changes: 0,
@@ -420,6 +431,7 @@ describe('BackupLogRepository', () => {
             duration_ms: 0,
             error_message: 'Connection refused',
             created_at: 1700000000000,
+            updated_at: 1700000000000,
           },
         ],
         changes: 0,
@@ -443,6 +455,7 @@ describe('BackupLogRepository', () => {
             duration_ms: 0,
             error_message: null,
             created_at: 1700000000000,
+            updated_at: 1700000000000,
           },
         ],
         changes: 0,
@@ -466,6 +479,7 @@ describe('BackupLogRepository', () => {
             duration_ms: 0,
             error_message: null,
             created_at: 1700000000000,
+            updated_at: 1700000000000,
           },
         ],
         changes: 0,
@@ -489,6 +503,7 @@ describe('BackupLogRepository', () => {
             duration_ms: 100,
             error_message: null,
             created_at: 1700000000000,
+            updated_at: 1700000000000,
           },
         ],
         changes: 0,
@@ -512,6 +527,7 @@ describe('BackupLogRepository', () => {
             duration_ms: 250,
             error_message: null,
             created_at: 1700000000000,
+            updated_at: 1700000000000,
           },
         ],
         changes: 0,
@@ -535,6 +551,7 @@ describe('BackupLogRepository', () => {
             duration_ms: null,
             error_message: null,
             created_at: 1700000000000,
+            updated_at: 1700000000000,
           },
         ],
         changes: 0,

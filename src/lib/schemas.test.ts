@@ -146,6 +146,8 @@ describe('schemas', () => {
         clockIn: 1711000000000,
         clockOut: 1711032000000,
         type: 'regular',
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
       })
       expect(result.success).toBe(true)
     })
@@ -156,6 +158,8 @@ describe('schemas', () => {
         employeeId: 'emp-001',
         date: '2026-03-21',
         type: 'paid_leave',
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
       })
       expect(result.success).toBe(true)
     })
@@ -436,6 +440,7 @@ describe('schemas', () => {
         newPrice: 120,
         editor: 'admin',
         createdAt: 1700000000000,
+        updatedAt: 1700000000000,
       }
 
       const result = priceChangeLogSchema.parse(input)
@@ -451,6 +456,7 @@ describe('schemas', () => {
         oldPrice: 100,
         newPrice: 120,
         createdAt: 1700000000000,
+        updatedAt: 1700000000000,
       }
 
       const result = priceChangeLogSchema.parse(input)
@@ -465,6 +471,7 @@ describe('schemas', () => {
         oldPrice: 100,
         newPrice: 120,
         createdAt: 1700000000000,
+        updatedAt: 1700000000000,
       }
 
       expect(() => priceChangeLogSchema.parse(input)).toThrow()
@@ -477,6 +484,7 @@ describe('schemas', () => {
         oldPrice: 100,
         newPrice: 120,
         createdAt: 1700000000000,
+        updatedAt: 1700000000000,
       }
 
       expect(() => priceChangeLogSchema.parse(input)).toThrow()
@@ -489,6 +497,7 @@ describe('schemas', () => {
         commodityName: '滷肉便當',
         oldPrice: 100,
         newPrice: 120,
+        updatedAt: 1700000000000,
       }
 
       expect(() => priceChangeLogSchema.parse(input)).toThrow()
@@ -502,6 +511,7 @@ describe('schemas', () => {
         oldPrice: 0,
         newPrice: 50,
         createdAt: 1700000000000,
+        updatedAt: 1700000000000,
       }
 
       const result = priceChangeLogSchema.parse(input)

@@ -39,6 +39,8 @@ function makeAttendance(overrides: Partial<Attendance> = {}): Attendance {
     clockIn: dayjs('2025-06-15 09:00').valueOf(),
     clockOut: dayjs('2025-06-15 18:00').valueOf(),
     type: 'regular',
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
     ...overrides,
   }
 }

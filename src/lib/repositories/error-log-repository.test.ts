@@ -45,6 +45,7 @@ describe('ErrorLogRepository', () => {
               source: 'window.onerror',
               stack: 'Error: Something went wrong\n  at foo.js:1',
               created_at: now,
+              updated_at: now,
             },
           ],
           changes: 0,
@@ -74,6 +75,7 @@ describe('ErrorLogRepository', () => {
         source: 'window.onerror',
         stack: 'Error: Something went wrong\n  at foo.js:1',
         createdAt: now,
+        updatedAt: now,
       })
     })
 
@@ -94,6 +96,7 @@ describe('ErrorLogRepository', () => {
               source: 'unhandledrejection',
               stack: null,
               created_at: now,
+              updated_at: now,
             },
           ],
           changes: 0,
@@ -113,6 +116,7 @@ describe('ErrorLogRepository', () => {
         source: 'unhandledrejection',
         stack: null,
         createdAt: now,
+        updatedAt: now,
       })
     })
   })
@@ -126,6 +130,7 @@ describe('ErrorLogRepository', () => {
           source: 'src-a',
           stack: null,
           created_at: 1700000002000,
+          updated_at: 1700000002000,
         },
         {
           id: 'log-2',
@@ -133,6 +138,7 @@ describe('ErrorLogRepository', () => {
           source: 'src-b',
           stack: 'stack-b',
           created_at: 1700000001000,
+          updated_at: 1700000001000,
         },
       ]
 
@@ -156,6 +162,7 @@ describe('ErrorLogRepository', () => {
         source: 'src-a',
         stack: null,
         createdAt: 1700000002000,
+        updatedAt: 1700000002000,
       })
       expect(result[1]).toEqual({
         id: 'log-2',
@@ -163,6 +170,7 @@ describe('ErrorLogRepository', () => {
         source: 'src-b',
         stack: 'stack-b',
         createdAt: 1700000001000,
+        updatedAt: 1700000001000,
       })
     })
 
@@ -236,6 +244,7 @@ describe('ErrorLogRepository', () => {
           source: 'src-a',
           stack: null,
           created_at: 1700000002000,
+          updated_at: 1700000002000,
         },
         {
           id: 'log-2',
@@ -243,6 +252,7 @@ describe('ErrorLogRepository', () => {
           source: 'src-b',
           stack: 'stack-b',
           created_at: 1700000001000,
+          updated_at: 1700000001000,
         },
       ]
 
@@ -266,6 +276,7 @@ describe('ErrorLogRepository', () => {
         source: 'src-a',
         stack: null,
         createdAt: 1700000002000,
+        updatedAt: 1700000002000,
       })
       expect(result[1]).toEqual({
         id: 'log-2',
@@ -273,6 +284,7 @@ describe('ErrorLogRepository', () => {
         source: 'src-b',
         stack: 'stack-b',
         createdAt: 1700000001000,
+        updatedAt: 1700000001000,
       })
     })
 
@@ -357,6 +369,7 @@ describe('ErrorLogRepository', () => {
             source: 'test-src',
             stack: null,
             created_at: 1700000000000,
+            updated_at: 1700000000000,
           },
         ],
         changes: 0,
@@ -377,6 +390,7 @@ describe('ErrorLogRepository', () => {
             source: 'test-src',
             stack: null,
             created_at: 1700000000000,
+            updated_at: 1700000000000,
           },
         ],
         changes: 0,
@@ -397,6 +411,7 @@ describe('ErrorLogRepository', () => {
             source: 'test-src',
             stack: 'Error: test\n  at bar.js:10',
             created_at: 1700000000000,
+            updated_at: 1700000000000,
           },
         ],
         changes: 0,

@@ -24,6 +24,8 @@ function makeAttendance(overrides: Partial<Attendance> = {}): Attendance {
     employeeId: 'emp-001',
     date: '2026-03-22',
     type: 'regular',
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
     ...overrides,
   }
 }

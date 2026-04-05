@@ -96,7 +96,18 @@ describe('Seed Data', () => {
       const a1 = buildSeedAttendances()
       const a2 = buildSeedAttendances()
       expect(a1).not.toBe(a2)
-      expect(a1).toEqual(a2)
+      expect(a1).toHaveLength(a2.length)
+      // Compare structure without timestamp fields which may differ by ~1ms between calls
+      for (let i = 0; i < a1.length; i++) {
+        expect(a1[i]!.id).toBe(a2[i]!.id)
+        expect(a1[i]!.employeeId).toBe(a2[i]!.employeeId)
+        expect(a1[i]!.date).toBe(a2[i]!.date)
+        expect(a1[i]!.clockIn).toBe(a2[i]!.clockIn)
+        expect(a1[i]!.clockOut).toBe(a2[i]!.clockOut)
+        expect(a1[i]!.type).toBe(a2[i]!.type)
+        expect(typeof a1[i]!.createdAt).toBe('number')
+        expect(typeof a1[i]!.updatedAt).toBe('number')
+      }
     })
   })
 })
