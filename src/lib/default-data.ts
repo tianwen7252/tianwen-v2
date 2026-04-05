@@ -218,6 +218,35 @@ export function insertDefaultEmployees(db: Database): void {
   }
 }
 
+/**
+ * Async version of insertDefaultEmployees for use from the main thread.
+ * Called by the dev test-data page before inserting attendance records,
+ * since attendances have an FK to employees.
+ */
+export async function insertDefaultEmployeesAsync(
+  db: import('@/lib/worker-database').AsyncDatabase,
+): Promise<void> {
+  for (const emp of DEFAULT_EMPLOYEES) {
+    await db.exec(
+      `INSERT OR IGNORE INTO employees (id, name, avatar, status, shift_type, employee_no, is_admin, hire_date, resignation_date, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        emp.id,
+        emp.name,
+        emp.avatar ?? null,
+        emp.status,
+        emp.shiftType,
+        emp.employeeNo ?? null,
+        emp.isAdmin ? 1 : 0,
+        emp.hireDate ?? null,
+        emp.resignationDate ?? null,
+        emp.createdAt,
+        emp.updatedAt,
+      ],
+    )
+  }
+}
+
 /** Insert all default order types into the database. Skips existing rows. */
 export function insertDefaultOrderTypes(db: Database): void {
   for (const ot of DEFAULT_ORDER_TYPES) {

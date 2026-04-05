@@ -8,7 +8,6 @@
 import sqlite3InitModule from '@sqlite.org/sqlite-wasm'
 import { initSchema } from '@/lib/schema'
 import {
-  insertDefaultEmployees,
   insertDefaultCommodities,
   insertDefaultOrderTypes,
   deleteDefaultData,
@@ -71,10 +70,32 @@ self.onmessage = async (e: MessageEvent<WorkerRequest>) => {
   if (msg.type === 'init') {
     try {
       const sqlite3 = await sqlite3InitModule()
-      const sahPoolUtil = await sqlite3.installOpfsSAHPoolVfs({
-        clearOnInit: false,
-        initialCapacity: 6,
-      })
+      // iPad Safari can leave OPFS access handles locked briefly after a page
+      // reload. Retry a few times so the previous context has time to release
+      // them before we abort with an unrecoverable error.
+      let sahPoolUtil: Awaited<
+        ReturnType<typeof sqlite3.installOpfsSAHPoolVfs>
+      > | null = null
+      let lastErr: unknown = null
+      for (let attempt = 0; attempt < 5; attempt++) {
+        try {
+          sahPoolUtil = await sqlite3.installOpfsSAHPoolVfs({
+            clearOnInit: false,
+            initialCapacity: 6,
+          })
+          break
+        } catch (err) {
+          lastErr = err
+          const errMsg = err instanceof Error ? err.message : String(err)
+          const isStaleHandle =
+            errMsg.includes('InvalidStateError') ||
+            errMsg.includes('invalid state')
+          if (!isStaleHandle || attempt === 4) throw err
+          // Wait for the previous context to release OPFS access handles
+          await new Promise(resolve => setTimeout(resolve, 200 * (attempt + 1)))
+        }
+      }
+      if (!sahPoolUtil) throw lastErr ?? new Error('SAHPool init failed')
       const rawDb = new sahPoolUtil.OpfsSAHPoolDb('tianwen.db')
       rawDbHandle = rawDb
       sqlite3Ref = sqlite3
@@ -91,23 +112,17 @@ self.onmessage = async (e: MessageEvent<WorkerRequest>) => {
         deleteDefaultData(db)
       }
 
-      // Insert default data when enabled and not in a destructive mode
+      // Insert default data when enabled and not in a destructive mode.
+      // Note: default employees are NOT inserted here — they are only seeded
+      // via the dev test-data page (see insertTestData).
       if (msg.enableDefaultData && !msg.deleteDefaultData && !msg.clearDbData) {
         if (msg.shouldResetData) {
           // Version changed: clean slate for default items then re-insert
           deleteDefaultData(db)
-          insertDefaultEmployees(db)
           insertDefaultCommodities(db)
           insertDefaultOrderTypes(db)
         } else {
           // Insert only into empty tables
-          const empCount = db.exec<{ cnt: number }>(
-            'SELECT COUNT(*) as cnt FROM employees',
-          )
-          if (Number(empCount.rows[0]?.cnt) === 0) {
-            insertDefaultEmployees(db)
-          }
-
           const comCount = db.exec<{ cnt: number }>(
             'SELECT COUNT(*) as cnt FROM commodities',
           )
