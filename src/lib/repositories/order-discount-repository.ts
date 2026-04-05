@@ -18,6 +18,7 @@ function toOrderDiscount(row: Record<string, unknown>): OrderDiscount {
     label: String(row['label']),
     amount: Number(row['amount']),
     createdAt: Number(row['created_at']),
+    updatedAt: Number(row['updated_at']),
   }
 }
 

@@ -50,6 +50,8 @@ function buildTestAttendances(): readonly Attendance[] {
       clockIn: base.hour(8).minute(0).valueOf(),
       clockOut: base.hour(17).minute(0).valueOf(),
       type: 'regular' as const,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
     },
     // Mia: clocked in at 09:00, still working
     {
@@ -58,6 +60,8 @@ function buildTestAttendances(): readonly Attendance[] {
       date: today,
       clockIn: base.hour(9).minute(0).valueOf(),
       type: 'regular' as const,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
     },
     // David: on paid leave
     {
@@ -66,6 +70,8 @@ function buildTestAttendances(): readonly Attendance[] {
       date: today,
       clockIn: base.hour(8).minute(0).valueOf(),
       type: 'paid_leave' as const,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
     },
     // Jason: clocked in at 10:00, clocked out at 14:30
     {
@@ -75,6 +81,8 @@ function buildTestAttendances(): readonly Attendance[] {
       clockIn: base.hour(10).minute(0).valueOf(),
       clockOut: base.hour(14).minute(30).valueOf(),
       type: 'regular' as const,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
     },
   ]
 }
@@ -220,9 +228,12 @@ export const mockAttendanceRepo = {
   },
 
   async create(data: CreateAttendance): Promise<Attendance> {
+    const now = Date.now()
     const newAttendance: Attendance = {
       ...data,
       id: nanoid(),
+      createdAt: now,
+      updatedAt: now,
     }
     attendances = [...attendances, newAttendance]
     return newAttendance
@@ -467,6 +478,7 @@ export const mockPriceChangeLogRepo = {
       newPrice: data.newPrice,
       editor: data.editor ?? '',
       createdAt: now,
+      updatedAt: now,
     }
     priceChangeLogs = [...priceChangeLogs, newLog]
     return newLog

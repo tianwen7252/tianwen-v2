@@ -3,8 +3,8 @@ import { CREATE_TABLES, initSchema, SCHEMA_VERSION } from './schema'
 
 describe('schema', () => {
   describe('SCHEMA_VERSION', () => {
-    it('should be version 1', () => {
-      expect(SCHEMA_VERSION).toBe(1)
+    it('should be version 2', () => {
+      expect(SCHEMA_VERSION).toBe(2)
     })
   })
 
@@ -85,14 +85,15 @@ describe('schema', () => {
   })
 
   describe('initSchema', () => {
-    it('should enable foreign keys, create tables, and run migrations', () => {
+    it('should enable foreign keys, set synchronous mode, create tables, and run migrations', () => {
       const mockExec = vi.fn()
       initSchema(mockExec)
       expect(mockExec).toHaveBeenNthCalledWith(1, 'PRAGMA foreign_keys = ON')
-      expect(mockExec).toHaveBeenNthCalledWith(2, CREATE_TABLES)
-      // Third call is the V2-76 rename migration for commodity_types
+      expect(mockExec).toHaveBeenNthCalledWith(2, 'PRAGMA synchronous = NORMAL')
+      expect(mockExec).toHaveBeenNthCalledWith(3, CREATE_TABLES)
+      // Fourth call is the V2-76 rename migration for commodity_types
       expect(mockExec).toHaveBeenNthCalledWith(
-        3,
+        4,
         'ALTER TABLE commondity_types RENAME TO commodity_types',
       )
     })

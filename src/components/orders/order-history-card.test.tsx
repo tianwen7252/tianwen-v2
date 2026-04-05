@@ -87,6 +87,7 @@ function makeOrder(overrides: Partial<Order> = {}): Order {
         quantity: 2,
         includesSoup: true,
         createdAt: 1700000000000,
+        updatedAt: 1700000000000,
       },
       {
         id: 'i2',
@@ -97,6 +98,7 @@ function makeOrder(overrides: Partial<Order> = {}): Order {
         quantity: 1,
         includesSoup: true,
         createdAt: 1700000000001,
+        updatedAt: 1700000000001,
       },
     ],
     discounts: [],
@@ -160,6 +162,7 @@ describe('OrderHistoryCard', () => {
           quantity: 1,
           includesSoup: true,
           createdAt: 1700000000000,
+          updatedAt: 1700000000000,
         },
         {
           id: 'i2',
@@ -170,6 +173,7 @@ describe('OrderHistoryCard', () => {
           quantity: 2,
           includesSoup: false,
           createdAt: 1700000000001,
+          updatedAt: 1700000000001,
         },
       ],
     })
@@ -204,6 +208,7 @@ describe('OrderHistoryCard', () => {
           quantity: 1,
           includesSoup: false,
           createdAt: 1700000000000,
+          updatedAt: 1700000000000,
         },
       ],
     })
@@ -232,6 +237,7 @@ describe('OrderHistoryCard', () => {
           quantity: 1,
           includesSoup: true,
           createdAt: 1700000000000,
+          updatedAt: 1700000000000,
         },
         {
           id: 'i2',
@@ -242,6 +248,7 @@ describe('OrderHistoryCard', () => {
           quantity: 1,
           includesSoup: false,
           createdAt: 1700000000001,
+          updatedAt: 1700000000001,
         },
       ],
     })

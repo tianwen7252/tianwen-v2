@@ -33,6 +33,8 @@ const baseAttendance: Attendance = {
   date: '2026-03-21',
   clockIn: new Date('2026-03-21T08:00:00').getTime(),
   type: 'regular',
+  createdAt: Date.now(),
+  updatedAt: Date.now(),
 }
 
 const clockedOutAttendance: Attendance = {

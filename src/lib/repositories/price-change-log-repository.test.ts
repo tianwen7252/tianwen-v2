@@ -62,6 +62,7 @@ describe('PriceChangeLogRepository', () => {
             new_price: 120,
             editor: 'admin',
             created_at: 1700000000000,
+            updated_at: 1700000000000,
           },
           {
             id: 'pcl-002',
@@ -71,6 +72,7 @@ describe('PriceChangeLogRepository', () => {
             new_price: 35,
             editor: '',
             created_at: 1700000100000,
+            updated_at: 1700000100000,
           },
         ],
         changes: 0,
@@ -88,6 +90,7 @@ describe('PriceChangeLogRepository', () => {
         newPrice: 120,
         editor: 'admin',
         createdAt: 1700000000000,
+        updatedAt: 1700000000000,
       })
       expect(result[1]).toEqual({
         id: 'pcl-002',
@@ -97,6 +100,7 @@ describe('PriceChangeLogRepository', () => {
         newPrice: 35,
         editor: '',
         createdAt: 1700000100000,
+        updatedAt: 1700000100000,
       })
     })
   })
@@ -148,6 +152,7 @@ describe('PriceChangeLogRepository', () => {
               new_price: 120,
               editor: 'admin',
               created_at: 1700000000000,
+              updated_at: 1700000000000,
             },
           ],
           changes: 0,
@@ -182,6 +187,7 @@ describe('PriceChangeLogRepository', () => {
               new_price: 120,
               editor: 'admin',
               created_at: 1700000000000,
+              updated_at: 1700000000000,
             },
           ],
           changes: 0,
@@ -204,6 +210,7 @@ describe('PriceChangeLogRepository', () => {
         newPrice: 120,
         editor: 'admin',
         createdAt: 1700000000000,
+        updatedAt: 1700000000000,
       })
     })
 
@@ -220,6 +227,7 @@ describe('PriceChangeLogRepository', () => {
               new_price: 120,
               editor: '',
               created_at: 1700000000000,
+              updated_at: 1700000000000,
             },
           ],
           changes: 0,
@@ -251,6 +259,7 @@ describe('PriceChangeLogRepository', () => {
               new_price: 90,
               editor: '',
               created_at: 1700000000000,
+              updated_at: 1700000000000,
             },
           ],
           changes: 0,
@@ -280,6 +289,7 @@ describe('PriceChangeLogRepository', () => {
               new_price: 50,
               editor: '',
               created_at: 1700000000000,
+              updated_at: 1700000000000,
             },
           ],
           changes: 0,

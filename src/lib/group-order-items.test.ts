@@ -14,6 +14,7 @@ function makeOrderItem(overrides: Partial<OrderItem> = {}): OrderItem {
     quantity: 1,
     includesSoup: true,
     createdAt: 1700000000000,
+    updatedAt: 1700000000000,
     ...overrides,
   }
 }
@@ -27,6 +28,7 @@ function makeOrderDiscount(
     label: 'Member Discount',
     amount: 50,
     createdAt: 1700000000000,
+    updatedAt: 1700000000000,
     ...overrides,
   }
 }

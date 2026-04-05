@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { lazy, Suspense, useState, useEffect } from 'react'
 import {
   createRootRoute,
   createRoute,
@@ -9,17 +9,6 @@ import {
 import { useTranslation } from 'react-i18next'
 import { Settings, Code } from 'lucide-react'
 import { OrderPage } from '@/pages/order'
-import { NotFoundPage } from '@/pages/not-found'
-import { ModalPreview, NotifyPreview, SwPreview, TestDataPreview } from '@/pages/preview'
-import { ClockInPage } from '@/pages/clock-in'
-import { SettingsPage } from '@/pages/settings'
-import { SystemInfo } from '@/components/settings/system-info'
-import { CloudBackup } from '@/components/settings/cloud-backup'
-import { Records } from '@/components/records'
-import { StaffAdmin } from '@/components/staff-admin'
-import { ProductManagement } from '@/components/settings/product-management'
-import { OrdersPage } from '@/pages/orders'
-import { AnalyticsPage } from '@/pages/analytics'
 import { SwUpdatePrompt } from '@/components/sw-update-prompt'
 import { PageTransition } from '@/components/animations'
 import { AppErrorBoundary } from '@/components/app-error-boundary'
@@ -27,6 +16,22 @@ import { ScrollToTop } from '@/components/ui/scroll-to-top'
 import { HeaderUserMenu } from '@/components/header/header-user-menu'
 import { RippleButton } from '@/components/ui/ripple-button'
 import { cn } from '@/lib/cn'
+
+// Lazy-loaded pages — each becomes a separate chunk
+const NotFoundPage = lazy(() => import('@/pages/not-found').then(m => ({ default: m.NotFoundPage })))
+const ClockInPage = lazy(() => import('@/pages/clock-in').then(m => ({ default: m.ClockInPage })))
+const SettingsPage = lazy(() => import('@/pages/settings').then(m => ({ default: m.SettingsPage })))
+const OrdersPage = lazy(() => import('@/pages/orders').then(m => ({ default: m.OrdersPage })))
+const AnalyticsPage = lazy(() => import('@/pages/analytics').then(m => ({ default: m.AnalyticsPage })))
+const SystemInfo = lazy(() => import('@/components/settings/system-info').then(m => ({ default: m.SystemInfo })))
+const CloudBackup = lazy(() => import('@/components/settings/cloud-backup').then(m => ({ default: m.CloudBackup })))
+const Records = lazy(() => import('@/components/records').then(m => ({ default: m.Records })))
+const StaffAdmin = lazy(() => import('@/components/staff-admin').then(m => ({ default: m.StaffAdmin })))
+const ProductManagement = lazy(() => import('@/components/settings/product-management').then(m => ({ default: m.ProductManagement })))
+const ModalPreview = lazy(() => import('@/pages/preview').then(m => ({ default: m.ModalPreview })))
+const NotifyPreview = lazy(() => import('@/pages/preview').then(m => ({ default: m.NotifyPreview })))
+const SwPreview = lazy(() => import('@/pages/preview').then(m => ({ default: m.SwPreview })))
+const TestDataPreview = lazy(() => import('@/pages/preview').then(m => ({ default: m.TestDataPreview })))
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -111,9 +116,11 @@ function RootLayout() {
       {/* Page content with global error boundary */}
       <main>
         <AppErrorBoundary title={t('error.appError')}>
-          <PageTransition key={pathname}>
-            <Outlet />
-          </PageTransition>
+          <Suspense>
+            <PageTransition key={pathname}>
+              <Outlet />
+            </PageTransition>
+          </Suspense>
         </AppErrorBoundary>
       </main>
 

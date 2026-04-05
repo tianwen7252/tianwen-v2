@@ -12,6 +12,7 @@ import {
   getOrderCountForDay,
   createSeededRandom,
 } from '@/lib/test-data-generator'
+import { insertDefaultEmployeesAsync } from '@/lib/default-data'
 
 // ─── Types ─────────────────────────────────────────────────────────────────
 
@@ -68,6 +69,11 @@ export async function insertTestData(
   options: InsertTestDataOptions,
 ): Promise<InsertTestDataResult> {
   const { months, ordersPerDay, seed, onProgress } = options
+
+  // Seed default employees first — attendance records below have an FK to
+  // employees, and default employees are no longer inserted at DB init.
+  // INSERT OR IGNORE means this is a no-op if employees already exist.
+  await insertDefaultEmployeesAsync(db)
 
   const dates = getDateRange(months)
   const commodities = getCommoditiesForGeneration()
