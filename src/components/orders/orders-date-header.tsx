@@ -90,7 +90,7 @@ export function OrdersDateHeader({
               <CalendarDays className="h-5 w-5" />
             </RippleButton>
           </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="end">
+          <PopoverContent className="w-auto p-0" align="center">
             <Calendar
               mode="single"
               captionLayout="dropdown"

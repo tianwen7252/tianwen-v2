@@ -140,7 +140,10 @@ export function SystemInfo() {
           </CardHeader>
           <CardContent className="flex flex-col flex-1">
             <div className="text-2xl">v{APP_VERSION}</div>
-            <div className="mt-auto text-md text-muted-foreground">
+            <div className="mt-auto text-md text-muted-foreground break-all">
+              {window.location.origin}
+            </div>
+            <div className="text-md text-muted-foreground">
               {t('settings.lastUpdated')}: {document.lastModified}
             </div>
           </CardContent>
