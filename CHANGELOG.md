@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.3.0-alpha](https://github.com/tianwen7252/tianwen-v2/compare/v2.2.0-alpha...v2.3.0-alpha) (2026-04-05)
+
+
+### Features
+
+* architecture & DB improvements (V2-186) ([#9](https://github.com/tianwen7252/tianwen-v2/issues/9)) ([f59907e](https://github.com/tianwen7252/tianwen-v2/commit/f59907e26cb1e6823db6d8c7104873e9cf4b0b92))
+
 ## [2.2.0-alpha](https://github.com/tianwen7252/tianwen-v2/compare/v2.1.0-alpha...v2.2.0-alpha) (2026-04-02)
 
 
