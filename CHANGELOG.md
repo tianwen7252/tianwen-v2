@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.4.0](https://github.com/tianwen7252/tianwen-v2/compare/v2.3.0...v2.4.0) (2026-04-06)
+
+
+### Features
+
+* V1 import, dark mode, UI redesign, iPad fixes (V2-195) ([#12](https://github.com/tianwen7252/tianwen-v2/issues/12)) ([e7554a2](https://github.com/tianwen7252/tianwen-v2/commit/e7554a23bd4ac324e32df19ce8dfed25bf0674f2))
+
 ## [2.3.0](https://github.com/tianwen7252/tianwen-v2/compare/v2.2.0-alpha...v2.3.0) (2026-04-06)
 
 
