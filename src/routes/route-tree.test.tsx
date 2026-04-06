@@ -15,6 +15,7 @@ vi.mock('@/pages/preview', () => ({
   NotifyPreview: () => null,
   SwPreview: () => null,
   TestDataPreview: () => null,
+  V1ImportPreview: () => null,
 }))
 
 vi.mock('@/pages/clock-in', () => ({

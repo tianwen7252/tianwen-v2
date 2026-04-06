@@ -27,6 +27,9 @@ vi.mock('lucide-react', () => ({
   Search: (props: Record<string, unknown>) => (
     <span data-testid="search-icon" {...props} />
   ),
+  Info: (props: Record<string, unknown>) => (
+    <span data-testid="info-icon" {...props} />
+  ),
 }))
 
 // Mock Popover components to render inline (avoid Radix Portal issues)

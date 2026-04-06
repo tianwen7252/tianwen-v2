@@ -17,7 +17,7 @@ import { PaginationControls } from '@/components/settings/pagination-controls'
 import { useGoogleAuth } from '@/hooks/use-google-auth'
 import { getErrorLogRepo } from '@/lib/repositories/provider'
 import { SCHEMA_VERSION } from '@/lib/schema'
-import { APP_VERSION } from '@/lib/version'
+import { useAppVersion } from '@/lib/version'
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
@@ -69,6 +69,7 @@ export function SystemInfo() {
   const { t } = useTranslation()
   const queryClient = useQueryClient()
   const storagePercent = useStorageEstimate()
+  const appVersion = useAppVersion()
 
   const { googleUser, isAdmin } = useGoogleAuth()
 
@@ -139,7 +140,7 @@ export function SystemInfo() {
             </CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col flex-1">
-            <div className="text-2xl">v{APP_VERSION}</div>
+            <div className="text-2xl">v{appVersion}</div>
             <div className="mt-auto text-md text-muted-foreground break-all">
               {window.location.origin}
             </div>
