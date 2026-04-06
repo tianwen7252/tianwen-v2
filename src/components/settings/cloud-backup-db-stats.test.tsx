@@ -1,10 +1,10 @@
 /**
  * Tests for the CloudBackupDbStats component.
- * Covers local/cloud split rendering with row counts.
+ * Covers local DB table stats and cloud backup summary (count, size, latest).
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
 // ── Mocks ───────────────────────────────────────────────────────────────────
@@ -22,14 +22,34 @@ let mockDbStats = {
   refetch: mockRefetch,
 }
 
-let mockIsConfigured = false
-
 vi.mock('@/hooks/use-db-stats', () => ({
   useDbStats: () => mockDbStats,
 }))
 
-vi.mock('@/lib/backup-config', () => ({
-  isBackupConfigured: () => mockIsConfigured,
+const mockListBackups = vi.hoisted(() =>
+  vi.fn().mockResolvedValue([
+    {
+      filename: 'backup-300.sqlite.gz',
+      size: 3072,
+      createdAt: '2026-04-03T10:00:00Z',
+    },
+    {
+      filename: 'backup-200.sqlite.gz',
+      size: 2048,
+      createdAt: '2026-04-02T10:00:00Z',
+    },
+    {
+      filename: 'backup-100.sqlite.gz',
+      size: 1024,
+      createdAt: '2026-04-01T10:00:00Z',
+    },
+  ]),
+)
+
+vi.mock('@/lib/backup', () => ({
+  createBackupService: () => ({
+    listBackups: mockListBackups,
+  }),
 }))
 
 import { CloudBackupDbStats } from './cloud-backup-db-stats'
@@ -50,7 +70,6 @@ function renderWithProviders(ui: React.ReactNode) {
 describe('CloudBackupDbStats', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    mockIsConfigured = false
     mockDbStats = {
       tables: [
         { tableName: 'commodities', rowCount: 25 },
@@ -62,7 +81,26 @@ describe('CloudBackupDbStats', () => {
       error: null,
       refetch: mockRefetch,
     }
+    mockListBackups.mockResolvedValue([
+      {
+        filename: 'backup-300.sqlite.gz',
+        size: 3072,
+        createdAt: '2026-04-03T10:00:00Z',
+      },
+      {
+        filename: 'backup-200.sqlite.gz',
+        size: 2048,
+        createdAt: '2026-04-02T10:00:00Z',
+      },
+      {
+        filename: 'backup-100.sqlite.gz',
+        size: 1024,
+        createdAt: '2026-04-01T10:00:00Z',
+      },
+    ])
   })
+
+  // ── Local DB stats (unchanged) ────────────────────────────────────────
 
   it('renders local and cloud section titles', () => {
     renderWithProviders(<CloudBackupDbStats />)
@@ -96,11 +134,6 @@ describe('CloudBackupDbStats', () => {
     expect(screen.getByText('133')).toBeTruthy()
   })
 
-  it('shows unavailable message in cloud section', () => {
-    renderWithProviders(<CloudBackupDbStats />)
-    expect(screen.getByText('連線後顯示雲端資料')).toBeTruthy()
-  })
-
   it('formats large row counts with locale separators', () => {
     mockDbStats = {
       tables: [
@@ -113,11 +146,9 @@ describe('CloudBackupDbStats', () => {
       refetch: mockRefetch,
     }
     renderWithProviders(<CloudBackupDbStats />)
-    // Raw numbers must NOT appear — formatted strings must be used
     expect(screen.queryByText('12345')).toBeNull()
     expect(screen.queryByText('1000000')).toBeNull()
     expect(screen.queryByText('1012345')).toBeNull()
-    // Formatted numbers must appear (zh-TW uses comma as thousands separator)
     expect(screen.getByText('12,345')).toBeTruthy()
     expect(screen.getByText('1,000,000')).toBeTruthy()
     expect(screen.getByText('1,012,345')).toBeTruthy()
@@ -134,5 +165,44 @@ describe('CloudBackupDbStats', () => {
     renderWithProviders(<CloudBackupDbStats />)
     expect(screen.queryByText('9999999')).toBeNull()
     expect(screen.getByText('9,999,999')).toBeTruthy()
+  })
+
+  // ── Cloud stats panel ────────────────────────────────────────────────
+
+  describe('Cloud stats', () => {
+    it('shows backup count in cloud section', async () => {
+      renderWithProviders(<CloudBackupDbStats />)
+
+      await waitFor(() => {
+        expect(screen.getByText('3')).toBeTruthy()
+      })
+    })
+
+    it('shows total cloud storage size in cloud section', async () => {
+      renderWithProviders(<CloudBackupDbStats />)
+
+      await waitFor(() => {
+        // 3072 + 2048 + 1024 = 6144 = 6.0 KB
+        expect(screen.getByText('6.0 KB')).toBeTruthy()
+      })
+    })
+
+    it('shows latest backup filename in cloud section', async () => {
+      renderWithProviders(<CloudBackupDbStats />)
+
+      await waitFor(() => {
+        expect(screen.getByText('backup-300.sqlite.gz')).toBeTruthy()
+      })
+    })
+
+    it('shows empty state when no cloud backups exist', async () => {
+      mockListBackups.mockResolvedValue([])
+
+      renderWithProviders(<CloudBackupDbStats />)
+
+      await waitFor(() => {
+        expect(screen.getByText('尚無備份')).toBeTruthy()
+      })
+    })
   })
 })

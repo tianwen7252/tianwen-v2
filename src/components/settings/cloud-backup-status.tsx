@@ -8,6 +8,8 @@ import dayjs from 'dayjs'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { useBackupStore } from '@/stores/backup-store'
 import type { ScheduleType } from '@/stores/backup-store'
+import { useCloudBackups } from '@/hooks/use-cloud-backups'
+import { formatBytes } from '@/lib/format-bytes'
 
 // ── Component ───────────────────────────────────────────────────────────────
 
@@ -16,6 +18,13 @@ export function CloudBackupStatus() {
   const lastBackupTime = useBackupStore(s => s.lastBackupTime)
   const scheduleType = useBackupStore(s => s.scheduleType) as ScheduleType
   const scheduleHour = useBackupStore(s => s.scheduleHour)
+  const { totalSize, isLoading, error } = useCloudBackups()
+
+  const cloudSizeDisplay = error
+    ? '—'
+    : isLoading
+      ? '...'
+      : formatBytes(totalSize)
 
   return (
     <div className="grid grid-cols-3 gap-4">
@@ -27,7 +36,7 @@ export function CloudBackupStatus() {
           </CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col flex-1">
-          <div className="text-2xl">—</div>
+          <div className="text-2xl">{cloudSizeDisplay}</div>
         </CardContent>
       </Card>
 

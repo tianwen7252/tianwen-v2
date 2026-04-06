@@ -1,6 +1,6 @@
 /**
  * Cloud Backup Actions — provides manual backup trigger button,
- * schedule type selector, and hour picker for auto-backup configuration.
+ * export DB button, schedule type selector, and hour picker.
  */
 
 import { useCallback } from 'react'
@@ -10,6 +10,8 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { RippleButton } from '@/components/ui/ripple-button'
 import { notify } from '@/components/ui/sonner'
 import { useBackupStore, type ScheduleType } from '@/stores/backup-store'
+import { performBackup } from '@/lib/perform-backup'
+import { getDatabase } from '@/lib/repositories/provider'
 
 // ── Constants ──────────────────────────────────────────────────────────────
 
@@ -32,13 +34,41 @@ export function CloudBackupActions() {
   const scheduleType = useBackupStore(s => s.scheduleType)
   const scheduleHour = useBackupStore(s => s.scheduleHour)
   const setSchedule = useBackupStore(s => s.setSchedule)
+  const startBackup = useBackupStore(s => s.startBackup)
+  const finishBackup = useBackupStore(s => s.finishBackup)
+  const setLastBackupTime = useBackupStore(s => s.setLastBackupTime)
 
-  const handleBackupNow = useCallback(() => {
-    useBackupStore.getState().startBackup()
-  }, [])
+  const handleBackupNow = useCallback(async () => {
+    startBackup()
+    try {
+      await performBackup('manual')
+      setLastBackupTime(new Date().toISOString())
+      finishBackup()
+      notify.success(t('backup.backupSuccess'))
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error ? error.message : 'Unknown backup error'
+      finishBackup(message)
+      notify.error(t('backup.backupFailed'))
+    }
+  }, [startBackup, finishBackup, setLastBackupTime, t])
 
-  const handleExportDb = useCallback(() => {
-    notify.info(t('settings.featureInDev'))
+  const handleExportDb = useCallback(async () => {
+    try {
+      const rawBytes = await getDatabase().exportDatabase()
+      const blob = new Blob([rawBytes as BlobPart], { type: 'application/x-sqlite3' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `tianwen-db-${Date.now()}.sqlite`
+      a.click()
+      URL.revokeObjectURL(url)
+      notify.success(t('backup.exportSuccess'))
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error ? error.message : 'Unknown export error'
+      notify.error(`${t('backup.exportFailed')}: ${message}`)
+    }
   }, [t])
 
   const handleScheduleTypeChange = useCallback(
@@ -66,7 +96,7 @@ export function CloudBackupActions() {
         <div className="grid grid-cols-3 gap-4">
           <RippleButton
             className="flex items-center justify-center gap-2 rounded-md border-none bg-(--color-green) px-4 py-2 text-white hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50"
-            onClick={handleBackupNow}
+            onClick={() => void handleBackupNow()}
             disabled={isBackingUp}
           >
             <DatabaseBackup size={16} />
@@ -74,7 +104,7 @@ export function CloudBackupActions() {
           </RippleButton>
           <RippleButton
             className="flex items-center justify-center gap-2 rounded-md border-none bg-(--color-blue) px-4 py-2 text-white hover:opacity-80"
-            onClick={handleExportDb}
+            onClick={() => void handleExportDb()}
           >
             <Download size={16} />
             {t('settings.exportDb')}

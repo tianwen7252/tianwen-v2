@@ -7,7 +7,7 @@
 import { useEffect, useRef } from 'react'
 import { useBackupStore } from '@/stores/backup-store'
 import { isBackupConfigured } from '@/lib/backup-config'
-import { getBackupLogRepo } from '@/lib/repositories/provider'
+import { performBackup } from '@/lib/perform-backup'
 import {
   calculateNextDailyBackup,
   calculateNextWeeklyBackup,
@@ -23,7 +23,7 @@ interface UseAutoBackupOptions {
 // ── Backup Execution ───────────────────────────────────────────────────────
 
 /**
- * Execute a backup operation: update store state, write log entry.
+ * Execute a backup operation: update store state, run performBackup.
  * Silently skips if cloud backup is not configured.
  */
 async function executeBackup(
@@ -38,11 +38,8 @@ async function executeBackup(
   startBackup()
 
   try {
-    const now = new Date().toISOString()
-    await getBackupLogRepo().create('auto', 'success', {
-      durationMs: 0,
-    })
-    setLastBackupTime(now)
+    await performBackup('auto')
+    setLastBackupTime(new Date().toISOString())
     finishBackup()
   } catch (error: unknown) {
     const message =
@@ -125,10 +122,7 @@ export function useAutoBackup(options: UseAutoBackupOptions): void {
 
     function handleVisibilityChange(): void {
       if (document.visibilityState === 'visible') {
-        // Trigger re-render by touching the store
-        // The main effect above will recalculate based on current time
         const state = useBackupStore.getState()
-        // Force recalculation by reading current state
         const overdue = isBackupOverdue(
           state.scheduleType,
           state.scheduleHour,

@@ -1,21 +1,17 @@
 /**
  * Tests for the CloudBackupActions component.
  * Covers backup button states, disabled logic, not-configured message,
- * schedule selector, and hour picker.
+ * schedule selector, hour picker, manual backup, and export DB.
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 
 // ── Mocks ───────────────────────────────────────────────────────────────────
 
-let mockIsConfigured = false
-
-vi.mock('@/lib/backup-config', () => ({
-  isBackupConfigured: () => mockIsConfigured,
-}))
-
 const mockStartBackup = vi.fn()
+const mockFinishBackup = vi.fn()
+const mockSetLastBackupTime = vi.fn()
 const mockSetSchedule = vi.fn()
 
 let mockStoreState = {
@@ -26,8 +22,9 @@ let mockStoreState = {
   scheduleHour: 22,
   startBackup: mockStartBackup,
   updateProgress: vi.fn(),
-  finishBackup: vi.fn(),
+  finishBackup: mockFinishBackup,
   setSchedule: mockSetSchedule,
+  setLastBackupTime: mockSetLastBackupTime,
 }
 
 vi.mock('@/stores/backup-store', () => ({
@@ -41,12 +38,36 @@ vi.mock('@/stores/backup-store', () => ({
   ),
 }))
 
+const mockNotify = vi.hoisted(() => ({
+  success: vi.fn(),
+  error: vi.fn(),
+  info: vi.fn(),
+}))
+
 vi.mock('@/components/ui/sonner', () => ({
-  notify: {
-    success: vi.fn(),
-    error: vi.fn(),
-    info: vi.fn(),
-  },
+  notify: mockNotify,
+}))
+
+const mockPerformBackup = vi.hoisted(() =>
+  vi.fn().mockResolvedValue({
+    filename: 'backup-1234.sqlite.gz',
+    size: 1024,
+    durationMs: 500,
+  }),
+)
+
+vi.mock('@/lib/perform-backup', () => ({
+  performBackup: mockPerformBackup,
+}))
+
+const mockDbExport = vi.hoisted(() =>
+  vi.fn().mockResolvedValue(new Uint8Array([1, 2, 3])),
+)
+
+vi.mock('@/lib/repositories/provider', () => ({
+  getDatabase: () => ({
+    exportDatabase: mockDbExport,
+  }),
 }))
 
 import { CloudBackupActions } from './cloud-backup-actions'
@@ -56,7 +77,6 @@ import { CloudBackupActions } from './cloud-backup-actions'
 describe('CloudBackupActions', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    mockIsConfigured = false
     mockStoreState = {
       isBackingUp: false,
       backupProgress: 0,
@@ -65,9 +85,16 @@ describe('CloudBackupActions', () => {
       scheduleHour: 22,
       startBackup: mockStartBackup,
       updateProgress: vi.fn(),
-      finishBackup: vi.fn(),
+      finishBackup: mockFinishBackup,
       setSchedule: mockSetSchedule,
+      setLastBackupTime: mockSetLastBackupTime,
     }
+    mockPerformBackup.mockResolvedValue({
+      filename: 'backup-1234.sqlite.gz',
+      size: 1024,
+      durationMs: 500,
+    })
+    mockDbExport.mockResolvedValue(new Uint8Array([1, 2, 3]))
   })
 
   // ── Existing backup button tests ─────────────────────────────────────────
@@ -107,6 +134,99 @@ describe('CloudBackupActions', () => {
     expect(screen.getByText('匯出資料庫')).toBeTruthy()
   })
 
+  // ── Manual backup tests ─────────────────────────────────────────────────
+
+  describe('Manual Backup', () => {
+    it('calls startBackup and performBackup("manual") when clicked', async () => {
+      render(<CloudBackupActions />)
+
+      const button = screen.getByText('立即備份').closest('button')!
+      fireEvent.click(button)
+
+      await waitFor(() => {
+        expect(mockStartBackup).toHaveBeenCalledOnce()
+        expect(mockPerformBackup).toHaveBeenCalledWith('manual')
+      })
+    })
+
+    it('calls finishBackup and setLastBackupTime on success', async () => {
+      render(<CloudBackupActions />)
+
+      const button = screen.getByText('立即備份').closest('button')!
+      fireEvent.click(button)
+
+      await waitFor(() => {
+        expect(mockFinishBackup).toHaveBeenCalledWith()
+        expect(mockSetLastBackupTime).toHaveBeenCalledWith(expect.any(String))
+      })
+    })
+
+    it('shows success toast after backup completes', async () => {
+      render(<CloudBackupActions />)
+
+      const button = screen.getByText('立即備份').closest('button')!
+      fireEvent.click(button)
+
+      await waitFor(() => {
+        expect(mockNotify.success).toHaveBeenCalled()
+      })
+    })
+
+    it('calls finishBackup with error on performBackup failure', async () => {
+      mockPerformBackup.mockRejectedValueOnce(new Error('Upload failed'))
+
+      render(<CloudBackupActions />)
+
+      const button = screen.getByText('立即備份').closest('button')!
+      fireEvent.click(button)
+
+      await waitFor(() => {
+        expect(mockFinishBackup).toHaveBeenCalledWith('Upload failed')
+      })
+    })
+
+    it('shows error toast on backup failure', async () => {
+      mockPerformBackup.mockRejectedValueOnce(new Error('Upload failed'))
+
+      render(<CloudBackupActions />)
+
+      const button = screen.getByText('立即備份').closest('button')!
+      fireEvent.click(button)
+
+      await waitFor(() => {
+        expect(mockNotify.error).toHaveBeenCalled()
+      })
+    })
+  })
+
+  // ── Export DB tests ─────────────────────────────────────────────────────
+
+  describe('Export DB', () => {
+    it('calls exportDatabase when export button clicked', async () => {
+      render(<CloudBackupActions />)
+
+      const button = screen.getByText('匯出資料庫').closest('button')!
+      fireEvent.click(button)
+
+      await waitFor(() => {
+        expect(mockDbExport).toHaveBeenCalledOnce()
+      })
+    })
+
+    it('shows error toast when export fails', async () => {
+      mockDbExport.mockRejectedValueOnce(new Error('Export error'))
+
+      render(<CloudBackupActions />)
+
+      const button = screen.getByText('匯出資料庫').closest('button')!
+      fireEvent.click(button)
+
+      await waitFor(() => {
+        expect(mockNotify.error).toHaveBeenCalled()
+      })
+    })
+  })
+
   // ── Schedule selector tests ──────────────────────────────────────────────
 
   describe('Schedule Selector', () => {
@@ -127,7 +247,6 @@ describe('CloudBackupActions', () => {
       render(<CloudBackupActions />)
 
       const dailyButton = screen.getByText('每日').closest('button')
-      // Active button should have a distinct visual style (data-active attribute)
       expect(dailyButton?.getAttribute('data-active')).toBe('true')
 
       const weeklyButton = screen.getByText('每週').closest('button')
