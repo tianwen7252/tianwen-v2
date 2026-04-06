@@ -9,9 +9,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import type { Readable } from 'node:stream'
 import {
-  getR2Client,
-  getBucketName,
-  getS3Commands,
+  getR2Config,
   r2Key,
   isValidFilename,
   isFileTooLarge,
@@ -44,7 +42,7 @@ async function collectBody(req: VercelRequest): Promise<Buffer> {
 
 export const config = {
   api: {
-    bodyParser: false, // Handle binary body manually
+    bodyParser: false,
   },
 }
 
@@ -58,16 +56,30 @@ export default async function handler(
     return
   }
 
-  const client = await getR2Client()
-  const bucket = getBucketName()
-  const key = r2Key(filename)
-  const { PutObjectCommand, GetObjectCommand, DeleteObjectCommand, S3ServiceException } =
-    await getS3Commands()
+  const {
+    S3Client,
+    PutObjectCommand,
+    GetObjectCommand,
+    DeleteObjectCommand,
+    S3ServiceException,
+  } = await import('@aws-sdk/client-s3')
+
+  const cfg = getR2Config()
+  const client = new S3Client({
+    region: 'auto',
+    endpoint: `https://${cfg.accountId}.r2.cloudflarestorage.com`,
+    credentials: {
+      accessKeyId: cfg.accessKeyId,
+      secretAccessKey: cfg.secretAccessKey,
+    },
+  })
+
+  const bucket = cfg.bucketName
+  const key = r2Key(cfg.keyPrefix, filename)
 
   try {
     switch (req.method) {
       case 'PUT': {
-        // Early reject based on Content-Length header
         if (isFileTooLarge(req)) {
           errorResponse(res, 'File too large (max 1 GB)', 413)
           return
@@ -75,7 +87,6 @@ export default async function handler(
 
         const body = await collectBody(req)
 
-        // Verify actual body size (Content-Length can be spoofed)
         if (body.length > MAX_UPLOAD_BYTES) {
           errorResponse(res, 'File too large (max 1 GB)', 413)
           return
@@ -102,10 +113,7 @@ export default async function handler(
       }
       case 'GET': {
         const result = await client.send(
-          new GetObjectCommand({
-            Bucket: bucket,
-            Key: key,
-          }),
+          new GetObjectCommand({ Bucket: bucket, Key: key }),
         )
 
         if (!result.Body) {
@@ -126,12 +134,8 @@ export default async function handler(
       }
       case 'DELETE': {
         await client.send(
-          new DeleteObjectCommand({
-            Bucket: bucket,
-            Key: key,
-          }),
+          new DeleteObjectCommand({ Bucket: bucket, Key: key }),
         )
-
         jsonResponse(res, { success: true })
         break
       }
@@ -139,7 +143,6 @@ export default async function handler(
         errorResponse(res, 'Method not allowed', 405)
     }
   } catch (err: unknown) {
-    // S3 NoSuchKey → 404
     if (err instanceof S3ServiceException && err.$metadata.httpStatusCode === 404) {
       errorResponse(res, 'Backup not found', 404)
       return
