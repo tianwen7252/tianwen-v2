@@ -1,24 +1,12 @@
 /**
  * /api/backup/:filename — Upload, download, or delete a backup file.
- *
- * PUT    — Upload a backup file to R2
- * GET    — Download a backup file from R2
- * DELETE — Delete a backup file from R2
  */
 
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import type { Readable } from 'node:stream'
-import {
-  getR2Config,
-  r2Key,
-  isValidFilename,
-  isFileTooLarge,
-  errorResponse,
-  jsonResponse,
-  MAX_UPLOAD_BYTES,
-} from './_lib/r2-client'
 
-// ── Stream to Buffer ──────────────────────────────────────────────────────
+const VALID_FILENAME_RE = /^backup-\d+\.sqlite\.gz$/
+const MAX_UPLOAD_BYTES = 1024 * 1024 * 1024 // 1 GB
 
 async function streamToBuffer(stream: Readable): Promise<Buffer> {
   const chunks: Buffer[] = []
@@ -28,8 +16,6 @@ async function streamToBuffer(stream: Readable): Promise<Buffer> {
   return Buffer.concat(chunks)
 }
 
-// ── Collect request body ──────────────────────────────────────────────────
-
 async function collectBody(req: VercelRequest): Promise<Buffer> {
   const chunks: Buffer[] = []
   for await (const chunk of req) {
@@ -38,21 +24,15 @@ async function collectBody(req: VercelRequest): Promise<Buffer> {
   return Buffer.concat(chunks)
 }
 
-// ── Handler ───────────────────────────────────────────────────────────────
-
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-}
+export const config = { api: { bodyParser: false } }
 
 export default async function handler(
   req: VercelRequest,
   res: VercelResponse,
 ): Promise<void> {
   const filename = req.query.filename as string | undefined
-  if (!filename || !isValidFilename(filename)) {
-    errorResponse(res, 'Invalid filename', 400)
+  if (!filename || !VALID_FILENAME_RE.test(filename)) {
+    res.status(400).json({ success: false, error: 'Invalid filename' })
     return
   }
 
@@ -64,91 +44,73 @@ export default async function handler(
     S3ServiceException,
   } = await import('@aws-sdk/client-s3')
 
-  const cfg = getR2Config()
+  const accountId = process.env.R2_ACCOUNT_ID ?? ''
+  const userId = process.env.ALLOWED_USER_ID ?? ''
+  const prefix = userId.length > 0 ? `${userId}/` : ''
+  const bucket = process.env.R2_BUCKET_NAME ?? ''
+  const key = `${prefix}${filename}`
+
   const client = new S3Client({
     region: 'auto',
-    endpoint: `https://${cfg.accountId}.r2.cloudflarestorage.com`,
+    endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
     credentials: {
-      accessKeyId: cfg.accessKeyId,
-      secretAccessKey: cfg.secretAccessKey,
+      accessKeyId: process.env.R2_ACCESS_KEY_ID ?? '',
+      secretAccessKey: process.env.R2_SECRET_ACCESS_KEY ?? '',
     },
   })
-
-  const bucket = cfg.bucketName
-  const key = r2Key(cfg.keyPrefix, filename)
 
   try {
     switch (req.method) {
       case 'PUT': {
-        if (isFileTooLarge(req)) {
-          errorResponse(res, 'File too large (max 1 GB)', 413)
+        const contentLength = Number(req.headers['content-length'] ?? 0)
+        if (contentLength > MAX_UPLOAD_BYTES) {
+          res.status(413).json({ success: false, error: 'File too large (max 1 GB)' })
           return
         }
 
         const body = await collectBody(req)
-
         if (body.length > MAX_UPLOAD_BYTES) {
-          errorResponse(res, 'File too large (max 1 GB)', 413)
+          res.status(413).json({ success: false, error: 'File too large (max 1 GB)' })
           return
         }
 
         await client.send(
-          new PutObjectCommand({
-            Bucket: bucket,
-            Key: key,
-            Body: body,
-            ContentType: 'application/gzip',
-          }),
+          new PutObjectCommand({ Bucket: bucket, Key: key, Body: body, ContentType: 'application/gzip' }),
         )
 
-        jsonResponse(res, {
+        res.status(200).json({
           success: true,
-          metadata: {
-            filename,
-            size: body.length,
-            createdAt: new Date().toISOString(),
-          },
+          metadata: { filename, size: body.length, createdAt: new Date().toISOString() },
         })
         break
       }
       case 'GET': {
-        const result = await client.send(
-          new GetObjectCommand({ Bucket: bucket, Key: key }),
-        )
-
+        const result = await client.send(new GetObjectCommand({ Bucket: bucket, Key: key }))
         if (!result.Body) {
-          errorResponse(res, 'Backup not found', 404)
+          res.status(404).json({ success: false, error: 'Backup not found' })
           return
         }
-
         const buffer = await streamToBuffer(result.Body as Readable)
-
         res.setHeader('Content-Type', 'application/gzip')
-        res.setHeader(
-          'Content-Disposition',
-          `attachment; filename*=UTF-8''${encodeURIComponent(filename)}`,
-        )
+        res.setHeader('Content-Disposition', `attachment; filename*=UTF-8''${encodeURIComponent(filename)}`)
         res.setHeader('Content-Length', buffer.length)
         res.status(200).send(buffer)
         break
       }
       case 'DELETE': {
-        await client.send(
-          new DeleteObjectCommand({ Bucket: bucket, Key: key }),
-        )
-        jsonResponse(res, { success: true })
+        await client.send(new DeleteObjectCommand({ Bucket: bucket, Key: key }))
+        res.status(200).json({ success: true })
         break
       }
       default:
-        errorResponse(res, 'Method not allowed', 405)
+        res.status(405).json({ success: false, error: 'Method not allowed' })
     }
   } catch (err: unknown) {
     if (err instanceof S3ServiceException && err.$metadata.httpStatusCode === 404) {
-      errorResponse(res, 'Backup not found', 404)
+      res.status(404).json({ success: false, error: 'Backup not found' })
       return
     }
-
     console.error(`[api/backup/${filename}] Error:`, err)
-    errorResponse(res, 'Internal server error', 500)
+    res.status(500).json({ success: false, error: 'Internal server error' })
   }
 }
