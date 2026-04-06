@@ -239,8 +239,8 @@ export async function insertTestData(
 // ─── Clear test data ──────────────────────────────────────────────────────
 
 /**
- * Delete all order-related data (orders, order_items, order_discounts,
- * daily_data) and attendance records from the database.
+ * Delete ALL user data from the database: orders, items, discounts,
+ * attendances, daily summaries, employees, and price change logs.
  * FK-safe deletion order: children first, then parents.
  */
 export async function clearTestData(db: AsyncDatabase): Promise<void> {
@@ -251,6 +251,11 @@ export async function clearTestData(db: AsyncDatabase): Promise<void> {
     await db.exec('DELETE FROM orders')
     await db.exec('DELETE FROM daily_data')
     await db.exec('DELETE FROM attendances')
+    await db.exec('DELETE FROM employees')
+    await db.exec('DELETE FROM price_change_logs')
+    await db.exec('DELETE FROM error_logs')
+    await db.exec('DELETE FROM backup_logs')
+    await db.exec('DELETE FROM custom_order_names')
     await db.exec('COMMIT')
   } catch (error: unknown) {
     try {

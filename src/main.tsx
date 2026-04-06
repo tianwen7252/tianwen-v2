@@ -54,6 +54,27 @@ document.addEventListener('gestureend', e => e.preventDefault())
 import './styles/globals.css'
 import { router } from './routes/router'
 
+// Sync system dark mode preference to .dark class on <html>.
+// This activates the dark theme CSS variables defined in globals.css.
+function syncDarkMode() {
+  const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+  document.documentElement.classList.toggle('dark', isDark)
+
+  // Update both theme-color metas so the iPadOS PWA status bar matches
+  const headerBg = getComputedStyle(document.documentElement)
+    .getPropertyValue('--header-bg')
+    .trim()
+  document
+    .querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]')
+    .forEach(meta => {
+      meta.content = headerBg
+    })
+}
+syncDarkMode()
+window
+  .matchMedia('(prefers-color-scheme: dark)')
+  .addEventListener('change', syncDarkMode)
+
 // Request persistent storage for OPFS protection (fire-and-forget)
 requestStoragePersistence()
 

@@ -26,8 +26,5 @@
       "type": "image/png"
     }
   ],
-  "categories": [
-    "business",
-    "productivity"
-  ]
+  "categories": ["business", "productivity"]
 }
