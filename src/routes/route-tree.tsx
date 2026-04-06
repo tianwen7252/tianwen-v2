@@ -18,20 +18,33 @@ import { RippleButton } from '@/components/ui/ripple-button'
 import { cn } from '@/lib/cn'
 
 // Lazy-loaded pages — each becomes a separate chunk
-const NotFoundPage = lazy(() => import('@/pages/not-found').then(m => ({ default: m.NotFoundPage })))
-const ClockInPage = lazy(() => import('@/pages/clock-in').then(m => ({ default: m.ClockInPage })))
-const SettingsPage = lazy(() => import('@/pages/settings').then(m => ({ default: m.SettingsPage })))
-const OrdersPage = lazy(() => import('@/pages/orders').then(m => ({ default: m.OrdersPage })))
-const AnalyticsPage = lazy(() => import('@/pages/analytics').then(m => ({ default: m.AnalyticsPage })))
-const SystemInfo = lazy(() => import('@/components/settings/system-info').then(m => ({ default: m.SystemInfo })))
-const CloudBackup = lazy(() => import('@/components/settings/cloud-backup').then(m => ({ default: m.CloudBackup })))
-const Records = lazy(() => import('@/components/records').then(m => ({ default: m.Records })))
-const StaffAdmin = lazy(() => import('@/components/staff-admin').then(m => ({ default: m.StaffAdmin })))
-const ProductManagement = lazy(() => import('@/components/settings/product-management').then(m => ({ default: m.ProductManagement })))
+const NotFoundPage = lazy(() =>
+  import('@/pages/not-found').then((m) => ({ default: m.NotFoundPage })),
+)
+const ClockInPage = lazy(() =>
+  import('@/pages/clock-in').then((m) => ({ default: m.ClockInPage })),
+)
+const SettingsPage = lazy(() =>
+  import('@/pages/settings').then((m) => ({ default: m.SettingsPage })),
+)
+const OrdersPage = lazy(() =>
+  import('@/pages/orders').then((m) => ({ default: m.OrdersPage })),
+)
+const AnalyticsPage = lazy(() =>
+  import('@/pages/analytics').then((m) => ({ default: m.AnalyticsPage })),
+)
+// Settings sub-pages — eagerly imported (users tab through all of them, avoids Suspense flash)
+import { SystemInfo } from '@/components/settings/system-info'
+import { CloudBackup } from '@/components/settings/cloud-backup'
+import { Records } from '@/components/records'
+import { StaffAdmin } from '@/components/staff-admin'
+import { ProductManagement } from '@/components/settings/product-management'
+// Dev preview pages — lazy-loaded (dev-only, no flash since PageTransition key uses top-level route)
 const ModalPreview = lazy(() => import('@/pages/preview').then(m => ({ default: m.ModalPreview })))
 const NotifyPreview = lazy(() => import('@/pages/preview').then(m => ({ default: m.NotifyPreview })))
 const SwPreview = lazy(() => import('@/pages/preview').then(m => ({ default: m.SwPreview })))
 const TestDataPreview = lazy(() => import('@/pages/preview').then(m => ({ default: m.TestDataPreview })))
+const V1ImportPreview = lazy(() => import('@/pages/preview').then(m => ({ default: m.V1ImportPreview })))
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -51,7 +64,7 @@ const rootRoute = createRootRoute({
 function RootLayout() {
   const { t } = useTranslation()
   // Use pathname as key to trigger re-mount animation on route changes
-  const pathname = useRouterState({ select: s => s.location.pathname })
+  const pathname = useRouterState({ select: (s) => s.location.pathname })
 
   // Detect scroll for glassmorphism header
   const [scrolled, setScrolled] = useState(false)
@@ -84,7 +97,7 @@ function RootLayout() {
           <a
             href="/"
             className="text-lg text-primary"
-            onClick={e => {
+            onClick={(e) => {
               e.preventDefault()
               window.location.href = '/'
             }}
@@ -117,7 +130,7 @@ function RootLayout() {
       <main>
         <AppErrorBoundary title={t('error.appError')}>
           <Suspense>
-            <PageTransition key={pathname}>
+            <PageTransition key={pathname.split('/').slice(0, 2).join('/')}>
               <Outlet />
             </PageTransition>
           </Suspense>
@@ -156,7 +169,7 @@ function NavIconLink({
   ariaLabel: string
   children: React.ReactNode
 }) {
-  const pathname = useRouterState({ select: s => s.location.pathname })
+  const pathname = useRouterState({ select: (s) => s.location.pathname })
   const isActive = pathname === to || pathname.startsWith(`${to}/`)
 
   return (
@@ -184,62 +197,71 @@ const indexRoute = createRoute({
   component: OrderPage,
 })
 
-// Dev layout route — for component previews during development
+// Dev layout route — tab navigation for component previews
 const devRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/dev',
   component: DevLayout,
 })
 
+const DEV_TABS = [
+  { path: '/dev/modal', label: 'Modal' },
+  { path: '/dev/notify', label: 'Notify' },
+  { path: '/dev/sw', label: 'SW Update' },
+  { path: '/dev/test-data', label: 'Test Data' },
+  { path: '/dev/v1-import', label: 'V1 Import' },
+] as const
+
 function DevLayout() {
+  const pathname = useRouterState({ select: (s) => s.location.pathname })
+
+  // Redirect /dev to /dev/modal (default tab)
+  useEffect(() => {
+    if (pathname === '/dev' || pathname === '/dev/') {
+      window.history.replaceState(null, '', '/dev/modal')
+    }
+  }, [pathname])
+
   return (
-    <div className="p-6">
-      <h1 className="mb-4 text-2xl font-bold">Dev Tools</h1>
-      <Outlet />
+    <div>
+      {/* Tab navigation */}
+      <div className="border-b border-border bg-card px-6">
+        <div className="flex gap-1">
+          {DEV_TABS.map((tab) => {
+            const isActive =
+              pathname === tab.path || pathname.startsWith(`${tab.path}/`)
+            return (
+              <Link
+                key={tab.path}
+                to={tab.path}
+                className={cn(
+                  'border-b-2 px-4 py-3 text-base transition-colors',
+                  isActive
+                    ? 'border-primary text-primary'
+                    : 'border-transparent text-muted-foreground hover:border-border hover:text-foreground',
+                )}
+              >
+                {tab.label}
+              </Link>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* Tab content */}
+      <div className="p-6">
+        <Outlet />
+      </div>
     </div>
   )
 }
 
-// Dev index — list available dev tools
+// Dev index — redirect to modal (handled by DevLayout useEffect)
 const devIndexRoute = createRoute({
   getParentRoute: () => devRoute,
   path: '/',
-  component: DevIndex,
+  component: () => null,
 })
-
-function DevIndex() {
-  return (
-    <div className="space-y-2">
-      <p className="text-muted-foreground">Select a tool:</p>
-      <ul className="list-inside list-disc space-y-1">
-        <li>
-          <Link to="/dev/modal" className="text-primary underline">
-            Modal
-          </Link>{' '}
-          (V2-16)
-        </li>
-        <li>
-          <Link to="/dev/notify" className="text-primary underline">
-            Notify
-          </Link>{' '}
-          (Toast Notifications)
-        </li>
-        <li>
-          <Link to="/dev/sw" className="text-primary underline">
-            SW Update
-          </Link>{' '}
-          (Service Worker prompts)
-        </li>
-        <li>
-          <Link to="/dev/test-data" className="text-primary underline">
-            Test Data
-          </Link>{' '}
-          (Generate 6 months data)
-        </li>
-      </ul>
-    </div>
-  )
-}
 
 const devModalRoute = createRoute({
   getParentRoute: () => devRoute,
@@ -263,6 +285,12 @@ const devTestDataRoute = createRoute({
   getParentRoute: () => devRoute,
   path: '/test-data',
   component: TestDataPreview,
+})
+
+const devV1ImportRoute = createRoute({
+  getParentRoute: () => devRoute,
+  path: '/v1-import',
+  component: V1ImportPreview,
 })
 
 // Clock-in standalone page
@@ -365,5 +393,6 @@ export const routeTree = rootRoute.addChildren([
     devNotifyRoute,
     devSwRoute,
     devTestDataRoute,
+    devV1ImportRoute,
   ]),
 ])

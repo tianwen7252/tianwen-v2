@@ -48,7 +48,7 @@ const STORAGE_KEY_USER = 'admin-info'
 const STORAGE_KEY_TOKEN = 'gapi-token'
 const STORAGE_KEY_LOGIN_AT = 'login-at'
 
-const SESSION_DURATION_MS = 7 * 24 * 60 * 60 * 1000 // 7 days
+const SESSION_DURATION_MS = 24 * 60 * 60 * 1000 // 1 day
 
 /**
  * Checks whether the stored login timestamp is still within the valid
