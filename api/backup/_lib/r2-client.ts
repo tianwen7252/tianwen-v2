@@ -1,9 +1,11 @@
 /**
  * Shared R2 client and helpers for backup API functions.
  * Uses @aws-sdk/client-s3 to access Cloudflare R2 (S3-compatible).
+ *
+ * NOTE: Uses dynamic import() for @aws-sdk/client-s3 because Vercel's
+ * Function bundler fails with static ESM imports of this package.
  */
 
-import { S3Client } from '@aws-sdk/client-s3'
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 
 // ── Env Validation ────────────────────────────────────────────────────────
@@ -35,16 +37,17 @@ function validateEnv(): R2Env {
     throw new Error(`Missing required env vars: ${missing.join(', ')}`)
   }
 
-  // Optional: prefix R2 keys with user ID for multi-tenant isolation
   const userId = process.env.ALLOWED_USER_ID ?? ''
   const userIdPrefix = userId.length > 0 ? `${userId}/` : ''
 
   return { accountId, accessKeyId, secretAccessKey, bucketName, userIdPrefix }
 }
 
-// ── R2 Client ─────────────────────────────────────────────────────────────
+// ── R2 Client (lazy init via dynamic import) ─────────────────────────────
 
-let _client: S3Client | null = null
+type S3ClientType = import('@aws-sdk/client-s3').S3Client
+
+let _client: S3ClientType | null = null
 let _env: R2Env | null = null
 
 function getEnv(): R2Env {
@@ -52,9 +55,10 @@ function getEnv(): R2Env {
   return _env
 }
 
-export function getR2Client(): S3Client {
+export async function getR2Client(): Promise<S3ClientType> {
   if (_client) return _client
 
+  const { S3Client } = await import('@aws-sdk/client-s3')
   const env = getEnv()
   _client = new S3Client({
     region: 'auto',
@@ -94,6 +98,25 @@ export function isValidFilename(filename: string): boolean {
 export function isFileTooLarge(req: VercelRequest): boolean {
   const contentLength = Number(req.headers['content-length'] ?? 0)
   return contentLength > MAX_UPLOAD_BYTES
+}
+
+// ── S3 Command factories (dynamic import) ────────────────────────────────
+
+export async function getS3Commands() {
+  const {
+    ListObjectsV2Command,
+    PutObjectCommand,
+    GetObjectCommand,
+    DeleteObjectCommand,
+    S3ServiceException,
+  } = await import('@aws-sdk/client-s3')
+  return {
+    ListObjectsV2Command,
+    PutObjectCommand,
+    GetObjectCommand,
+    DeleteObjectCommand,
+    S3ServiceException,
+  }
 }
 
 // ── Response Helpers ──────────────────────────────────────────────────────

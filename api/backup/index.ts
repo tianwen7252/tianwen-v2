@@ -3,11 +3,11 @@
  */
 
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import { ListObjectsV2Command } from '@aws-sdk/client-s3'
 import {
   getR2Client,
   getBucketName,
   getKeyPrefix,
+  getS3Commands,
   errorResponse,
   jsonResponse,
 } from './_lib/r2-client'
@@ -23,7 +23,8 @@ export default async function handler(
 
   try {
     const prefix = getKeyPrefix()
-    const client = getR2Client()
+    const client = await getR2Client()
+    const { ListObjectsV2Command } = await getS3Commands()
 
     const objects: Array<{
       filename: string

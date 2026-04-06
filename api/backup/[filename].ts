@@ -7,16 +7,11 @@
  */
 
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import {
-  PutObjectCommand,
-  GetObjectCommand,
-  DeleteObjectCommand,
-  S3ServiceException,
-} from '@aws-sdk/client-s3'
 import type { Readable } from 'node:stream'
 import {
   getR2Client,
   getBucketName,
+  getS3Commands,
   r2Key,
   isValidFilename,
   isFileTooLarge,
@@ -63,21 +58,83 @@ export default async function handler(
     return
   }
 
-  const client = getR2Client()
+  const client = await getR2Client()
   const bucket = getBucketName()
   const key = r2Key(filename)
+  const { PutObjectCommand, GetObjectCommand, DeleteObjectCommand, S3ServiceException } =
+    await getS3Commands()
 
   try {
     switch (req.method) {
-      case 'PUT':
-        await handleUpload(req, res, client, bucket, key, filename)
+      case 'PUT': {
+        // Early reject based on Content-Length header
+        if (isFileTooLarge(req)) {
+          errorResponse(res, 'File too large (max 1 GB)', 413)
+          return
+        }
+
+        const body = await collectBody(req)
+
+        // Verify actual body size (Content-Length can be spoofed)
+        if (body.length > MAX_UPLOAD_BYTES) {
+          errorResponse(res, 'File too large (max 1 GB)', 413)
+          return
+        }
+
+        await client.send(
+          new PutObjectCommand({
+            Bucket: bucket,
+            Key: key,
+            Body: body,
+            ContentType: 'application/gzip',
+          }),
+        )
+
+        jsonResponse(res, {
+          success: true,
+          metadata: {
+            filename,
+            size: body.length,
+            createdAt: new Date().toISOString(),
+          },
+        })
         break
-      case 'GET':
-        await handleDownload(res, client, bucket, key, filename)
+      }
+      case 'GET': {
+        const result = await client.send(
+          new GetObjectCommand({
+            Bucket: bucket,
+            Key: key,
+          }),
+        )
+
+        if (!result.Body) {
+          errorResponse(res, 'Backup not found', 404)
+          return
+        }
+
+        const buffer = await streamToBuffer(result.Body as Readable)
+
+        res.setHeader('Content-Type', 'application/gzip')
+        res.setHeader(
+          'Content-Disposition',
+          `attachment; filename*=UTF-8''${encodeURIComponent(filename)}`,
+        )
+        res.setHeader('Content-Length', buffer.length)
+        res.status(200).send(buffer)
         break
-      case 'DELETE':
-        await handleDelete(res, client, bucket, key)
+      }
+      case 'DELETE': {
+        await client.send(
+          new DeleteObjectCommand({
+            Bucket: bucket,
+            Key: key,
+          }),
+        )
+
+        jsonResponse(res, { success: true })
         break
+      }
       default:
         errorResponse(res, 'Method not allowed', 405)
     }
@@ -91,97 +148,4 @@ export default async function handler(
     console.error(`[api/backup/${filename}] Error:`, err)
     errorResponse(res, 'Internal server error', 500)
   }
-}
-
-// ── Upload ────────────────────────────────────────────────────────────────
-
-async function handleUpload(
-  req: VercelRequest,
-  res: VercelResponse,
-  client: ReturnType<typeof getR2Client>,
-  bucket: string,
-  key: string,
-  filename: string,
-): Promise<void> {
-  // Early reject based on Content-Length header
-  if (isFileTooLarge(req)) {
-    errorResponse(res, 'File too large (max 1 GB)', 413)
-    return
-  }
-
-  const body = await collectBody(req)
-
-  // Verify actual body size (Content-Length can be spoofed)
-  if (body.length > MAX_UPLOAD_BYTES) {
-    errorResponse(res, 'File too large (max 1 GB)', 413)
-    return
-  }
-
-  await client.send(
-    new PutObjectCommand({
-      Bucket: bucket,
-      Key: key,
-      Body: body,
-      ContentType: 'application/gzip',
-    }),
-  )
-
-  jsonResponse(res, {
-    success: true,
-    metadata: {
-      filename,
-      size: body.length,
-      createdAt: new Date().toISOString(),
-    },
-  })
-}
-
-// ── Download ──────────────────────────────────────────────────────────────
-
-async function handleDownload(
-  res: VercelResponse,
-  client: ReturnType<typeof getR2Client>,
-  bucket: string,
-  key: string,
-  filename: string,
-): Promise<void> {
-  const result = await client.send(
-    new GetObjectCommand({
-      Bucket: bucket,
-      Key: key,
-    }),
-  )
-
-  if (!result.Body) {
-    errorResponse(res, 'Backup not found', 404)
-    return
-  }
-
-  const buffer = await streamToBuffer(result.Body as Readable)
-
-  res.setHeader('Content-Type', 'application/gzip')
-  res.setHeader(
-    'Content-Disposition',
-    `attachment; filename*=UTF-8''${encodeURIComponent(filename)}`,
-  )
-  res.setHeader('Content-Length', buffer.length)
-  res.status(200).send(buffer)
-}
-
-// ── Delete ────────────────────────────────────────────────────────────────
-
-async function handleDelete(
-  res: VercelResponse,
-  client: ReturnType<typeof getR2Client>,
-  bucket: string,
-  key: string,
-): Promise<void> {
-  await client.send(
-    new DeleteObjectCommand({
-      Bucket: bucket,
-      Key: key,
-    }),
-  )
-
-  jsonResponse(res, { success: true })
 }
