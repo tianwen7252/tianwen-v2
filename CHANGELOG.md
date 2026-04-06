@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.4.1](https://github.com/tianwen7252/tianwen-v2/compare/v2.4.0...v2.4.1) (2026-04-06)
+
+
+### Bug Fixes
+
+* PWA app icons — square crop, remove alpha transparency ([80276be](https://github.com/tianwen7252/tianwen-v2/commit/80276befdeadab1cf200de7f3798bbed32c87973))
+
 ## [2.4.0](https://github.com/tianwen7252/tianwen-v2/compare/v2.3.0...v2.4.0) (2026-04-06)
 
 
