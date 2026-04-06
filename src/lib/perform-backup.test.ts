@@ -6,6 +6,7 @@ const mockExportDatabase = vi.hoisted(() =>
   vi.fn().mockResolvedValue(new Uint8Array([1, 2, 3])),
 )
 const mockCreateLog = vi.hoisted(() => vi.fn().mockResolvedValue({}))
+const mockCreateErrorLog = vi.hoisted(() => vi.fn().mockResolvedValue({}))
 const mockCompress = vi.hoisted(() =>
   vi.fn().mockResolvedValue(new Uint8Array([10, 20])),
 )
@@ -26,6 +27,9 @@ vi.mock('@/lib/repositories/provider', () => ({
   }),
   getBackupLogRepo: () => ({
     create: mockCreateLog,
+  }),
+  getErrorLogRepo: () => ({
+    create: mockCreateErrorLog,
   }),
 }))
 
@@ -55,6 +59,7 @@ describe('performBackup', () => {
     })
     mockGenerateFilename.mockReturnValue('backup-1234.sqlite.gz')
     mockCreateLog.mockResolvedValue({})
+    mockCreateErrorLog.mockResolvedValue({})
   })
 
   it('calls getDatabase().exportDatabase() to get raw DB bytes', async () => {
@@ -137,6 +142,11 @@ describe('performBackup', () => {
     expect(mockCreateLog).toHaveBeenCalledWith('manual', 'failed', {
       errorMessage: 'OPFS error',
     })
+    expect(mockCreateErrorLog).toHaveBeenCalledWith(
+      'OPFS error',
+      'perform-backup',
+      expect.any(String),
+    )
   })
 
   it('throws and logs failure when upload() fails', async () => {
@@ -147,6 +157,11 @@ describe('performBackup', () => {
     expect(mockCreateLog).toHaveBeenCalledWith('manual', 'failed', {
       errorMessage: 'Upload failed: 500',
     })
+    expect(mockCreateErrorLog).toHaveBeenCalledWith(
+      'Upload failed: 500',
+      'perform-backup',
+      expect.any(String),
+    )
   })
 
   it('does not create success log when upload fails', async () => {

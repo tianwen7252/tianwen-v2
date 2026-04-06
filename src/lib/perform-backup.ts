@@ -3,7 +3,7 @@
  * Exports DB → compresses → uploads to R2 → logs result.
  */
 
-import { getDatabase, getBackupLogRepo } from '@/lib/repositories/provider'
+import { getDatabase, getBackupLogRepo, getErrorLogRepo } from '@/lib/repositories/provider'
 import { createBackupService, generateBackupFilename } from '@/lib/backup'
 
 // ── Types ──────────────────────────────────────────────────────────────────
@@ -57,10 +57,15 @@ export async function performBackup(
     const message =
       error instanceof Error ? error.message : 'Unknown backup error'
 
-    // Log failure
+    // Log failure to backup_logs and error_logs
     await getBackupLogRepo().create(triggerType, 'failed', {
       errorMessage: message,
     })
+    await getErrorLogRepo().create(
+      message,
+      'perform-backup',
+      error instanceof Error ? error.stack : undefined,
+    )
 
     throw error
   }
