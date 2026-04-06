@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.4.2](https://github.com/tianwen7252/tianwen-v2/compare/v2.4.1...v2.4.2) (2026-04-06)
+
+
+### Bug Fixes
+
+* provide iPad-specific apple-touch-icon sizes (152/167/180) ([3263b1c](https://github.com/tianwen7252/tianwen-v2/commit/3263b1c16817bab7980b2a010ef0413eef67ae0d))
+
 ## [2.4.1](https://github.com/tianwen7252/tianwen-v2/compare/v2.4.0...v2.4.1) (2026-04-06)
 
 
