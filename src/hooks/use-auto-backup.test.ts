@@ -6,7 +6,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { renderHook } from '@testing-library/react'
 
-// ── Hoisted Mocks ──────────────────────────────────────────────────────────
+// ── Hoisted Mocks ─────────────────────────────────────��────────────────────
 
 const mockStartBackup = vi.fn()
 const mockFinishBackup = vi.fn()
@@ -20,22 +20,32 @@ const mockStoreState = vi.hoisted(() => ({
 }))
 
 vi.mock('@/stores/backup-store', () => ({
-  useBackupStore: vi.fn(
-    (
-      selector: (
-        state: typeof mockStoreState & {
-          startBackup: typeof mockStartBackup
-          finishBackup: typeof mockFinishBackup
-          setLastBackupTime: typeof mockSetLastBackupTime
-        },
-      ) => unknown,
-    ) =>
-      selector({
+  useBackupStore: Object.assign(
+    vi.fn(
+      (
+        selector: (
+          state: typeof mockStoreState & {
+            startBackup: typeof mockStartBackup
+            finishBackup: typeof mockFinishBackup
+            setLastBackupTime: typeof mockSetLastBackupTime
+          },
+        ) => unknown,
+      ) =>
+        selector({
+          ...mockStoreState,
+          startBackup: mockStartBackup,
+          finishBackup: mockFinishBackup,
+          setLastBackupTime: mockSetLastBackupTime,
+        }),
+    ),
+    {
+      getState: () => ({
         ...mockStoreState,
         startBackup: mockStartBackup,
         finishBackup: mockFinishBackup,
         setLastBackupTime: mockSetLastBackupTime,
       }),
+    },
   ),
 }))
 
@@ -45,12 +55,16 @@ vi.mock('@/lib/backup-config', () => ({
   isBackupConfigured: () => mockIsConfigured.value,
 }))
 
-const mockCreateLog = vi.fn().mockResolvedValue({})
-
-vi.mock('@/lib/repositories/provider', () => ({
-  getBackupLogRepo: () => ({
-    create: mockCreateLog,
+const mockPerformBackup = vi.hoisted(() =>
+  vi.fn().mockResolvedValue({
+    filename: 'backup-1234.sqlite.gz',
+    size: 1024,
+    durationMs: 500,
   }),
+)
+
+vi.mock('@/lib/perform-backup', () => ({
+  performBackup: mockPerformBackup,
 }))
 
 const mockCalculateNextDaily = vi.hoisted(() =>
@@ -85,6 +99,11 @@ describe('useAutoBackup', () => {
     mockIsOverdue.mockReturnValue(false)
     mockCalculateNextDaily.mockReturnValue(Date.now() + 3600000)
     mockCalculateNextWeekly.mockReturnValue(Date.now() + 604800000)
+    mockPerformBackup.mockResolvedValue({
+      filename: 'backup-1234.sqlite.gz',
+      size: 1024,
+      durationMs: 500,
+    })
   })
 
   afterEach(() => {
@@ -96,7 +115,6 @@ describe('useAutoBackup', () => {
   it('does nothing when enabled is false', () => {
     renderHook(() => useAutoBackup({ enabled: false }))
 
-    // Should not set up any timers
     expect(vi.getTimerCount()).toBe(0)
     expect(mockCalculateNextDaily).not.toHaveBeenCalled()
     expect(mockCalculateNextWeekly).not.toHaveBeenCalled()
@@ -148,16 +166,15 @@ describe('useAutoBackup', () => {
 
     renderHook(() => useAutoBackup({ enabled: true }))
 
-    // Advance timers to trigger the backup
     await vi.advanceTimersByTimeAsync(1000)
 
     expect(mockStartBackup).not.toHaveBeenCalled()
-    expect(mockFinishBackup).not.toHaveBeenCalled()
+    expect(mockPerformBackup).not.toHaveBeenCalled()
   })
 
   // ── Backup configured and triggers ────────────────────────────────────
 
-  it('executes backup when cloud backup is configured and timer fires', async () => {
+  it('calls performBackup("auto") when configured and timer fires', async () => {
     mockIsConfigured.value = true
     mockStoreState.scheduleType = 'daily'
     const futureTime = Date.now() + 1000
@@ -168,13 +185,9 @@ describe('useAutoBackup', () => {
     await vi.advanceTimersByTimeAsync(1000)
 
     expect(mockStartBackup).toHaveBeenCalledOnce()
+    expect(mockPerformBackup).toHaveBeenCalledWith('auto')
     expect(mockFinishBackup).toHaveBeenCalledOnce()
     expect(mockSetLastBackupTime).toHaveBeenCalledOnce()
-    expect(mockCreateLog).toHaveBeenCalledWith(
-      'auto',
-      'success',
-      expect.any(Object),
-    )
   })
 
   // ── Cleanup on unmount ─────────────────────────────────────────────────
@@ -205,7 +218,6 @@ describe('useAutoBackup', () => {
     expect(vi.getTimerCount()).toBe(1)
     expect(mockCalculateNextDaily).toHaveBeenCalledTimes(1)
 
-    // Change schedule to weekly
     mockStoreState.scheduleType = 'weekly'
     const futureTime2 = Date.now() + 100000
     mockCalculateNextWeekly.mockReturnValue(futureTime2)
@@ -230,20 +242,20 @@ describe('useAutoBackup', () => {
     )
   })
 
-  it('triggers immediate backup when overdue and configured', async () => {
+  it('triggers performBackup when overdue and configured', async () => {
     mockIsConfigured.value = true
     mockStoreState.scheduleType = 'daily'
     mockIsOverdue.mockReturnValue(true)
 
     renderHook(() => useAutoBackup({ enabled: true }))
 
-    // Overdue backup should be queued with minimal delay
     await vi.advanceTimersByTimeAsync(100)
 
     expect(mockStartBackup).toHaveBeenCalled()
+    expect(mockPerformBackup).toHaveBeenCalledWith('auto')
   })
 
-  it('does not trigger immediate backup when overdue but not configured', async () => {
+  it('does not trigger backup when overdue but not configured', async () => {
     mockIsConfigured.value = false
     mockStoreState.scheduleType = 'daily'
     mockIsOverdue.mockReturnValue(true)
@@ -253,25 +265,23 @@ describe('useAutoBackup', () => {
     await vi.advanceTimersByTimeAsync(100)
 
     expect(mockStartBackup).not.toHaveBeenCalled()
+    expect(mockPerformBackup).not.toHaveBeenCalled()
   })
 
   // ── Backup error handling ──────────────────────────────────────────────
 
-  it('logs error when backup fails', async () => {
+  it('calls finishBackup with error message on performBackup failure', async () => {
     mockIsConfigured.value = true
     mockStoreState.scheduleType = 'daily'
     mockIsOverdue.mockReturnValue(true)
 
-    // Simulate backup failure
-    mockCreateLog.mockRejectedValueOnce(new Error('DB error'))
+    mockPerformBackup.mockRejectedValueOnce(new Error('Upload failed'))
 
     renderHook(() => useAutoBackup({ enabled: true }))
 
     await vi.advanceTimersByTimeAsync(100)
 
-    // startBackup should still be called
     expect(mockStartBackup).toHaveBeenCalled()
-    // finishBackup should be called with error
-    expect(mockFinishBackup).toHaveBeenCalledWith(expect.any(String))
+    expect(mockFinishBackup).toHaveBeenCalledWith('Upload failed')
   })
 })
