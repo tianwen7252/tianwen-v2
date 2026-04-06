@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next'
+import { CircleAlert } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 export interface ErrorFallbackProps {
@@ -36,13 +37,18 @@ export function ErrorFallback({
 
   return (
     <div
-      className="flex min-h-[200px] flex-col items-center justify-center gap-4 p-6 text-center"
+      className="flex min-h-[200px] flex-col items-center justify-center gap-6 p-6 text-center"
       role="alert"
     >
-      <h2 className="text-lg font-semibold text-destructive">{displayTitle}</h2>
-      <p className="max-w-md text-sm text-muted-foreground">
-        {getErrorMessage(error, t('error.unknown'))}
-      </p>
+      <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-destructive/10">
+        <CircleAlert className="h-10 w-10 text-destructive" strokeWidth={1.5} />
+      </div>
+      <div className="flex flex-col gap-2">
+        <h2 className="text-lg text-destructive">{displayTitle}</h2>
+        <p className="max-w-md text-md text-muted-foreground">
+          {getErrorMessage(error, t('error.unknown'))}
+        </p>
+      </div>
       <Button variant="outline" onClick={resetErrorBoundary}>
         {t('common.retry')}
       </Button>

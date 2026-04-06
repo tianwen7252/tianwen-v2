@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
+import { Lock, ShieldOff } from 'lucide-react'
 import { useGoogleAuth } from '@/hooks/use-google-auth'
 import { isSessionValid } from '@/stores/app-store'
 
@@ -45,8 +46,8 @@ export function AuthGuard({
   if (!googleUser || sessionExpired) {
     return (
       <div className="flex min-h-[400px] flex-col items-center justify-center gap-6 p-10">
-        <div className="text-6xl" aria-hidden="true">
-          &#x1F512;
+        <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-(--color-gold)/10">
+          <Lock className="h-10 w-10 text-(--color-gold)" strokeWidth={1.5} />
         </div>
         <h2 className="text-2xl text-foreground">{t('auth.title')}</h2>
         <p className="text-muted-foreground">{t(SUBTITLE_KEYS[variant])}</p>
@@ -61,8 +62,8 @@ export function AuthGuard({
   if (!isAdmin) {
     return (
       <div className="flex min-h-[400px] flex-col items-center justify-center gap-6 p-10">
-        <div className="text-6xl" aria-hidden="true">
-          &#x1F6AB;
+        <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-(--color-red)/10">
+          <ShieldOff className="h-10 w-10 text-(--color-red)" strokeWidth={1.5} />
         </div>
         <h2 className="text-2xl text-foreground">{t('auth.title')}</h2>
         <p className="text-muted-foreground">{t('auth.adminOnly')}</p>

@@ -1,5 +1,21 @@
 # Changelog
 
+## [2.3.0](https://github.com/tianwen7252/tianwen-v2/compare/v2.2.0-alpha...v2.3.0) (2026-04-06)
+
+
+### Features
+
+* architecture & DB improvements (V2-186) ([#9](https://github.com/tianwen7252/tianwen-v2/issues/9)) ([f59907e](https://github.com/tianwen7252/tianwen-v2/commit/f59907e26cb1e6823db6d8c7104873e9cf4b0b92))
+
+
+### Bug Fixes
+
+* iPad OPFS InvalidStateError race condition on page reload / PWA update — retry + pagehide worker terminate + lock screen fallback
+* default employees no longer auto-seeded at DB init (only via dev test-data page)
+* orders calendar popup centered below button instead of flush left
+* apple-touch-icon uses 512px for crisp iPadOS 17+ large icon mode
+* system info version card shows current site URL
+
 ## [2.2.0-alpha](https://github.com/tianwen7252/tianwen-v2/compare/v2.1.0-alpha...v2.2.0-alpha) (2026-04-02)
 
 

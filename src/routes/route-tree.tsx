@@ -35,8 +35,6 @@ const TestDataPreview = lazy(() => import('@/pages/preview').then(m => ({ defaul
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
-const HEADER_BG = '#F8F4EC'
-
 const GLASSMORPHISM_STYLE = {
   backdropFilter: 'blur(10px)',
   WebkitBackdropFilter: 'blur(10px)',
@@ -75,7 +73,9 @@ function RootLayout() {
             : 'shadow-[0_1px_0_0_rgba(0,0,0,0.08)]', // to replace "border-b border-border" for ipad
         )}
         style={{
-          backgroundColor: scrolled ? `${HEADER_BG}b3` : HEADER_BG,
+          backgroundColor: scrolled
+            ? 'color-mix(in srgb, var(--header-bg) 70%, transparent)'
+            : 'var(--header-bg)',
           ...(scrolled ? GLASSMORPHISM_STYLE : {}),
         }}
       >

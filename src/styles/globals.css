@@ -10,20 +10,12 @@ html {
   touch-action: manipulation;
 }
 
-/* Force landscape — show overlay when device is in portrait */
+/* Force landscape — show overlay when device is in portrait.
+   The #portrait-overlay element is defined in index.html for instant display
+   before React hydrates. Hidden by default, shown only in portrait. */
 @media screen and (orientation: portrait) {
-  body::after {
-    content: '請將裝置轉為橫向使用';
-    position: fixed;
-    inset: 0;
-    z-index: 99999;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--background, #fdfdfd);
-    color: var(--foreground, #333);
-    font-size: 1.5rem;
-    font-weight: 600;
+  #portrait-overlay {
+    display: flex !important;
   }
 }
 
@@ -106,6 +98,7 @@ html {
  * https://tweakcn.com/themes/cmmi1gb4a000204jl8c300w9a
  */
 :root {
+  --header-bg: #F8F4EC;
   --background: #fdfdfd;
   --foreground: #000000;
   --card: #fdfdfd;
@@ -142,6 +135,7 @@ html {
 }
 
 .dark {
+  --header-bg: #1a150e;
   --background: #070503;
   --foreground: #f9f8f7;
   --card: #100d08;
@@ -190,6 +184,7 @@ html {
     font-style: normal;
     -webkit-user-select: none;
     user-select: none;
+    padding-top: env(safe-area-inset-top);
   }
 
   html,

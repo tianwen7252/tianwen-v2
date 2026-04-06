@@ -147,7 +147,9 @@
     "appError": "Application error occurred",
     "settingsError": "Settings page error occurred",
     "clockInError": "Clock-in page error occurred",
-    "databaseLocked": "For PWA security reasons, the database can only be used in a single browser tab"
+    "databaseLocked": "For PWA security reasons, the database can only be used in a single browser tab",
+    "notFound": "Page not found",
+    "backHome": "Back to home"
   },
   "order": {
     "title": "Order",
@@ -586,9 +588,9 @@
         "inserting": "Writing to database..."
       },
       "complete": "Generation Complete",
-      "clearButton": "Clear All Orders",
-      "clearConfirmTitle": "Clear All Order Data?",
-      "clearConfirmMessage": "This will delete all orders, order items, discounts, attendance records, and daily summaries. This cannot be undone.",
+      "clearButton": "Clear All Data",
+      "clearConfirmTitle": "Clear All Data?",
+      "clearConfirmMessage": "This will delete all orders, items, discounts, employees, attendance records, daily summaries, and system logs. This cannot be undone.",
       "clearingMessage": "Clearing data...",
       "clearComplete": "All order and attendance data cleared.",
       "error": "Generation failed: {{message}}",
