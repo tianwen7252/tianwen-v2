@@ -4,8 +4,16 @@ import tailwindcss from '@tailwindcss/vite'
 import basicSsl from '@vitejs/plugin-basic-ssl'
 import { VitePWA } from 'vite-plugin-pwa'
 import { resolve } from 'path'
+import { readFileSync } from 'fs'
+
+const packageJson = JSON.parse(
+  readFileSync('./package.json', 'utf-8'),
+) as { version: string }
 
 export default defineConfig({
+  define: {
+    __APP_VERSION__: JSON.stringify(packageJson.version),
+  },
   plugins: [
     react(),
     tailwindcss(),

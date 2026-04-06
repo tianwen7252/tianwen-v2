@@ -10,7 +10,7 @@ const MOCK_USER = {
 
 const MOCK_TOKEN = 'mock-access-token'
 
-const ONE_WEEK_MS = 7 * 24 * 60 * 60 * 1000
+const ONE_DAY_MS = 24 * 60 * 60 * 1000
 
 describe('useAppStore', () => {
   beforeEach(() => {
@@ -94,31 +94,31 @@ describe('session expiry', () => {
     expect(localStorage.getItem('login-at')).toBeNull()
   })
 
-  it('isSessionValid returns true when session is within 7 days', () => {
+  it('isSessionValid returns true when session is within 1 day', () => {
     const loginTime = 1_700_000_000_000
     localStorage.setItem('login-at', String(loginTime))
 
-    // 6 days later — still valid
-    vi.spyOn(Date, 'now').mockReturnValue(loginTime + ONE_WEEK_MS - 1)
+    // 23 hours later — still valid
+    vi.spyOn(Date, 'now').mockReturnValue(loginTime + ONE_DAY_MS - 1)
 
     expect(isSessionValid()).toBe(true)
   })
 
-  it('isSessionValid returns false when session is exactly 7 days old', () => {
+  it('isSessionValid returns false when session is exactly 1 day old', () => {
     const loginTime = 1_700_000_000_000
     localStorage.setItem('login-at', String(loginTime))
 
-    vi.spyOn(Date, 'now').mockReturnValue(loginTime + ONE_WEEK_MS)
+    vi.spyOn(Date, 'now').mockReturnValue(loginTime + ONE_DAY_MS)
 
     expect(isSessionValid()).toBe(false)
   })
 
-  it('isSessionValid returns false when session is older than 7 days', () => {
+  it('isSessionValid returns false when session is older than 1 day', () => {
     const loginTime = 1_700_000_000_000
     localStorage.setItem('login-at', String(loginTime))
 
-    // 8 days later
-    vi.spyOn(Date, 'now').mockReturnValue(loginTime + ONE_WEEK_MS + 1000)
+    // 25 hours later
+    vi.spyOn(Date, 'now').mockReturnValue(loginTime + ONE_DAY_MS + 1000)
 
     expect(isSessionValid()).toBe(false)
   })
@@ -134,7 +134,7 @@ describe('session expiry', () => {
     localStorage.setItem('login-at', String(loginTime))
 
     // 8 days later — expired
-    vi.spyOn(Date, 'now').mockReturnValue(loginTime + ONE_WEEK_MS + 1000)
+    vi.spyOn(Date, 'now').mockReturnValue(loginTime + ONE_DAY_MS + 1000)
 
     // Re-initialize the store to trigger loadPersistedUser
     // We test this via the exported helper isSessionValid + checking
@@ -147,7 +147,7 @@ describe('session expiry', () => {
     useAppStore.getState().setGoogleUser(MOCK_USER, MOCK_TOKEN, true)
     // Manually expire the session
     localStorage.setItem('login-at', String(loginTime))
-    vi.spyOn(Date, 'now').mockReturnValue(loginTime + ONE_WEEK_MS + 1000)
+    vi.spyOn(Date, 'now').mockReturnValue(loginTime + ONE_DAY_MS + 1000)
 
     // isSessionValid should detect expiry
     expect(isSessionValid()).toBe(false)
@@ -164,7 +164,7 @@ describe('session expiry', () => {
     localStorage.setItem('login-at', String(loginTime))
 
     // Time travel: 8 days later
-    vi.spyOn(Date, 'now').mockReturnValue(loginTime + ONE_WEEK_MS + 86_400_000)
+    vi.spyOn(Date, 'now').mockReturnValue(loginTime + ONE_DAY_MS + 86_400_000)
 
     // Import the module-level loadPersistedUser indirectly:
     // Since we can't re-run module initialization, we verify isSessionValid

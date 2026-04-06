@@ -221,6 +221,7 @@
     "searchClose": "Close search",
     "prevDay": "Previous day",
     "nextDay": "Next day",
+    "swipeHint": "Swipe left on order card to edit",
     "prevPage": "Previous page",
     "nextPage": "Next page",
     "updatedAt": "Updated"
@@ -565,7 +566,19 @@
     "v1FileCreated": "Created",
     "v1FileAction": "Action",
     "v1ImportBtn": "Import",
-    "v1Importing": "Importing..."
+    "v1Importing": "Importing...",
+    "v1ImportModalTitle": "V1 Database Import",
+    "v1ImportSyncing": "Syncing data...",
+    "v1ImportComplete": "Sync complete",
+    "v1ImportCompleteWithErrors": "Sync complete (with errors)",
+    "v1ImportRows": "{{count}} rows",
+    "v1ImportConfirm": "Confirm",
+    "v1Table_downloading": "Downloading backup",
+    "v1Table_transforming": "Transforming data",
+    "v1Table_commodity_types": "Product Categories",
+    "v1Table_commodities": "Products",
+    "v1Table_orders": "Orders",
+    "v1Table_order_items": "Order Items"
   },
   "announcement": {
     "adminName": "Boss Eric",

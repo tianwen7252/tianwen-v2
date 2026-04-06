@@ -221,6 +221,7 @@
     "searchClose": "關閉搜尋",
     "prevDay": "前一天",
     "nextDay": "後一天",
+    "swipeHint": "向左滑動訂單卡片可編輯訂單",
     "prevPage": "上一頁",
     "nextPage": "下一頁",
     "updatedAt": "更新時間"
@@ -565,7 +566,19 @@
     "v1FileCreated": "建立時間",
     "v1FileAction": "操作",
     "v1ImportBtn": "匯入",
-    "v1Importing": "匯入中..."
+    "v1Importing": "匯入中...",
+    "v1ImportModalTitle": "V1 資料庫匯入",
+    "v1ImportSyncing": "資料同步中...",
+    "v1ImportComplete": "同步完成",
+    "v1ImportCompleteWithErrors": "同步完成（有錯誤）",
+    "v1ImportRows": "{{count}} 筆",
+    "v1ImportConfirm": "確認",
+    "v1Table_downloading": "下載備份檔案",
+    "v1Table_transforming": "資料格式轉換",
+    "v1Table_commodity_types": "商品分類",
+    "v1Table_commodities": "商品",
+    "v1Table_orders": "訂單",
+    "v1Table_order_items": "訂單品項"
   },
   "announcement": {
     "adminName": "天文老闆Eric",

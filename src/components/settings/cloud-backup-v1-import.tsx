@@ -19,6 +19,13 @@ import {
 } from '@/lib/google-drive-service'
 import { AuthExpiredError } from '@/lib/errors'
 import { transformV1Data, type V1BackupData } from '@/lib/v1-data-transformer'
+import {
+  importV1Data,
+  type V1ImportProgress,
+  type V1ImportResult,
+} from '@/lib/v1-data-importer'
+import { getDatabase } from '@/lib/repositories'
+import { V1ImportModal } from '@/components/settings/v1-import-modal'
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -57,9 +64,15 @@ export function CloudBackupV1Import() {
 
   const [files, setFiles] = useState<readonly DriveFile[]>([])
   const [loading, setLoading] = useState(false)
-  const [importing, setImporting] = useState(false)
   const [selectedFile, setSelectedFile] = useState<DriveFile | null>(null)
   const [showConfirm, setShowConfirm] = useState(false)
+
+  // V1 import modal state — importing derived from modal visibility
+  const [showImportModal, setShowImportModal] = useState(false)
+  const importing = showImportModal
+  const [importProgress, setImportProgress] =
+    useState<V1ImportProgress | null>(null)
+  const [importResult, setImportResult] = useState<V1ImportResult | null>(null)
 
   // Fetch file list when user is logged in
   useEffect(() => {
@@ -105,46 +118,66 @@ export function CloudBackupV1Import() {
     setShowConfirm(true)
   }, [])
 
-  // Handle confirmed import
+  // Handle confirmed import — immediately show progress modal,
+  // then download → transform → import with live progress updates.
   const handleConfirmImport = useCallback(async () => {
     if (!selectedFile || !accessToken) return
 
-    setImporting(true)
+    // Immediately close confirm modal and open progress modal
+    setShowConfirm(false)
+    setImportProgress(null)
+    setImportResult(null)
+    setShowImportModal(true)
+
     try {
-      // Download the file from Google Drive
+      // Phase 1: Download from Google Drive
+      setImportProgress({
+        phase: 'downloading',
+        current: 0,
+        total: 1,
+        tableName: 'downloading',
+      })
       const buffer = await downloadDriveFile(accessToken, selectedFile.id)
 
-      // Parse the JSON backup data
+      // Phase 2: Parse + transform
+      setImportProgress({
+        phase: 'transforming',
+        current: 0,
+        total: 1,
+        tableName: 'transforming',
+      })
       const text = new TextDecoder().decode(buffer)
       const v1Data = JSON.parse(text) as V1BackupData
+      const transformed = transformV1Data(v1Data)
 
-      // Transform V1 data to V2 format
-      const result = transformV1Data(v1Data)
+      // Phase 3: Import into SQLite with per-table progress
+      const db = getDatabase()
+      const result = await importV1Data(db, transformed, progress => {
+        setImportProgress(progress)
+      })
 
-      // Log warnings if any
-      for (const warning of result.warnings) {
-        notify.info(warning)
+      setImportResult(result)
+
+      if (result.errors.length === 0) {
+        notify.success(t('backup.v1ImportSuccess'))
       }
-
-      // TODO: Write transformed data to SQLite database
-      // This will be implemented when the DB write API is available
-
-      notify.success(t('backup.v1ImportSuccess'))
-      setShowConfirm(false)
-      setSelectedFile(null)
     } catch (err) {
       if (err instanceof AuthExpiredError) {
         handleAuthError(err)
       } else {
-        notify.error(
-          t('backup.v1ImportFailed') +
-            (err instanceof Error ? `: ${err.message}` : ''),
-        )
+        const msg = err instanceof Error ? err.message : String(err)
+        setImportResult({ counts: {}, errors: [msg] })
       }
-    } finally {
-      setImporting(false)
     }
   }, [selectedFile, accessToken, t, handleAuthError])
+
+  // Handle closing the import progress modal
+  const handleCloseImportModal = useCallback(() => {
+    setShowImportModal(false)
+    setImportProgress(null)
+    setImportResult(null)
+    setSelectedFile(null)
+  }, [])
 
   // Handle cancel confirmation
   const handleCancelConfirm = useCallback(() => {
@@ -249,6 +282,14 @@ export function CloudBackupV1Import() {
             <p className="mt-2 text-center">{selectedFile.name}</p>
           )}
         </ConfirmModal>
+
+        {/* V1 import progress modal */}
+        <V1ImportModal
+          open={showImportModal}
+          progress={importProgress}
+          result={importResult}
+          onClose={handleCloseImportModal}
+        />
       </CardContent>
     </Card>
   )

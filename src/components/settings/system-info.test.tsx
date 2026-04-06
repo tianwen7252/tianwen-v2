@@ -110,7 +110,8 @@ describe('SystemInfo', () => {
 
     it('displays the app version', () => {
       renderWithProviders(<SystemInfo />)
-      expect(screen.getByText(/2\.0\.0-alpha/)).toBeTruthy()
+      // Version comes from package.json via Vite define (__APP_VERSION__)
+      expect(screen.getByText(/v\d+\.\d+\.\d+/)).toBeTruthy()
     })
 
     it('displays storage percentage after estimate resolves', async () => {
