@@ -173,7 +173,10 @@ export function CloudBackupDbStats() {
             )}
           </div>
 
-          {/* Schedule type selector */}
+          {/* Spacer */}
+          <div className="flex-1" />
+
+          {/* Schedule type selector — pinned to bottom with buttons */}
           <div className="mt-4">
             <p className="mb-2 text-muted-foreground">{t('backup.schedule')}</p>
             <div className="flex gap-2">
@@ -194,11 +197,8 @@ export function CloudBackupDbStats() {
             </div>
           </div>
 
-          {/* Spacer */}
-          <div className="flex-1" />
-
           {/* Action buttons at bottom */}
-          <div className="mt-4 flex gap-3">
+          <div className="mt-3 flex gap-3">
             <RippleButton
               className="flex flex-1 items-center justify-center gap-2 rounded-md border-none bg-(--color-green) px-4 py-2 text-white hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50"
               onClick={() => void handleBackupNow()}

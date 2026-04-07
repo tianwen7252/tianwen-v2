@@ -105,9 +105,12 @@ export function EmployeeCard({
           </div>
         </div>
       ) : (
-        <div className="space-y-1.5 text-md" style={{ color: '#718096' }}>
+        <div className="space-y-1.5 text-md px-2 text-regal-navy">
           {records.map((shift, index) => (
-            <div key={shift.id ?? index} className="border-l-2 border-border pl-2">
+            <div
+              key={shift.id ?? index}
+              className="border-l-2 border-morning-butter"
+            >
               <div>
                 {t('clockIn.arrival')}：{formatTime(shift.clockIn)}
               </div>
@@ -117,7 +120,7 @@ export function EmployeeCard({
             </div>
           ))}
           {records.length === 0 && (
-            <div className="border-l-2 border-border pl-2">
+            <div className="border-l-2 border-morning-butter">
               <div>
                 {t('clockIn.arrival')}：{formatTime(undefined)}
               </div>
