@@ -1,5 +1,10 @@
 /**
  * GET /api/backup — List all backup files from R2.
+ *
+ * IMPORTANT: @aws-sdk/client-s3 MUST be imported via dynamic import().
+ * Static imports cause Vercel's Function bundler to crash with
+ * FUNCTION_INVOCATION_FAILED due to ESM resolution issues in aws-sdk v3.
+ * See: https://github.com/aws/aws-sdk-js-v3/issues/6614
  */
 
 import type { VercelRequest, VercelResponse } from '@vercel/node'

@@ -98,7 +98,7 @@ export function ProductManagement() {
         <h3 className="text-xl font-medium">{t('productMgmt.tabTitle')}</h3>
         <RippleButton
           disabled={!hasAnyChanges}
-          className="relative inline-flex items-center gap-1.5 overflow-hidden rounded-lg border border-border bg-card px-4 py-2 text-base text-foreground hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50"
+          className="relative inline-flex items-center gap-1.5 overflow-hidden rounded-lg border border-border bg-card px-4 py-2 text-base text-foreground hover:bg-accent disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground disabled:opacity-50 disabled:hover:bg-muted"
           onClick={handleSaveClick}
         >
           {hasAnyChanges && (
