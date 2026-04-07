@@ -31,8 +31,10 @@ export function OrderPanelTabs() {
 
   const editingOrderId = useOrderStore(s => s.editingOrderId)
   const editingOrderNumber = useOrderStore(s => s.editingOrderNumber)
-  const itemCount = useOrderStore(s => s.getItemCount)()
+  const items = useOrderStore(s => s.items)
   const clearCart = useOrderStore(s => s.clearCart)
+
+  const itemCount = items.reduce((sum, item) => sum + item.quantity, 0)
 
   // Auto-switch to current tab when edit mode is activated
   useEffect(() => {
