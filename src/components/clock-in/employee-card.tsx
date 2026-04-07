@@ -6,7 +6,7 @@
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/cn'
 import { AvatarImage } from '@/components/avatar-image'
-import { calcTotalHours, formatTotalHours } from '@/lib/attendance-utils'
+// calcTotalHours / formatTotalHours removed — total hours display disabled
 import {
   formatTime,
   deriveCardAction,
@@ -46,7 +46,7 @@ export function EmployeeCard({
   const lastRecord =
     records.length > 0 ? records[records.length - 1] : undefined
   const isVacation = lastRecord !== undefined && lastRecord.type !== 'regular'
-  const totalHours = calcTotalHours(records)
+  // const totalHours = calcTotalHours(records)
   const action = deriveCardAction(records)
   const isClockedIn = records.length > 0 && !isVacation && action === 'clockOut'
   const isClockedOut = records.length > 0 && !isVacation && action === 'clockIn'
@@ -105,9 +105,12 @@ export function EmployeeCard({
           </div>
         </div>
       ) : (
-        <div className="space-y-1 text-md" style={{ color: '#718096' }}>
+        <div className="space-y-1.5 text-md px-2 text-regal-navy">
           {records.map((shift, index) => (
-            <div key={shift.id ?? index}>
+            <div
+              key={shift.id ?? index}
+              className="border-l-2 border-morning-butter"
+            >
               <div>
                 {t('clockIn.arrival')}：{formatTime(shift.clockIn)}
               </div>
@@ -117,25 +120,15 @@ export function EmployeeCard({
             </div>
           ))}
           {records.length === 0 && (
-            <>
+            <div className="border-l-2 border-morning-butter">
               <div>
                 {t('clockIn.arrival')}：{formatTime(undefined)}
               </div>
               <div>
                 {t('clockIn.departure')}：{formatTime(undefined)}
               </div>
-            </>
+            </div>
           )}
-        </div>
-      )}
-
-      {/* Total hours */}
-      {totalHours > 0 && (
-        <div
-          className="mt-2 text-sm font-semibold"
-          style={{ color: '#7f956a' }}
-        >
-          {t('clockIn.totalHours')}: {formatTotalHours(totalHours)}
         </div>
       )}
 

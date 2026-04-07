@@ -114,13 +114,6 @@ describe('ClockIn', () => {
     })
   })
 
-  it('should show total hours for employees with complete shifts', async () => {
-    render(<ClockIn />)
-    // emp-001 worked 8:00-17:00=9h, emp-006 worked 10:00-14:30=4.5h
-    await screen.findByText(/9h/)
-    expect(screen.getAllByText(/總工時/).length).toBeGreaterThanOrEqual(1)
-  })
-
   it('should show clock times for regular employees', async () => {
     render(<ClockIn />)
     // emp-001: clockIn 08:00, clockOut 17:00

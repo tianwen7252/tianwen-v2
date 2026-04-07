@@ -5,7 +5,6 @@
 
 import { CloudBackupStatus } from './cloud-backup-status'
 import { CloudBackupDbStats } from './cloud-backup-db-stats'
-import { CloudBackupActions } from './cloud-backup-actions'
 import { CloudBackupHistory } from './cloud-backup-history'
 import { CloudBackupV1Import } from './cloud-backup-v1-import'
 
@@ -17,16 +16,13 @@ export function CloudBackup() {
       {/* Section 1: Status KPI Cards (3-column grid) */}
       <CloudBackupStatus />
 
-      {/* Section 2: DB Statistics Table */}
+      {/* Section 2: DB Statistics + Cloud Stats + Actions */}
       <CloudBackupDbStats />
 
-      {/* Section 3: Backup Actions (manual backup + schedule) */}
-      <CloudBackupActions />
-
-      {/* Section 4: Backup History */}
+      {/* Section 3: Backup History */}
       <CloudBackupHistory />
 
-      {/* Section 5: V1 Database Import from Google Drive */}
+      {/* Section 4: V1 Database Import from Google Drive */}
       <CloudBackupV1Import />
     </div>
   )
