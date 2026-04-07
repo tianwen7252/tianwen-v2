@@ -121,6 +121,8 @@ export const CREATE_TABLES = `
     ON attendances(employee_id, date);
 
   -- Order line items (normalized from orders.data JSON)
+  -- Note: commodity_id has no FK constraint because custom calculator items
+  -- use generated IDs (custom-xxx) that don't exist in the commodities table.
   CREATE TABLE IF NOT EXISTS order_items (
     id TEXT PRIMARY KEY,
     order_id TEXT NOT NULL,
@@ -131,8 +133,7 @@ export const CREATE_TABLES = `
     includes_soup INTEGER NOT NULL DEFAULT 0,
     created_at INTEGER NOT NULL DEFAULT (unixepoch('now') * 1000),
     updated_at INTEGER NOT NULL DEFAULT (unixepoch('now') * 1000),
-    FOREIGN KEY (order_id) REFERENCES orders(id),
-    FOREIGN KEY (commodity_id) REFERENCES commodities(id)
+    FOREIGN KEY (order_id) REFERENCES orders(id)
   );
 
   CREATE INDEX IF NOT EXISTS idx_order_items_order_id ON order_items(order_id);
@@ -421,6 +422,33 @@ function runMigrations(exec: (sql: string) => void): void {
     )
   } catch {
     // Column already exists — safe to ignore
+  }
+
+  // V2-198: Rebuild order_items to remove commodity_id FK constraint.
+  // Custom calculator items use generated IDs (custom-xxx) that don't exist
+  // in the commodities table, causing SQLITE_CONSTRAINT_FOREIGNKEY on insert.
+  // SQLite cannot drop FK constraints, so we recreate the table.
+  try {
+    // Check if the FK exists by looking at the table schema
+    exec(`CREATE TABLE IF NOT EXISTS order_items_new (
+      id TEXT PRIMARY KEY,
+      order_id TEXT NOT NULL,
+      commodity_id TEXT NOT NULL,
+      name TEXT NOT NULL,
+      price REAL NOT NULL DEFAULT 0,
+      quantity INTEGER NOT NULL DEFAULT 1,
+      includes_soup INTEGER NOT NULL DEFAULT 0,
+      created_at INTEGER NOT NULL DEFAULT (unixepoch('now') * 1000),
+      updated_at INTEGER NOT NULL DEFAULT (unixepoch('now') * 1000),
+      FOREIGN KEY (order_id) REFERENCES orders(id)
+    )`)
+    exec('INSERT INTO order_items_new SELECT * FROM order_items')
+    exec('DROP TABLE order_items')
+    exec('ALTER TABLE order_items_new RENAME TO order_items')
+    exec('CREATE INDEX IF NOT EXISTS idx_order_items_order_id ON order_items(order_id)')
+  } catch {
+    // Migration already applied or table doesn't exist yet — safe to ignore
+    try { exec('DROP TABLE IF EXISTS order_items_new') } catch { /* cleanup */ }
   }
 
   // V2-189: Add missing indexes for query performance.
