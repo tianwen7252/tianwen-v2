@@ -1,5 +1,31 @@
 # Changelog
 
+## [2.5.0](https://github.com/tianwen7252/tianwen-v2/compare/v2.4.2...v2.5.0) (2026-04-07)
+
+
+### Features
+
+* auto-refresh Google token on 401 (strategy A) ([122dabf](https://github.com/tianwen7252/tianwen-v2/commit/122dabf9154672b7ad1520d89595b7ed7ec8b692))
+* persist backup schedule to SQLite DB via schema_meta (V2-196) ([7e70296](https://github.com/tianwen7252/tianwen-v2/commit/7e70296e3ab7107ed09772d6143a817992b4e73b))
+* presigned URL direct R2 upload/download (V2-197) ([b864102](https://github.com/tianwen7252/tianwen-v2/commit/b864102da5e4590af6cd3a0e420e20d17b9543d2))
+* simplify backup schedule + R2 retention limit (max 30) ([1a16a13](https://github.com/tianwen7252/tianwen-v2/commit/1a16a132e4d3f430a3855e8c8d710ec726923f2c))
+
+
+### Bug Fixes
+
+* add aws-sdk dynamic import comment + saveSettings disabled style ([5b69835](https://github.com/tianwen7252/tianwen-v2/commit/5b698354c7213249f92230ce9059620c5a7c6317))
+* disable clear buttons when no records exist ([87fdf18](https://github.com/tianwen7252/tianwen-v2/commit/87fdf187367b61412c0d8a703a3d2a9cb371d227))
+* move R2 backup cleanup from frontend to API server-side (V2-196) ([d4f8c79](https://github.com/tianwen7252/tianwen-v2/commit/d4f8c7943db8b524b243cf7485817428d31c7c03))
+* remove _lib/ shared module — inline all S3 logic in handlers ([939df49](https://github.com/tianwen7252/tianwen-v2/commit/939df4931fd5add2ec169538810b3b2c61ee5a02))
+* remove localStorage fallback — backup schedule only in DB (V2-196) ([5269916](https://github.com/tianwen7252/tianwen-v2/commit/52699163da16aab601b02ba9ea7a7d34594f7896))
+* resolve Vercel Function bundler crash with @aws-sdk/client-s3 ([a9491a7](https://github.com/tianwen7252/tianwen-v2/commit/a9491a72211c8e0181bb695f6faeac77c79fec36))
+* show percent sign in circular progress bar (e.g. 0%) ([ef63b97](https://github.com/tianwen7252/tianwen-v2/commit/ef63b976cb88ae4a33bc3376db33998ddfb584bb))
+* shrink storage progress bar, show usage/remaining below ([1f828fb](https://github.com/tianwen7252/tianwen-v2/commit/1f828fbddd0f7495f19e2e13ce8e8cdc1db73b08))
+* storage usage/remaining labels on separate lines from values ([7e95da3](https://github.com/tianwen7252/tianwen-v2/commit/7e95da3bf00f401b133ec42927c705e22346385b))
+* use dynamic import for @aws-sdk/client-s3 in Vercel Functions ([7268f82](https://github.com/tianwen7252/tianwen-v2/commit/7268f82d5aaa5fffa1a1c2ad6fbdec675ea8b082))
+* use readable date format for backup/export filenames ([00c6f45](https://github.com/tianwen7252/tianwen-v2/commit/00c6f45e7316f0cc709ee830325aa12513f622ba))
+* write backup errors to error_logs table ([877c8c5](https://github.com/tianwen7252/tianwen-v2/commit/877c8c5481377fa8575fe85e7c675e3483408202))
+
 ## [2.4.2](https://github.com/tianwen7252/tianwen-v2/compare/v2.4.1...v2.4.2) (2026-04-06)
 
 
