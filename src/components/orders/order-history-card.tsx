@@ -1,7 +1,7 @@
 import { useMemo, useState, useRef, useEffect } from 'react'
 import dayjs from 'dayjs'
 import { useTranslation } from 'react-i18next'
-import { Pencil, Trash2, MoveDown } from 'lucide-react'
+import { Pencil, Trash2, MoveDown, CircleCheckBig } from 'lucide-react'
 import { SwipeActions } from '@/components/ui/swipe-actions'
 import type { Order } from '@/lib/schemas'
 import { formatCurrency } from '@/lib/currency'
@@ -28,17 +28,24 @@ export interface OrderHistoryCardProps {
   readonly onEdit?: () => void
   /** When changed, close any open swipe actions on this card */
   readonly resetKey?: number
+  /** Whether this order has been served — shows served visual overlay */
+  readonly isServed?: boolean
+  /** Tap handler for the card body (e.g., toggle served status) */
+  readonly onTap?: () => void
+  /** When true, hide the delete action from swipe actions */
+  readonly hideDelete?: boolean
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-/** Build the list of swipe actions — always includes edit and delete */
+/** Build the list of swipe actions — optionally excludes delete */
 function buildSwipeActions(
   onDelete: () => void,
   t: (key: string) => string,
   onEdit?: () => void,
+  hideDelete?: boolean,
 ): readonly SwipeAction[] {
-  return [
+  const actions: SwipeAction[] = [
     {
       key: 'edit',
       icon: <Pencil size={20} color="#fff" />,
@@ -46,14 +53,17 @@ function buildSwipeActions(
       label: t('common.edit'),
       onClick: onEdit ?? (() => {}),
     },
-    {
+  ]
+  if (!hideDelete) {
+    actions.push({
       key: 'delete',
       icon: <Trash2 size={20} color="#fff" />,
       color: DELETE_ACTION_COLOR,
       label: t('common.delete'),
       onClick: onDelete,
-    },
-  ]
+    })
+  }
+  return actions
 }
 
 // ─── Component ───────────────────────────────────────────────────────────────
@@ -69,6 +79,9 @@ export function OrderHistoryCard({
   onDelete,
   onEdit,
   resetKey,
+  isServed,
+  onTap,
+  hideDelete,
 }: OrderHistoryCardProps) {
   const { t } = useTranslation()
   const [expanded, setExpanded] = useState(false)
@@ -86,7 +99,7 @@ export function OrderHistoryCard({
   const formattedTime = dayjs(order.createdAt).format('h:mm A')
   const isDiscounted =
     order.originalTotal !== undefined && order.originalTotal > order.total
-  const actions = buildSwipeActions(onDelete, t, onEdit)
+  const actions = buildSwipeActions(onDelete, t, onEdit, hideDelete)
   const hasUpdate = order.updatedAt !== order.createdAt
 
   // Group items by category using the commodity lookup map
@@ -104,9 +117,16 @@ export function OrderHistoryCard({
       <div
         ref={cardRef}
         data-testid="order-history-card"
-        className="relative rounded-xl bg-card p-4 flex flex-col overflow-hidden transition-[max-height] duration-300 ease-in-out"
+        className={`relative rounded-xl p-4 flex flex-col overflow-hidden transition-[max-height,background-color] duration-300 ease-in-out ${isServed ? 'bg-[#f0f5ed]' : 'bg-card'}`}
         style={expanded ? undefined : { maxHeight: CARD_MAX_HEIGHT }}
+        onClick={onTap}
       >
+        {/* Served overlay icon */}
+        {isServed && (
+          <div className="absolute inset-x-0 top-3 flex justify-center pointer-events-none z-10">
+            <CircleCheckBig size={48} className="text-primary" strokeWidth={1.5} />
+          </div>
+        )}
         {/* Row 1: Order number + time */}
         <div className="flex items-center justify-between mb-1">
           <span className="text-base">#{order.number}</span>

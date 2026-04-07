@@ -50,6 +50,7 @@ export const CREATE_TABLES = `
     original_total REAL,
     edited_memo TEXT,
     editor TEXT NOT NULL DEFAULT '',
+    is_served INTEGER NOT NULL DEFAULT 0,
     created_at INTEGER NOT NULL DEFAULT (unixepoch('now') * 1000),
     updated_at INTEGER NOT NULL DEFAULT (unixepoch('now') * 1000)
   );
@@ -411,6 +412,15 @@ function runMigrations(exec: (sql: string) => void): void {
     } catch {
       // Column already exists -- safe to ignore
     }
+  }
+
+  // V2-198: Add is_served column to orders for served status tracking
+  try {
+    exec(
+      'ALTER TABLE orders ADD COLUMN is_served INTEGER NOT NULL DEFAULT 0',
+    )
+  } catch {
+    // Column already exists — safe to ignore
   }
 
   // V2-189: Add missing indexes for query performance.

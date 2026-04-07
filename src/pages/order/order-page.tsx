@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
-import { ProductGrid, OrderPanel } from '@/components/order'
+import { ProductGrid } from '@/components/order'
+import { OrderPanelTabs } from '@/components/order/order-panel-tabs'
 
 /** Main order page combining product menu (left) and order summary (right) */
 export function OrderPage() {
@@ -25,7 +26,7 @@ export function OrderPage() {
 
       {/* Right panel — order summary (35%) */}
       <div className="flex-36 overflow-y-auto border-l border-border bg-card p-4">
-        <OrderPanel />
+        <OrderPanelTabs />
       </div>
     </div>
   )

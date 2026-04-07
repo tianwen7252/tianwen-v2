@@ -9,10 +9,12 @@ export interface OrderRepository {
   findAll(): Promise<Order[]>
   findById(id: string): Promise<Order | undefined>
   findByDateRange(startDate: number, endDate: number): Promise<Order[]>
+  findRecent(limit?: number): Promise<Order[]>
   create(data: CreateOrder): Promise<Order>
   update(id: string, data: CreateOrder): Promise<Order>
   remove(id: string): Promise<boolean>
   getNextOrderNumber(): Promise<number>
+  toggleServed(id: string, isServed: boolean): Promise<void>
 }
 
 /**
@@ -33,6 +35,7 @@ function rowToOrderBase(
     editedMemo:
       row['edited_memo'] != null ? String(row['edited_memo']) : undefined,
     editor: String(row['editor'] ?? ''),
+    isServed: Boolean(Number(row['is_served'])),
     createdAt: Number(row['created_at']),
     updatedAt: Number(row['updated_at']),
   }
@@ -74,6 +77,16 @@ export function createOrderRepository(db: AsyncDatabase): OrderRepository {
       const result = await db.exec<Record<string, unknown>>(
         'SELECT * FROM orders WHERE created_at >= ? AND created_at <= ? ORDER BY created_at DESC',
         [startDate, endDate],
+      )
+      return Promise.all(result.rows.map(rowToOrderBase).map(attachRelated))
+    },
+
+    async findRecent(limit = 10) {
+      const todayStart = dayjs().startOf('day').valueOf()
+      const tomorrowStart = dayjs().add(1, 'day').startOf('day').valueOf()
+      const result = await db.exec<Record<string, unknown>>(
+        'SELECT * FROM orders WHERE created_at >= ? AND created_at < ? ORDER BY created_at DESC LIMIT ?',
+        [todayStart, tomorrowStart, limit],
       )
       return Promise.all(result.rows.map(rowToOrderBase).map(attachRelated))
     },
@@ -182,6 +195,14 @@ export function createOrderRepository(db: AsyncDatabase): OrderRepository {
       await discountRepo.removeByOrderId(id)
       const result = await db.exec('DELETE FROM orders WHERE id = ?', [id])
       return (result.changes ?? 0) > 0
+    },
+
+    async toggleServed(id: string, isServed: boolean) {
+      const now = Date.now()
+      await db.exec(
+        'UPDATE orders SET is_served = ?, updated_at = ? WHERE id = ?',
+        [isServed ? 1 : 0, now, id],
+      )
     },
 
     async getNextOrderNumber() {

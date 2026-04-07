@@ -103,7 +103,7 @@ export function OrderItemRow({
       <div className="flex items-center justify-between gap-2">
         <span
           className={cn(
-            'flex-1 whitespace-nowrap font-medium',
+            'flex-1 whitespace-nowrap text-lg',
             isCustom && 'text-(--color-red)',
           )}
         >
@@ -125,7 +125,7 @@ export function OrderItemRow({
               <span
                 ref={quantityRef}
                 className="min-w-[1.5rem] cursor-pointer rounded px-1 text-center text-base outline-none hover:bg-muted"
-                onAnimationEnd={e =>
+                onAnimationEnd={(e) =>
                   e.currentTarget.classList.remove('animate-qty-bounce')
                 }
                 onClick={handleOpenPopover}
@@ -153,7 +153,7 @@ export function OrderItemRow({
                   type="number"
                   min={1}
                   value={editValue}
-                  onChange={e => setEditValue(e.target.value)}
+                  onChange={(e) => setEditValue(e.target.value)}
                   onKeyDown={handleKeyDown}
                   className="w-24 rounded-lg border border-input bg-background px-3 py-2 text-center text-xl font-bold outline-none focus:border-primary"
                   style={{ userSelect: 'text' }}
