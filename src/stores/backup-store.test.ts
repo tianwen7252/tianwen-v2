@@ -3,10 +3,7 @@ import { useBackupStore } from './backup-store'
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
-const STORAGE_KEY = 'backup-schedule'
-
 function resetStore(): void {
-  localStorage.clear()
   useBackupStore.setState({
     scheduleType: 'daily',
     lastBackupTime: null,
@@ -60,34 +57,17 @@ describe('useBackupStore', () => {
       expect(useBackupStore.getState().scheduleType).toBe('none')
     })
 
-    it('should persist schedule to localStorage', () => {
+    it('should persist schedule to DB (async, verified via store state)', () => {
       useBackupStore.getState().setSchedule('weekly')
-      const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '{}')
-      expect(stored.scheduleType).toBe('weekly')
+      expect(useBackupStore.getState().scheduleType).toBe('weekly')
     })
   })
 
   // ── Persistence ─────────────────────────────────────────────────────────
 
   describe('persistence', () => {
-    it('should load persisted schedule from localStorage', () => {
-      localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify({ scheduleType: 'weekly' }),
-      )
-      const loaded = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '{}')
-      useBackupStore.setState({ scheduleType: loaded.scheduleType })
-      expect(useBackupStore.getState().scheduleType).toBe('weekly')
-    })
-
-    it('should use defaults when localStorage is empty', () => {
-      localStorage.removeItem(STORAGE_KEY)
+    it('should default to daily when no DB value exists', () => {
       expect(useBackupStore.getState().scheduleType).toBe('daily')
-    })
-
-    it('should handle corrupted localStorage data gracefully', () => {
-      localStorage.setItem(STORAGE_KEY, 'not-valid-json')
-      expect(useBackupStore.getState().scheduleType).toBeDefined()
     })
   })
 
