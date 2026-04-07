@@ -36,20 +36,20 @@ export function OrderPanel({
   swipeForegroundClassName,
   hideHeader,
 }: OrderPanelProps) {
-  const items = useOrderStore(s => s.items)
-  const discounts = useOrderStore(s => s.discounts)
-  const removeItem = useOrderStore(s => s.removeItem)
-  const updateQuantity = useOrderStore(s => s.updateQuantity)
-  const updateNote = useOrderStore(s => s.updateNote)
-  const getTotal = useOrderStore(s => s.getTotal)
-  const getBentoCount = useOrderStore(s => s.getBentoCount)
-  const getSoupCount = useOrderStore(s => s.getSoupCount)
-  const getItemCount = useOrderStore(s => s.getItemCount)
-  const clearCart = useOrderStore(s => s.clearCart)
-  const submitOrder = useOrderStore(s => s.submitOrder)
-  const lastAddedItem = useOrderStore(s => s.lastAddedItem)
+  const items = useOrderStore((s) => s.items)
+  const discounts = useOrderStore((s) => s.discounts)
+  const removeItem = useOrderStore((s) => s.removeItem)
+  const updateQuantity = useOrderStore((s) => s.updateQuantity)
+  const updateNote = useOrderStore((s) => s.updateNote)
+  const getTotal = useOrderStore((s) => s.getTotal)
+  const getBentoCount = useOrderStore((s) => s.getBentoCount)
+  const getSoupCount = useOrderStore((s) => s.getSoupCount)
+  const getItemCount = useOrderStore((s) => s.getItemCount)
+  const clearCart = useOrderStore((s) => s.clearCart)
+  const submitOrder = useOrderStore((s) => s.submitOrder)
+  const lastAddedItem = useOrderStore((s) => s.lastAddedItem)
 
-  const quickSubmit = useOrderStore(s => s.quickSubmit)
+  const quickSubmit = useOrderStore((s) => s.quickSubmit)
 
   const { t } = useTranslation()
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -103,7 +103,7 @@ export function OrderPanel({
   const isQuickMode = quickSubmit && !onSubmitClick
 
   return (
-    <div className="flex h-full flex-col gap-4 px-4">
+    <div className={`flex h-full flex-col gap-4${hideHeader ? '' : ' px-4'}`}>
       {/* Header — hidden when OrderPanelTabs manages the header */}
       {!hideHeader && (
         <div className="flex items-center gap-2">
@@ -141,7 +141,7 @@ export function OrderPanel({
           </p>
         ) : (
           <div className="divide-y divide-border pr-2">
-            {items.map(item => (
+            {items.map((item) => (
               <div key={item.id} data-cart-item-id={item.id}>
                 <SwipeToDelete
                   onDelete={() => removeItem(item.id)}
