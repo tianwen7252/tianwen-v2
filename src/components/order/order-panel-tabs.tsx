@@ -30,11 +30,11 @@ export function OrderPanelTabs() {
   const queryClient = useQueryClient()
   const [activeTab, setActiveTab] = useState<OrderTab>('current')
 
-  const editingOrderId = useOrderStore(s => s.editingOrderId)
-  const editingOrderNumber = useOrderStore(s => s.editingOrderNumber)
-  const items = useOrderStore(s => s.items)
-  const submitSeq = useOrderStore(s => s.submitSeq)
-  const clearCart = useOrderStore(s => s.clearCart)
+  const editingOrderId = useOrderStore((s) => s.editingOrderId)
+  const editingOrderNumber = useOrderStore((s) => s.editingOrderNumber)
+  const items = useOrderStore((s) => s.items)
+  const submitSeq = useOrderStore((s) => s.submitSeq)
+  const clearCart = useOrderStore((s) => s.clearCart)
 
   const itemCount = items.reduce((sum, item) => sum + item.quantity, 0)
 
@@ -92,7 +92,7 @@ export function OrderPanelTabs() {
               : 'border-transparent text-muted-foreground hover:border-border hover:text-foreground',
           )}
         >
-          <ClipboardList size={16} />
+          <ClipboardList size={20} />
           {t('order.currentOrder')}
           {itemCount > 0 && (
             <span className="rounded-full bg-primary px-2 py-0.5 text-xs font-medium text-primary-foreground">
@@ -114,7 +114,7 @@ export function OrderPanelTabs() {
               : 'border-transparent text-muted-foreground hover:border-border hover:text-foreground',
           )}
         >
-          <ListOrdered size={16} />
+          <ListOrdered size={20} />
           {t('order.recentOrders')}
         </RippleButton>
 
