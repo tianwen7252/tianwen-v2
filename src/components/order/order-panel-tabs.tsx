@@ -4,7 +4,7 @@
  * Uses underline-style tabs matching the settings page pattern.
  */
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { ClipboardList, ListOrdered, Trash2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
@@ -36,12 +36,24 @@ export function OrderPanelTabs() {
 
   const itemCount = items.reduce((sum, item) => sum + item.quantity, 0)
 
+  // Track previous items length to detect new item additions
+  const prevItemsLenRef = useRef(items.length)
+
   // Auto-switch to current tab when edit mode is activated
   useEffect(() => {
     if (editingOrderId) {
       setActiveTab('current')
     }
   }, [editingOrderId])
+
+  // Auto-switch to current tab when items are added (e.g., product button, calculator)
+  useEffect(() => {
+    const prevLen = prevItemsLenRef.current
+    prevItemsLenRef.current = items.length
+    if (prevLen === 0 && items.length > 0) {
+      setActiveTab('current')
+    }
+  }, [items.length])
 
   // Invalidate recent orders query when switching to recent tab
   const handleTabChange = (tab: OrderTab) => {
@@ -110,21 +122,20 @@ export function OrderPanelTabs() {
         )}
       </div>
 
-      {/* Tab content */}
-      <div className="flex-1 overflow-hidden pt-3">
-        {activeTab === 'current' ? (
-          <OrderPanel
-            submitLabel={
-              editingOrderId
-                ? `${t('order.editOrderButton')}#${editingOrderNumber}`
-                : undefined
-            }
-            submitColor={editingOrderId ? EDIT_BUTTON_COLOR : undefined}
-            hideHeader
-          />
-        ) : (
-          <RecentOrdersList />
-        )}
+      {/* Tab content — both panels stay mounted to preserve state */}
+      <div className={cn('flex-1 overflow-hidden pt-3', activeTab !== 'current' && 'hidden')}>
+        <OrderPanel
+          submitLabel={
+            editingOrderId
+              ? `${t('order.editOrderButton')}#${editingOrderNumber}`
+              : undefined
+          }
+          submitColor={editingOrderId ? EDIT_BUTTON_COLOR : undefined}
+          hideHeader
+        />
+      </div>
+      <div className={cn('flex-1 overflow-hidden pt-3', activeTab !== 'recent' && 'hidden')}>
+        <RecentOrdersList />
       </div>
     </div>
   )

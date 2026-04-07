@@ -153,7 +153,7 @@
   },
   "order": {
     "title": "Order",
-    "currentOrder": "Current Order",
+    "currentOrder": "Order Items",
     "emptyOrder": "No items in order",
     "bentoCount": "{{count}} bentos",
     "soupCount": "{{count}} soups",

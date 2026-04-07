@@ -153,7 +153,7 @@
   },
   "order": {
     "title": "點餐",
-    "currentOrder": "目前訂單",
+    "currentOrder": "餐點項目",
     "emptyOrder": "尚無訂單項目",
     "bentoCount": "{{count}}個便當",
     "soupCount": "{{count}}杯湯",
