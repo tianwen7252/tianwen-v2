@@ -18,6 +18,7 @@ import { useGoogleAuth } from '@/hooks/use-google-auth'
 import { getErrorLogRepo } from '@/lib/repositories/provider'
 import { SCHEMA_VERSION } from '@/lib/schema'
 import { useAppVersion } from '@/lib/version'
+import { formatBytes } from '@/lib/format-bytes'
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
@@ -38,8 +39,18 @@ function getEnvironment(): string {
 
 // ─── Storage Hook ────────────────────────────────────────────────────────────
 
-function useStorageEstimate(): number {
-  const [percent, setPercent] = useState(0)
+interface StorageEstimate {
+  readonly percent: number
+  readonly usageBytes: number
+  readonly quotaBytes: number
+}
+
+function useStorageEstimate(): StorageEstimate {
+  const [state, setState] = useState<StorageEstimate>({
+    percent: 0,
+    usageBytes: 0,
+    quotaBytes: 0,
+  })
 
   useEffect(() => {
     async function estimate() {
@@ -48,19 +59,22 @@ function useStorageEstimate(): number {
         const usage = est.usage ?? 0
         const quota = est.quota ?? 0
         if (quota === 0) {
-          setPercent(0)
+          setState({ percent: 0, usageBytes: 0, quotaBytes: 0 })
           return
         }
-        setPercent(Math.round((usage / quota) * 100))
+        setState({
+          percent: Math.round((usage / quota) * 100),
+          usageBytes: usage,
+          quotaBytes: quota,
+        })
       } catch {
-        // Storage API not supported — show 0
-        setPercent(0)
+        setState({ percent: 0, usageBytes: 0, quotaBytes: 0 })
       }
     }
     estimate()
   }, [])
 
-  return percent
+  return state
 }
 
 // ─── Component ───────────────────────────────────────────────────────────────
@@ -68,7 +82,7 @@ function useStorageEstimate(): number {
 export function SystemInfo() {
   const { t } = useTranslation()
   const queryClient = useQueryClient()
-  const storagePercent = useStorageEstimate()
+  const { percent: storagePercent, usageBytes, quotaBytes } = useStorageEstimate()
   const appVersion = useAppVersion()
 
   const { googleUser, isAdmin } = useGoogleAuth()
@@ -157,12 +171,17 @@ export function SystemInfo() {
               {t('settings.localStorage')}
             </CardTitle>
           </CardHeader>
-          <CardContent className="flex justify-center">
+          <CardContent className="flex flex-col items-center gap-2">
             <AnimatedCircularProgressBar
               value={storagePercent}
               gaugePrimaryColor="rgb(127, 149, 106)"
               gaugeSecondaryColor="rgba(0, 0, 0, 0.1)"
+              className="size-28 text-xl"
             />
+            <div className="flex w-full justify-between text-muted-foreground">
+              <span>{t('settings.storageUsed')}: {formatBytes(usageBytes, 2)}</span>
+              <span>{t('settings.storageRemaining')}: {formatBytes(quotaBytes - usageBytes, 2)}</span>
+            </div>
           </CardContent>
         </Card>
 

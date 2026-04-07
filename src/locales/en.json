@@ -239,6 +239,8 @@
     "appVersion": "Current Version",
     "lastUpdated": "Last Updated",
     "localStorage": "Local Storage",
+    "storageUsed": "Used",
+    "storageRemaining": "Remaining",
     "cloudBackup": "Cloud Backup",
     "noBackup": "Not backed up",
     "lastBackup": "Last Backup",

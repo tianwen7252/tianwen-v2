@@ -1,11 +1,12 @@
 /**
  * Format a byte count into a human-readable string (B, KB, MB, GB).
+ * @param decimals Number of decimal places (default: 1)
  */
 
 const UNITS = ['B', 'KB', 'MB', 'GB'] as const
 const THRESHOLD = 1024
 
-export function formatBytes(bytes: number): string {
+export function formatBytes(bytes: number, decimals = 1): string {
   if (bytes === 0) return '0 B'
 
   let unitIndex = 0
@@ -20,5 +21,5 @@ export function formatBytes(bytes: number): string {
     return `${value} ${UNITS[unitIndex]}`
   }
 
-  return `${value.toFixed(1)} ${UNITS[unitIndex]}`
+  return `${value.toFixed(decimals)} ${UNITS[unitIndex]}`
 }
