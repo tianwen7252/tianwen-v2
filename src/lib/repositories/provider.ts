@@ -54,6 +54,10 @@ import {
   createPriceChangeLogRepository,
   type PriceChangeLogRepository,
 } from './price-change-log-repository'
+import {
+  createSettingsRepository,
+  type SettingsRepository,
+} from './settings-repository'
 
 let employeeRepo: EmployeeRepository | null = null
 let attendanceRepo: AttendanceRepository | null = null
@@ -68,6 +72,7 @@ let customOrderNameRepo: CustomOrderNameRepository | null = null
 let backupLogRepo: BackupLogRepository | null = null
 let orderTypeRepo: OrderTypeRepository | null = null
 let priceChangeLogRepo: PriceChangeLogRepository | null = null
+let settingsRepo: SettingsRepository | null = null
 let dbInstance: AsyncDatabase | null = null
 
 /**
@@ -89,6 +94,7 @@ export function initRepositories(db: AsyncDatabase): void {
   backupLogRepo = createBackupLogRepository(db)
   orderTypeRepo = createOrderTypeRepository(db)
   priceChangeLogRepo = createPriceChangeLogRepository(db)
+  settingsRepo = createSettingsRepository(db)
 }
 
 /**
@@ -261,6 +267,19 @@ export function getPriceChangeLogRepo(): PriceChangeLogRepository {
 }
 
 /**
+ * Get the SettingsRepository singleton.
+ * Throws if initRepositories() has not been called.
+ */
+export function getSettingsRepo(): SettingsRepository {
+  if (!settingsRepo) {
+    throw new Error(
+      'Repositories not initialized. Call initRepositories(db) first.',
+    )
+  }
+  return settingsRepo
+}
+
+/**
  * Get the raw AsyncDatabase instance.
  * Throws if initRepositories() has not been called.
  * Useful for raw SQL queries like table stats.
@@ -292,5 +311,6 @@ export function resetRepositories(): void {
   backupLogRepo = null
   orderTypeRepo = null
   priceChangeLogRepo = null
+  settingsRepo = null
   dbInstance = null
 }

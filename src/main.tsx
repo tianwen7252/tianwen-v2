@@ -120,6 +120,9 @@ async function bootstrap() {
   initRepositories(db)
   installGlobalErrorLogger()
 
+  // Hydrate backup schedule from DB (async, non-blocking)
+  import('@/stores/backup-store').then(m => void m.hydrateBackupScheduleFromDb())
+
   createRoot(rootElement).render(
     <StrictMode>
       <QueryProvider>
