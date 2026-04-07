@@ -5,6 +5,7 @@ import { notify } from '@/components/ui/sonner'
 import { ScrollArea, type ScrollAreaHandle } from '@/components/ui/scroll-area'
 import { RippleButton } from '@/components/ui/ripple-button'
 import { useOrderStore } from '@/stores/order-store'
+import { logError } from '@/lib/error-logger'
 import { SwipeToDelete } from '@/components/ui/swipe-to-delete'
 import { OrderItemRow } from './order-item-row'
 import { OrderSummary } from './order-summary'
@@ -79,7 +80,9 @@ export function OrderPanel({
       await submitOrder(memoTags)
       setConfirmOpen(false)
       notify.success(t('order.submitSuccess'))
-    } catch {
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err)
+      logError(msg, 'OrderPanel.handleSubmit', err instanceof Error ? err.stack : undefined)
       notify.error(t('order.submitError'))
     } finally {
       setIsSubmitting(false)
@@ -92,7 +95,9 @@ export function OrderPanel({
     try {
       await submitOrder([])
       notify.success(t('order.submitSuccess'))
-    } catch {
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err)
+      logError(msg, 'OrderPanel.handleQuickSubmit', err instanceof Error ? err.stack : undefined)
       notify.error(t('order.submitError'))
     } finally {
       setIsSubmitting(false)
