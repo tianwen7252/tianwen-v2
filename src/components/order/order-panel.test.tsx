@@ -63,7 +63,7 @@ describe('OrderPanel', () => {
 
   it('should render the header', async () => {
     await renderOrderPanel()
-    expect(screen.getByText('目前訂單')).toBeTruthy()
+    expect(screen.getByText('餐點項目')).toBeTruthy()
   })
 
   it('should show empty state when cart has no items', async () => {

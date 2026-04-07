@@ -28,7 +28,7 @@ interface TokenResponse {
 }
 
 interface TokenClient {
-  requestAccessToken: () => void
+  requestAccessToken: (overrides?: { prompt?: string }) => void
 }
 
 interface GoogleOAuth2 {
@@ -161,7 +161,9 @@ export function useGoogleAuth() {
         },
       })
 
-      client.requestAccessToken()
+      // prompt: '' skips account-picker / consent when the user already
+      // has an active Google session and has previously authorised the scopes.
+      client.requestAccessToken({ prompt: '' })
     })
   }, [setGoogleUser])
 

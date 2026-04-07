@@ -15,7 +15,7 @@ describe('i18n translations', () => {
     })
 
     it('should have order.currentOrder', () => {
-      expect(zhTW.order.currentOrder).toBe('目前訂單')
+      expect(zhTW.order.currentOrder).toBe('餐點項目')
     })
 
     it('should have order.emptyOrder', () => {
@@ -77,7 +77,7 @@ describe('i18n translations', () => {
     })
 
     it('should have order.currentOrder', () => {
-      expect(en.order.currentOrder).toBe('Current Order')
+      expect(en.order.currentOrder).toBe('Order Items')
     })
 
     it('should have order.emptyOrder', () => {

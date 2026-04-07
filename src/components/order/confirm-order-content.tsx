@@ -42,7 +42,7 @@ export function ConfirmOrderContent({
       {/* ── Left panel: categorized items ── */}
       <ScrollArea className="flex-5" watchDeps={[groups]}>
         <div className="space-y-4 pr-5">
-          {groups.map(group => {
+          {groups.map((group) => {
             const accent = CATEGORY_ACCENT[group.key] ?? DEFAULT_ACCENT
             return (
               <div
@@ -50,34 +50,34 @@ export function ConfirmOrderContent({
                 className={`border-l-3 pl-3 ${accent.border}`}
               >
                 {/* Category label */}
-                <div className={`mb-1.5 text-md tracking-wide ${accent.text}`}>
+                <div className={`mb-1.5 text-lg tracking-wide ${accent.text}`}>
                   {t(group.label)}
                 </div>
                 {/* Regular items */}
-                {group.items.map(item => (
+                {group.items.map((item) => (
                   <div
                     key={item.id}
                     className="flex items-baseline justify-between py-[5px]"
                   >
                     <span
-                      className={`text-md ${item.commodityId.startsWith('custom-') ? 'text-(--color-red)' : 'text-gray-800'}`}
+                      className={`text-lg ${item.commodityId.startsWith('custom-') ? 'text-(--color-red)' : 'text-gray-800'}`}
                     >
                       {item.name}
                     </span>
                     <span className="mx-2 flex-1 border-b border-dotted border-gray-300" />
                     <span className="text-gray-400">x{item.quantity}</span>
-                    <span className="ml-3 min-w-[3.5rem] text-right tabular-nums text-gray-700">
+                    <span className="ml-3 min-w-[3.5rem] text-lg text-right tabular-nums text-gray-700">
                       ${(item.price * item.quantity).toLocaleString()}
                     </span>
                   </div>
                 ))}
                 {/* Discount items */}
-                {group.discounts?.map(discount => (
+                {group.discounts?.map((discount) => (
                   <div
                     key={discount.id}
                     className="flex items-baseline justify-between py-[5px] text-[15px]"
                   >
-                    <span className="text-md text-gray-800">
+                    <span className="text-lg text-gray-800">
                       {discount.label}
                     </span>
                     <span className="mx-2 flex-1 border-b border-dotted border-gray-300" />

@@ -144,7 +144,7 @@ interface ToasterProps {
  * for the custom notification style.
  */
 function Toaster({
-  position = 'top-right',
+  position = 'top-center',
   duration = 3000,
   ...props
 }: ToasterProps) {

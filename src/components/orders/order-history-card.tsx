@@ -1,7 +1,7 @@
 import { useMemo, useState, useRef, useEffect } from 'react'
 import dayjs from 'dayjs'
 import { useTranslation } from 'react-i18next'
-import { Pencil, Trash2, MoveDown } from 'lucide-react'
+import { Pencil, Trash2, MoveDown, CircleCheckBig } from 'lucide-react'
 import { SwipeActions } from '@/components/ui/swipe-actions'
 import type { Order } from '@/lib/schemas'
 import { formatCurrency } from '@/lib/currency'
@@ -28,17 +28,24 @@ export interface OrderHistoryCardProps {
   readonly onEdit?: () => void
   /** When changed, close any open swipe actions on this card */
   readonly resetKey?: number
+  /** Whether this order has been served — shows served visual overlay */
+  readonly isServed?: boolean
+  /** Tap handler for the card body (e.g., toggle served status) */
+  readonly onTap?: () => void
+  /** When true, hide the delete action from swipe actions */
+  readonly hideDelete?: boolean
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-/** Build the list of swipe actions — always includes edit and delete */
+/** Build the list of swipe actions — optionally excludes delete */
 function buildSwipeActions(
   onDelete: () => void,
   t: (key: string) => string,
   onEdit?: () => void,
+  hideDelete?: boolean,
 ): readonly SwipeAction[] {
-  return [
+  const actions: SwipeAction[] = [
     {
       key: 'edit',
       icon: <Pencil size={20} color="#fff" />,
@@ -46,14 +53,17 @@ function buildSwipeActions(
       label: t('common.edit'),
       onClick: onEdit ?? (() => {}),
     },
-    {
+  ]
+  if (!hideDelete) {
+    actions.push({
       key: 'delete',
       icon: <Trash2 size={20} color="#fff" />,
       color: DELETE_ACTION_COLOR,
       label: t('common.delete'),
       onClick: onDelete,
-    },
-  ]
+    })
+  }
+  return actions
 }
 
 // ─── Component ───────────────────────────────────────────────────────────────
@@ -69,6 +79,9 @@ export function OrderHistoryCard({
   onDelete,
   onEdit,
   resetKey,
+  isServed,
+  onTap,
+  hideDelete,
 }: OrderHistoryCardProps) {
   const { t } = useTranslation()
   const [expanded, setExpanded] = useState(false)
@@ -86,7 +99,7 @@ export function OrderHistoryCard({
   const formattedTime = dayjs(order.createdAt).format('h:mm A')
   const isDiscounted =
     order.originalTotal !== undefined && order.originalTotal > order.total
-  const actions = buildSwipeActions(onDelete, t, onEdit)
+  const actions = buildSwipeActions(onDelete, t, onEdit, hideDelete)
   const hasUpdate = order.updatedAt !== order.createdAt
 
   // Group items by category using the commodity lookup map
@@ -104,9 +117,20 @@ export function OrderHistoryCard({
       <div
         ref={cardRef}
         data-testid="order-history-card"
-        className="relative rounded-xl bg-card p-4 flex flex-col overflow-hidden transition-[max-height] duration-300 ease-in-out"
+        className={`relative rounded-xl p-4 flex flex-col overflow-hidden transition-[max-height,background-color] duration-300 ease-in-out ${isServed ? 'bg-[#f0f5ed]' : 'bg-card'}`}
         style={expanded ? undefined : { maxHeight: CARD_MAX_HEIGHT }}
+        onClick={onTap}
       >
+        {/* Served overlay icon */}
+        {isServed && (
+          <div className="absolute inset-x-0 top-3 flex justify-center pointer-events-none z-10">
+            <CircleCheckBig
+              size={48}
+              className="text-primary"
+              strokeWidth={1.5}
+            />
+          </div>
+        )}
         {/* Row 1: Order number + time */}
         <div className="flex items-center justify-between mb-1">
           <span className="text-base">#{order.number}</span>
@@ -115,39 +139,39 @@ export function OrderHistoryCard({
 
         {/* Row 2: Categorized items */}
         <div className="flex flex-col gap-2 mb-2">
-          {groups.map(group => {
+          {groups.map((group) => {
             const accent = CATEGORY_ACCENT[group.key] ?? DEFAULT_ACCENT
             return (
               <div
                 key={group.key}
                 className={`border-l-3 pl-3 ${accent.border}`}
               >
-                <div className={`mb-1 text-md tracking-wide ${accent.text}`}>
+                <div className={`mb-1 text-lg tracking-wide ${accent.text}`}>
                   {t(group.label)}
                 </div>
-                {group.items.map(item => (
+                {group.items.map((item) => (
                   <div
                     key={item.id}
                     className="flex items-baseline justify-between py-[3px]"
                   >
                     <span
-                      className={`text-md ${item.commodityId.startsWith('custom-') ? 'text-(--color-red)' : 'text-gray-800'}`}
+                      className={`text-lg ${item.commodityId.startsWith('custom-') ? 'text-(--color-red)' : 'text-gray-800'}`}
                     >
                       {item.name}
                     </span>
                     <span className="mx-2 flex-1 border-b border-dotted border-gray-300" />
                     <span className="text-gray-400">x{item.quantity}</span>
-                    <span className="ml-2 text-md text-gray-600">
+                    <span className="ml-2 text-lg text-gray-600">
                       {formatCurrency(item.price * item.quantity)}
                     </span>
                   </div>
                 ))}
-                {group.discounts?.map(discount => (
+                {group.discounts?.map((discount) => (
                   <div
                     key={discount.id}
                     className="flex items-baseline justify-between py-[3px]"
                   >
-                    <span className="text-md text-gray-800">
+                    <span className="text-lg text-gray-800">
                       {discount.label}
                     </span>
                     <span className="mx-2 flex-1 border-b border-dotted border-gray-300" />
@@ -164,7 +188,7 @@ export function OrderHistoryCard({
         {/* Row 3: Memo tags */}
         {order.memo.length > 0 && (
           <div data-testid="memo-tags" className="flex gap-1.5 mb-2">
-            {order.memo.map(tag => (
+            {order.memo.map((tag) => (
               <span
                 key={tag}
                 className="inline-block px-2 py-0.5 text-xs rounded-lg bg-[#F8F4EC] text-muted-foreground"
@@ -210,7 +234,7 @@ export function OrderHistoryCard({
             <RippleButton
               rippleColor="rgba(0,0,0,0.1)"
               className="pointer-events-auto flex items-center gap-1 text-md text-muted-foreground transition hover:text-foreground"
-              onClick={e => {
+              onClick={(e) => {
                 e.stopPropagation()
                 setExpanded(true)
               }}

@@ -5,6 +5,7 @@ import { notify } from '@/components/ui/sonner'
 import { ScrollArea, type ScrollAreaHandle } from '@/components/ui/scroll-area'
 import { RippleButton } from '@/components/ui/ripple-button'
 import { useOrderStore } from '@/stores/order-store'
+import { logError } from '@/lib/error-logger'
 import { SwipeToDelete } from '@/components/ui/swipe-to-delete'
 import { OrderItemRow } from './order-item-row'
 import { OrderSummary } from './order-summary'
@@ -22,6 +23,8 @@ interface OrderPanelProps {
   readonly submitColor?: string
   /** Override SwipeToDelete foreground background class (default: 'bg-card'). Use 'bg-transparent' inside modals. */
   readonly swipeForegroundClassName?: string
+  /** When true, hide the header row (icon, title, count, clear button). Used when OrderPanelTabs manages the header. */
+  readonly hideHeader?: boolean
 }
 
 // ─── Component ───────────────────────────────────────────────────────────────
@@ -32,21 +35,22 @@ export function OrderPanel({
   submitLabel,
   submitColor,
   swipeForegroundClassName,
+  hideHeader,
 }: OrderPanelProps) {
-  const items = useOrderStore(s => s.items)
-  const discounts = useOrderStore(s => s.discounts)
-  const removeItem = useOrderStore(s => s.removeItem)
-  const updateQuantity = useOrderStore(s => s.updateQuantity)
-  const updateNote = useOrderStore(s => s.updateNote)
-  const getTotal = useOrderStore(s => s.getTotal)
-  const getBentoCount = useOrderStore(s => s.getBentoCount)
-  const getSoupCount = useOrderStore(s => s.getSoupCount)
-  const getItemCount = useOrderStore(s => s.getItemCount)
-  const clearCart = useOrderStore(s => s.clearCart)
-  const submitOrder = useOrderStore(s => s.submitOrder)
-  const lastAddedItem = useOrderStore(s => s.lastAddedItem)
+  const items = useOrderStore((s) => s.items)
+  const discounts = useOrderStore((s) => s.discounts)
+  const removeItem = useOrderStore((s) => s.removeItem)
+  const updateQuantity = useOrderStore((s) => s.updateQuantity)
+  const updateNote = useOrderStore((s) => s.updateNote)
+  const getTotal = useOrderStore((s) => s.getTotal)
+  const getBentoCount = useOrderStore((s) => s.getBentoCount)
+  const getSoupCount = useOrderStore((s) => s.getSoupCount)
+  const getItemCount = useOrderStore((s) => s.getItemCount)
+  const clearCart = useOrderStore((s) => s.clearCart)
+  const submitOrder = useOrderStore((s) => s.submitOrder)
+  const lastAddedItem = useOrderStore((s) => s.lastAddedItem)
 
-  const quickSubmit = useOrderStore(s => s.quickSubmit)
+  const quickSubmit = useOrderStore((s) => s.quickSubmit)
 
   const { t } = useTranslation()
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -76,7 +80,9 @@ export function OrderPanel({
       await submitOrder(memoTags)
       setConfirmOpen(false)
       notify.success(t('order.submitSuccess'))
-    } catch {
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err)
+      logError(msg, 'OrderPanel.handleSubmit', err instanceof Error ? err.stack : undefined)
       notify.error(t('order.submitError'))
     } finally {
       setIsSubmitting(false)
@@ -89,7 +95,9 @@ export function OrderPanel({
     try {
       await submitOrder([])
       notify.success(t('order.submitSuccess'))
-    } catch {
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err)
+      logError(msg, 'OrderPanel.handleQuickSubmit', err instanceof Error ? err.stack : undefined)
       notify.error(t('order.submitError'))
     } finally {
       setIsSubmitting(false)
@@ -100,29 +108,31 @@ export function OrderPanel({
   const isQuickMode = quickSubmit && !onSubmitClick
 
   return (
-    <div className="flex h-full flex-col gap-4 px-4">
-      {/* Header */}
-      <div className="flex items-center gap-2">
-        <ClipboardList className="size-5" />
-        <h3 className="text-base">{t('order.currentOrder')}</h3>
-        {itemCount > 0 && (
-          <span className="rounded-full bg-primary px-2 py-0.5 text-xs font-medium text-primary-foreground">
-            {itemCount}
-          </span>
-        )}
-        <div className="flex-1" />
-        {itemCount > 0 && (
-          <RippleButton
-            aria-label={t('order.clearCart')}
-            disabled={isEmpty}
-            onClick={clearCart}
-            rippleColor="rgba(0, 0, 0, 0.1)"
-            className="size-8 rounded-md border border-border bg-background text-muted-foreground shadow-xs flex items-center gap-2 justify-center hover:text-destructive"
-          >
-            <Trash2 className="size-4" />
-          </RippleButton>
-        )}
-      </div>
+    <div className={`flex h-full flex-col gap-4${hideHeader ? '' : ' px-4'}`}>
+      {/* Header — hidden when OrderPanelTabs manages the header */}
+      {!hideHeader && (
+        <div className="flex items-center gap-2">
+          <ClipboardList className="size-5" />
+          <h3 className="text-base">{t('order.currentOrder')}</h3>
+          {itemCount > 0 && (
+            <span className="rounded-full bg-primary px-2 py-0.5 text-xs font-medium text-primary-foreground">
+              {itemCount}
+            </span>
+          )}
+          <div className="flex-1" />
+          {itemCount > 0 && (
+            <RippleButton
+              aria-label={t('order.clearCart')}
+              disabled={isEmpty}
+              onClick={clearCart}
+              rippleColor="rgba(0, 0, 0, 0.1)"
+              className="size-8 rounded-md border border-border bg-background text-muted-foreground shadow-xs flex items-center gap-2 justify-center hover:text-destructive"
+            >
+              <Trash2 className="size-4" />
+            </RippleButton>
+          )}
+        </div>
+      )}
 
       {/* Order items list */}
       <ScrollArea
@@ -136,7 +146,7 @@ export function OrderPanel({
           </p>
         ) : (
           <div className="divide-y divide-border pr-2">
-            {items.map(item => (
+            {items.map((item) => (
               <div key={item.id} data-cart-item-id={item.id}>
                 <SwipeToDelete
                   onDelete={() => removeItem(item.id)}

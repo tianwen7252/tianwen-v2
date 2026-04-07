@@ -31,12 +31,15 @@ function createMockOrderRepo(
       editor: '',
       items: [],
       discounts: [],
+      isServed: false,
       createdAt: Date.now(),
       updatedAt: Date.now(),
     } satisfies Order),
     update: vi.fn(),
     getNextOrderNumber: vi.fn().mockResolvedValue(1),
     remove: vi.fn().mockResolvedValue(true),
+    findRecent: vi.fn().mockResolvedValue([]),
+    toggleServed: vi.fn().mockResolvedValue(undefined),
     ...overrides,
   }
 }
@@ -1355,6 +1358,7 @@ describe('useOrderStore', () => {
       total: 200,
       originalTotal: 250,
       editor: 'admin',
+      isServed: false,
       createdAt: 1700000000000,
       updatedAt: 1700000000000,
       items: [

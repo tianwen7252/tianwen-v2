@@ -24,7 +24,7 @@ describe('Toaster', () => {
     const { container } = render(<Toaster />)
     const toaster = container.querySelector('[data-testid="sonner-toaster"]')
     const props = JSON.parse(toaster?.getAttribute('data-props') ?? '{}')
-    expect(props.position).toBe('top-right')
+    expect(props.position).toBe('top-center')
   })
 
   it('should use 3000ms duration by default', async () => {
