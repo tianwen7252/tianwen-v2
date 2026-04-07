@@ -1,5 +1,30 @@
 # Changelog
 
+## [2.6.0](https://github.com/tianwen7252/tianwen-v2/compare/v2.5.0...v2.6.0) (2026-04-07)
+
+
+### Features
+
+* 點餐頁面近期訂單 Tab — 已送餐切換 + 編輯訂單 (V2-198) ([716db5d](https://github.com/tianwen7252/tianwen-v2/commit/716db5d745465a7fc361d1e6840cebc11927ccc9))
+
+
+### Bug Fixes
+
+* adjust icons ([1e26915](https://github.com/tianwen7252/tianwen-v2/commit/1e26915b5b20b78d349b764f794203b43327ffcf))
+* bugs & enhancements 修正 (V2-171) ([222e1df](https://github.com/tianwen7252/tianwen-v2/commit/222e1dff2784373182f357429707cee433648cc0))
+* notification 預設 top-center、toggleServed 不更新 updated_at (V2-198) ([102b5eb](https://github.com/tianwen7252/tianwen-v2/commit/102b5eb551bd3525a60036eec3b8e43a56e4bce1))
+* OrderPanel 在 tab 內移除 px-4，modal 內保留 (V2-198) ([7a1643e](https://github.com/tianwen7252/tianwen-v2/commit/7a1643eca171d2df2a3a8cfcec050a0e5866b423))
+* tab badge 和刪除按鈕即時更新 (V2-198) ([811a871](https://github.com/tianwen7252/tianwen-v2/commit/811a8719be2dafdcd5fefa130ed04a74e4de1b28))
+* tab 改為下劃線風格、刪除按鈕調整、近期訂單恢復滑動刪除 (V2-198) ([9bdc087](https://github.com/tianwen7252/tianwen-v2/commit/9bdc0871c7ae8277e3a9f170334d42782d1b9fe7))
+* 備份檔名改 tianwen- 開頭、表格欄寬、iPad header shadow (V2-171) ([6bd6b53](https://github.com/tianwen7252/tianwen-v2/commit/6bd6b53db9afad5e42d73ee1a0ff3bc8e5d3e441))
+* 排程選擇器移到按鈕上方一起置底 (V2-171) ([9281919](https://github.com/tianwen7252/tianwen-v2/commit/9281919e8974060e5376321379109a1fb1b4b382))
+* 移除 order_items 的 commodity_id FK 約束 (V2-198) ([def2a99](https://github.com/tianwen7252/tianwen-v2/commit/def2a99b68d7bb24e5ceadada1d9fe7110e9f270))
+* 訂單送出/編輯失敗記錄到 error_logs (V2-198) ([c5252b9](https://github.com/tianwen7252/tianwen-v2/commit/c5252b9ef4745b7b8aebbf68f041f12cd41b5e20))
+* 近期訂單一進頁面就載入、任何新增品項都自動切 tab (V2-198) ([aabd545](https://github.com/tianwen7252/tianwen-v2/commit/aabd545cf98255f7584175979a881ec537cc233e))
+* 近期訂單持久顯示、新增餐點自動切 tab、改名餐點項目 (V2-198) ([8fb873c](https://github.com/tianwen7252/tianwen-v2/commit/8fb873c0cc2a049968492677eb2cc4ff45335f86))
+* 近期訂單白畫面 — tab content 容器加 flex flex-col (V2-198) ([ab74c13](https://github.com/tianwen7252/tianwen-v2/commit/ab74c1337251443c462869d4ee09dce034ae5b8c))
+* 雲端備份 UI 改善 + header shadow 修正 (V2-171) ([51696a2](https://github.com/tianwen7252/tianwen-v2/commit/51696a2ff0e7b653b3afc2886a5210bb74c572b0))
+
 ## [2.5.0](https://github.com/tianwen7252/tianwen-v2/compare/v2.4.2...v2.5.0) (2026-04-07)
 
 
