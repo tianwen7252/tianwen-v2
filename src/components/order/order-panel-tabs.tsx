@@ -2,18 +2,16 @@
  * OrderPanelTabs — tabbed wrapper for the order page right panel.
  * Provides "餐點項目" (Order Items) and "近期訂單" (Recent Orders) tabs.
  * Uses underline-style tabs matching the settings page pattern.
- *
- * Both tab panels stay mounted (using absolute positioning + visibility)
- * so RecentOrdersList keeps its query cache and ScrollArea layout intact.
  */
 
 import { useState, useEffect, useRef } from 'react'
 import { ClipboardList, ListOrdered, Trash2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { useQueryClient } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { cn } from '@/lib/cn'
 import { RippleButton } from '@/components/ui/ripple-button'
 import { useOrderStore } from '@/stores/order-store'
+import { getOrderRepo } from '@/lib/repositories/provider'
 import { OrderPanel } from './order-panel'
 import { RecentOrdersList } from './recent-orders-list'
 
@@ -35,9 +33,18 @@ export function OrderPanelTabs() {
   const editingOrderId = useOrderStore(s => s.editingOrderId)
   const editingOrderNumber = useOrderStore(s => s.editingOrderNumber)
   const items = useOrderStore(s => s.items)
+  const submitSeq = useOrderStore(s => s.submitSeq)
   const clearCart = useOrderStore(s => s.clearCart)
 
   const itemCount = items.reduce((sum, item) => sum + item.quantity, 0)
+
+  // Prefetch recent orders on mount so data is ready when user clicks the tab.
+  // This query runs regardless of which tab is active.
+  useQuery({
+    queryKey: ['orders', 'recent', submitSeq],
+    queryFn: () => getOrderRepo().findRecent(10),
+    staleTime: 0,
+  })
 
   // Track previous items count to detect additions while on recent tab
   const prevItemsLenRef = useRef(items.length)
@@ -52,7 +59,6 @@ export function OrderPanelTabs() {
   }, [editingOrderId])
 
   // Auto-switch to current tab when items are added while on recent tab
-  // Covers: product button clicks, calculator submit (addCustomItem), addItem
   useEffect(() => {
     const prevLen = prevItemsLenRef.current
     prevItemsLenRef.current = items.length
@@ -128,16 +134,9 @@ export function OrderPanelTabs() {
         )}
       </div>
 
-      {/* Tab content — both panels always mounted via absolute positioning.
-          visibility:hidden keeps layout intact (unlike display:none) so
-          ScrollArea calculates dimensions correctly and queries run on mount. */}
-      <div className="relative flex-1 pt-3">
-        <div
-          className={cn(
-            'absolute inset-0 flex flex-col pt-3',
-            activeTab !== 'current' && 'invisible pointer-events-none',
-          )}
-        >
+      {/* Tab content */}
+      <div className="flex flex-1 flex-col overflow-hidden pt-3">
+        {activeTab === 'current' ? (
           <OrderPanel
             submitLabel={
               editingOrderId
@@ -147,15 +146,9 @@ export function OrderPanelTabs() {
             submitColor={editingOrderId ? EDIT_BUTTON_COLOR : undefined}
             hideHeader
           />
-        </div>
-        <div
-          className={cn(
-            'absolute inset-0 flex flex-col pt-3',
-            activeTab !== 'recent' && 'invisible pointer-events-none',
-          )}
-        >
+        ) : (
           <RecentOrdersList />
-        </div>
+        )}
       </div>
     </div>
   )
