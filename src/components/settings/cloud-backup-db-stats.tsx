@@ -20,6 +20,8 @@ import { formatBytes } from '@/lib/format-bytes'
 // ── Constants ──────────────────────────────────────────────────────────────
 
 const MAX_BACKUP_COUNT = 30
+// Cloudflare R2 free tier storage limit
+const R2_FREE_QUOTA_BYTES = 10 * 1024 * 1024 * 1024 // 10 GB
 
 const SCHEDULE_OPTIONS: readonly {
   readonly type: ScheduleType
@@ -157,7 +159,7 @@ export function CloudBackupDbStats() {
                       {t('backup.totalCloudSize')}
                     </td>
                     <td className="px-2 py-1 text-right">
-                      {formatBytes(totalSize)}
+                      {formatBytes(totalSize)} / {formatBytes(R2_FREE_QUOTA_BYTES)}
                     </td>
                   </tr>
                   <tr className="border-b">
@@ -197,8 +199,11 @@ export function CloudBackupDbStats() {
             </div>
           </div>
 
+          {/* Divider */}
+          <hr className="my-3 border-border" />
+
           {/* Action buttons at bottom */}
-          <div className="mt-3 flex gap-3">
+          <div className="flex gap-3">
             <RippleButton
               className="flex flex-1 items-center justify-center gap-2 rounded-md border-none bg-(--color-green) px-4 py-2 text-white hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50"
               onClick={() => void handleBackupNow()}

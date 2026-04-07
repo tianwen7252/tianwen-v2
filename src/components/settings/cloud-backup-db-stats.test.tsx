@@ -182,8 +182,8 @@ describe('CloudBackupDbStats', () => {
       renderWithProviders(<CloudBackupDbStats />)
 
       await waitFor(() => {
-        // 3072 + 2048 + 1024 = 6144 = 6.0 KB
-        expect(screen.getByText('6.0 KB')).toBeTruthy()
+        // 3072 + 2048 + 1024 = 6144 = 6.0 KB; displayed as "USED / QUOTA"
+        expect(screen.getByText('6.0 KB / 10.0 GB')).toBeTruthy()
       })
     })
 
