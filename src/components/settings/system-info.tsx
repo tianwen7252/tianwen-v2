@@ -290,8 +290,9 @@ export function SystemInfo() {
           <div className="flex items-center justify-between">
             <CardTitle>{t('settings.errorLogs')}</CardTitle>
             <RippleButton
-              className="flex items-center gap-2 rounded-md border-none bg-(--color-red) px-3 py-1 text-white hover:opacity-80"
+              className="flex items-center gap-2 rounded-md border-none bg-(--color-red) px-3 py-1 text-white hover:opacity-80 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground disabled:opacity-50"
               onClick={() => clearLogsMutation.mutate()}
+              disabled={errorLogCount === 0}
             >
               <Trash2 size={14} />
               {t('settings.clearLogs')}
