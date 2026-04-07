@@ -60,18 +60,24 @@ describe('backup utilities', () => {
       expect(compressed.length).toBeGreaterThan(0)
     })
 
-    it('should upload compressed data via PUT to /api/backup', async () => {
-      const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
-          success: true,
-          metadata: {
+    it('should upload via presigned URL flow (presign → PUT → complete)', async () => {
+      const fetchSpy = vi.spyOn(globalThis, 'fetch')
+        // 1. POST /api/backup/presign
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({
+            success: true,
+            presignedUrl: 'https://r2.example.com/presigned-put',
             filename: 'backup-2026-04-07_13-00-00.sqlite.gz',
-            size: 3,
-            createdAt: '2026-03-30T00:00:00Z',
-          },
-        }),
-      } as Response)
+          }),
+        } as Response)
+        // 2. PUT to presigned URL
+        .mockResolvedValueOnce({ ok: true } as Response)
+        // 3. POST /api/backup/complete
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({ success: true, verified: true, deleted: 0 }),
+        } as Response)
 
       const service = createBackupService()
       const data = new Uint8Array([1, 2, 3])
@@ -80,20 +86,18 @@ describe('backup utilities', () => {
         'backup-2026-04-07_13-00-00.sqlite.gz',
       )
 
-      expect(fetchSpy).toHaveBeenCalledWith(
-        '/api/backup/backup-2026-04-07_13-00-00.sqlite.gz',
-        expect.objectContaining({
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/gzip' },
-          body: expect.any(Blob),
-        }),
-      )
+      expect(fetchSpy).toHaveBeenCalledTimes(3)
+      // Presign call
+      expect(fetchSpy).toHaveBeenNthCalledWith(1, '/api/backup/presign', expect.objectContaining({ method: 'POST' }))
+      // Direct R2 upload
+      expect(fetchSpy).toHaveBeenNthCalledWith(2, 'https://r2.example.com/presigned-put', expect.objectContaining({ method: 'PUT' }))
+      // Complete notification
+      expect(fetchSpy).toHaveBeenNthCalledWith(3, '/api/backup/complete', expect.objectContaining({ method: 'POST' }))
       expect(metadata.filename).toBe('backup-2026-04-07_13-00-00.sqlite.gz')
       expect(metadata.size).toBe(3)
-      expect(metadata.createdAt).toBe('2026-03-30T00:00:00Z')
     })
 
-    it('should throw when upload returns non-ok response', async () => {
+    it('should throw when presign fails', async () => {
       vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
         ok: false,
         status: 500,
@@ -104,37 +108,71 @@ describe('backup utilities', () => {
       const data = new Uint8Array([1, 2, 3])
 
       await expect(
-        service.upload(data, 'backup-123.sqlite.gz'),
-      ).rejects.toThrow('Upload failed')
+        service.upload(data, 'backup-2026-04-07_13-00-00.sqlite.gz'),
+      ).rejects.toThrow('Presign failed')
     })
 
-    it('should download backup file via GET from /api/backup', async () => {
-      const binaryData = new Uint8Array([1, 2, 3])
-      const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
-        ok: true,
-        arrayBuffer: async () => binaryData.buffer,
-      } as Response)
+    it('should throw when R2 upload fails', async () => {
+      vi.spyOn(globalThis, 'fetch')
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({
+            success: true,
+            presignedUrl: 'https://r2.example.com/presigned-put',
+            filename: 'backup-2026-04-07_13-00-00.sqlite.gz',
+          }),
+        } as Response)
+        .mockResolvedValueOnce({
+          ok: false,
+          status: 403,
+          statusText: 'Forbidden',
+        } as Response)
 
       const service = createBackupService()
-      const result = await service.download('backup-123.sqlite.gz')
+      const data = new Uint8Array([1, 2, 3])
 
-      expect(fetchSpy).toHaveBeenCalledWith('/api/backup/backup-123.sqlite.gz')
+      await expect(
+        service.upload(data, 'backup-2026-04-07_13-00-00.sqlite.gz'),
+      ).rejects.toThrow('Upload to R2 failed')
+    })
+
+    it('should download via presigned URL flow', async () => {
+      const binaryData = new Uint8Array([1, 2, 3])
+      vi.spyOn(globalThis, 'fetch')
+        // 1. POST /api/backup/presign
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({
+            success: true,
+            presignedUrl: 'https://r2.example.com/presigned-get',
+            filename: 'backup-2026-04-07_13-00-00.sqlite.gz',
+          }),
+        } as Response)
+        // 2. GET from presigned URL
+        .mockResolvedValueOnce({
+          ok: true,
+          arrayBuffer: async () => binaryData.buffer,
+        } as Response)
+
+      const service = createBackupService()
+      const result = await service.download('backup-2026-04-07_13-00-00.sqlite.gz')
+
       expect(result).toBeInstanceOf(Uint8Array)
       expect(result).toEqual(binaryData)
     })
 
-    it('should throw when download returns non-ok response', async () => {
+    it('should throw when download presign fails', async () => {
       vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
         ok: false,
-        status: 404,
-        statusText: 'Not Found',
+        status: 500,
+        statusText: 'Internal Server Error',
       } as Response)
 
       const service = createBackupService()
 
-      await expect(service.download('missing.sqlite.gz')).rejects.toThrow(
-        'Download failed',
-      )
+      await expect(
+        service.download('backup-2026-04-07_13-00-00.sqlite.gz'),
+      ).rejects.toThrow('Presign failed')
     })
 
     it('should restore database from compressed data', async () => {

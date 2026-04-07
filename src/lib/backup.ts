@@ -1,6 +1,7 @@
 /**
- * Backup/restore service for SQLite database via Vercel Function API.
- * Exports the database as a gzipped file and uploads via same-origin fetch.
+ * Backup/restore service for SQLite database.
+ * Uses presigned URLs for direct R2 upload/download to bypass
+ * Vercel Function's 4.5 MB payload limit.
  */
 
 export interface BackupMetadata {
@@ -109,9 +110,57 @@ export function generateExportFilename(): string {
   return `tianwen-db-${formatTaiwanTimestamp(new Date())}.sqlite`
 }
 
+// ── Presigned URL helpers ──────────────────────────────────────────────────
+
+interface PresignResponse {
+  readonly success: boolean
+  readonly presignedUrl: string
+  readonly filename: string
+  readonly error?: string
+}
+
+async function getPresignedUrl(
+  action: 'upload' | 'download',
+  filename: string,
+): Promise<string> {
+  const response = await fetch('/api/backup/presign', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action, filename }),
+  })
+
+  if (!response.ok) {
+    throw new Error(`Presign failed: ${response.status} ${response.statusText}`)
+  }
+
+  const json = (await response.json()) as PresignResponse
+  if (!json.success || !json.presignedUrl) {
+    throw new Error(json.error ?? 'Failed to get presigned URL')
+  }
+
+  return json.presignedUrl
+}
+
+async function notifyUploadComplete(filename: string): Promise<void> {
+  const response = await fetch('/api/backup/complete', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ filename }),
+  })
+
+  if (!response.ok) {
+    throw new Error(
+      `Complete notification failed: ${response.status} ${response.statusText}`,
+    )
+  }
+}
+
+// ── Service ────────────────────────────────────────────────────────────────
+
 /**
- * Create a backup service backed by Vercel Function API (/api/backup).
- * No credentials needed — same-origin request, R2 auth is server-side.
+ * Create a backup service using presigned URLs for direct R2 access.
+ * Upload/download bypass Vercel Function's 4.5 MB payload limit.
+ * List and delete still go through Vercel Functions (small payloads).
  */
 export function createBackupService(): BackupService {
   return {
@@ -120,7 +169,11 @@ export function createBackupService(): BackupService {
     },
 
     async upload(data: Uint8Array, filename: string): Promise<BackupMetadata> {
-      const response = await fetch(`/api/backup/${filename}`, {
+      // 1. Get presigned PUT URL
+      const presignedUrl = await getPresignedUrl('upload', filename)
+
+      // 2. Upload directly to R2
+      const response = await fetch(presignedUrl, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/gzip' },
         body: new Blob([data as BlobPart], { type: 'application/gzip' }),
@@ -128,24 +181,30 @@ export function createBackupService(): BackupService {
 
       if (!response.ok) {
         throw new Error(
-          `Upload failed: ${response.status} ${response.statusText}`,
+          `Upload to R2 failed: ${response.status} ${response.statusText}`,
         )
       }
 
-      const json = (await response.json()) as {
-        success: boolean
-        metadata: BackupMetadata
-      }
+      // 3. Notify server to verify + cleanup old backups
+      await notifyUploadComplete(filename)
 
-      return json.metadata
+      return {
+        filename,
+        size: data.length,
+        createdAt: new Date().toISOString(),
+      }
     },
 
     async download(filename: string): Promise<Uint8Array> {
-      const response = await fetch(`/api/backup/${filename}`)
+      // 1. Get presigned GET URL
+      const presignedUrl = await getPresignedUrl('download', filename)
+
+      // 2. Download directly from R2
+      const response = await fetch(presignedUrl)
 
       if (!response.ok) {
         throw new Error(
-          `Download failed: ${response.status} ${response.statusText}`,
+          `Download from R2 failed: ${response.status} ${response.statusText}`,
         )
       }
 
