@@ -194,6 +194,8 @@
     "calculatorSubmit": "確定送出",
     "calculatorNamePlaceholder": "客製訂單名稱",
     "calculatorError": "錯誤",
+    "calculatorPositiveHint": "正數的預設名稱為「客製訂單」",
+    "calculatorNegativeHint": "負數的預設名稱為「折扣」",
     "addTagError": "新增備註失敗",
     "deleteTagError": "刪除備註失敗",
     "recentOrders": "近期訂單",

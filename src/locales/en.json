@@ -194,6 +194,8 @@
     "calculatorSubmit": "Confirm",
     "calculatorNamePlaceholder": "Custom order name",
     "calculatorError": "Error",
+    "calculatorPositiveHint": "Positive defaults to \"Custom Order\"",
+    "calculatorNegativeHint": "Negative defaults to \"Discount\"",
     "addTagError": "Failed to add note",
     "deleteTagError": "Failed to delete note",
     "recentOrders": "Recent Orders",

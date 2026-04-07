@@ -21,17 +21,14 @@ export const DELETE_SEED_DATA = false
 // ─── Employee Avatars ───────────────────────────────────────────────────────
 
 export const EMPLOYEE_AVATARS = {
-  alex: 'images/aminals/doberman.png',
-  mia: 'images/aminals/puppy.png',
-  david: 'images/aminals/cat.png',
-  grace: 'images/aminals/tiger.png',
-  mark: 'images/aminals/chick.png',
-  jason: 'images/aminals/terrier.png',
-  sophie: 'images/aminals/fox.png',
-  ryan: 'images/aminals/giraffe.png',
-  emma: 'images/aminals/parrot.png',
-  kevin: 'images/aminals/cow.png',
-  olivia: 'images/aminals/lion.png',
+  eric: 'doberman.png',
+  niuniu: 'fish.png',
+  aji: 'terrier.png',
+  zhu: 'pig.png',
+  acao: 'alpaca.png',
+  caomei: 'bear.png',
+  xiaoying: 'rabbit.png',
+  qiumin: 'cat.png',
 } as const
 
 // ─── Employee Data ──────────────────────────────────────────────────────────
@@ -51,8 +48,8 @@ export interface EmployeeSeed {
 export const EMPLOYEE_SEEDS: readonly EmployeeSeed[] = [
   {
     id: 'emp-001',
-    name: 'Alex',
-    avatar: EMPLOYEE_AVATARS.alex,
+    name: 'Eric',
+    avatar: EMPLOYEE_AVATARS.eric,
     status: 'active',
     shiftType: 'regular',
     employeeNo: 'E001',
@@ -61,8 +58,8 @@ export const EMPLOYEE_SEEDS: readonly EmployeeSeed[] = [
   },
   {
     id: 'emp-002',
-    name: 'Mia',
-    avatar: EMPLOYEE_AVATARS.mia,
+    name: '妞妞',
+    avatar: EMPLOYEE_AVATARS.niuniu,
     status: 'active',
     shiftType: 'regular',
     employeeNo: 'E002',
@@ -71,94 +68,63 @@ export const EMPLOYEE_SEEDS: readonly EmployeeSeed[] = [
   },
   {
     id: 'emp-003',
-    name: 'David',
-    avatar: EMPLOYEE_AVATARS.david,
+    name: '阿吉',
+    avatar: EMPLOYEE_AVATARS.aji,
     status: 'active',
-    shiftType: 'shift',
+    shiftType: 'regular',
     employeeNo: 'E003',
     isAdmin: false,
     hireDate: '2024-06-10',
   },
   {
     id: 'emp-004',
-    name: 'Grace',
-    avatar: EMPLOYEE_AVATARS.grace,
+    name: '豬',
+    avatar: EMPLOYEE_AVATARS.zhu,
     status: 'active',
-    shiftType: 'regular',
+    shiftType: 'shift',
     employeeNo: 'E004',
     isAdmin: false,
     hireDate: '2025-01-10',
   },
   {
-    id: 'emp-006',
-    name: 'Jason',
-    avatar: EMPLOYEE_AVATARS.jason,
+    id: 'emp-005',
+    name: '阿草',
+    avatar: EMPLOYEE_AVATARS.acao,
     status: 'active',
     shiftType: 'shift',
-    employeeNo: 'E006',
-    isAdmin: false,
-    hireDate: '2025-11-01',
-  },
-  {
-    id: 'emp-007',
-    name: 'Sophie',
-    avatar: EMPLOYEE_AVATARS.sophie,
-    status: 'active',
-    shiftType: 'regular',
-    employeeNo: 'E007',
+    employeeNo: 'E005',
     isAdmin: false,
     hireDate: '2025-02-01',
   },
   {
-    id: 'emp-008',
-    name: 'Ryan',
-    avatar: EMPLOYEE_AVATARS.ryan,
+    id: 'emp-006',
+    name: '草嵋',
+    avatar: EMPLOYEE_AVATARS.caomei,
     status: 'active',
     shiftType: 'shift',
-    employeeNo: 'E008',
+    employeeNo: 'E006',
     isAdmin: false,
     hireDate: '2025-04-15',
   },
   {
-    id: 'emp-009',
-    name: 'Emma',
-    avatar: EMPLOYEE_AVATARS.emma,
+    id: 'emp-007',
+    name: '小映',
+    avatar: EMPLOYEE_AVATARS.xiaoying,
     status: 'active',
-    shiftType: 'regular',
-    employeeNo: 'E009',
+    shiftType: 'shift',
+    employeeNo: 'E007',
     isAdmin: false,
     hireDate: '2025-06-01',
   },
   {
-    id: 'emp-010',
-    name: 'Kevin',
-    avatar: EMPLOYEE_AVATARS.kevin,
-    status: 'active',
-    shiftType: 'regular',
-    employeeNo: 'E010',
-    isAdmin: false,
-    hireDate: '2025-08-10',
-  },
-  {
-    id: 'emp-011',
-    name: 'Olivia',
-    avatar: EMPLOYEE_AVATARS.olivia,
+    id: 'emp-008',
+    name: '秋敏',
+    avatar: EMPLOYEE_AVATARS.qiumin,
     status: 'active',
     shiftType: 'shift',
-    employeeNo: 'E011',
+    employeeNo: 'E008',
     isAdmin: false,
-    hireDate: '2025-10-01',
-  },
-  {
-    id: 'emp-005',
-    name: 'Mark',
-    avatar: EMPLOYEE_AVATARS.mark,
-    status: 'inactive',
-    shiftType: 'regular',
-    employeeNo: 'E005',
-    isAdmin: false,
-    hireDate: '2023-09-01',
-    resignationDate: '2025-12-31',
+    hireDate: '2025-08-10',
   },
 ] as const
 
@@ -180,7 +146,7 @@ export interface AttendanceSeed {
 }
 
 export const ATTENDANCE_SEEDS: readonly AttendanceSeed[] = [
-  // Alex: clocked in at 08:00, clocked out at 17:00 (full day)
+  // Eric: clocked in at 08:00, clocked out at 17:00 (full day)
   {
     id: 'att-001',
     employeeId: 'emp-001',
@@ -190,7 +156,7 @@ export const ATTENDANCE_SEEDS: readonly AttendanceSeed[] = [
     clockOutMinute: 0,
     type: 'regular',
   },
-  // Mia: clocked in at 09:00, still working
+  // 妞妞: clocked in at 09:00, still working
   {
     id: 'att-002',
     employeeId: 'emp-002',
@@ -198,7 +164,7 @@ export const ATTENDANCE_SEEDS: readonly AttendanceSeed[] = [
     clockInMinute: 0,
     type: 'regular',
   },
-  // David: on paid leave
+  // 阿吉: on paid leave
   {
     id: 'att-003',
     employeeId: 'emp-003',
@@ -206,10 +172,10 @@ export const ATTENDANCE_SEEDS: readonly AttendanceSeed[] = [
     clockInMinute: 0,
     type: 'paid_leave',
   },
-  // Jason: clocked in at 10:00, clocked out at 14:30 (half day)
+  // 阿草: clocked in at 10:00, clocked out at 14:30 (half day)
   {
     id: 'att-004',
-    employeeId: 'emp-006',
+    employeeId: 'emp-005',
     clockInHour: 10,
     clockInMinute: 0,
     clockOutHour: 14,
@@ -432,6 +398,23 @@ export const COMMODITY_SEEDS: readonly CommoditySeed[] = [
     price: 15,
     priority: 17,
     imageKey: 'add-vegetable',
+    hideOnMode: 'both',
+  },
+  {
+    id: 'com-018',
+    typeId: 'bento',
+    name: '加菜(大)',
+    price: 30,
+    priority: 18,
+    imageKey: 'add-vegetable',
+    hideOnMode: 'both',
+  },
+  {
+    id: 'com-019',
+    typeId: 'bento',
+    name: '白飯',
+    price: 10,
+    priority: 19,
     hideOnMode: 'both',
   },
 
