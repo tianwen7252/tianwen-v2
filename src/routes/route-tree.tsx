@@ -75,6 +75,12 @@ function RootLayout() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
+  // Reset scrolled state on route change — iPad PWA doesn't fire scroll
+  // events when navigating to pages with overflow:hidden (e.g., order page)
+  useEffect(() => {
+    setScrolled(window.scrollY > 0)
+  }, [pathname])
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* Navigation header — sticky with glassmorphism on scroll */}

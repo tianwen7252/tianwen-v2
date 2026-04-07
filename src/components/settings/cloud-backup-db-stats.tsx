@@ -141,13 +141,13 @@ export function CloudBackupDbStats() {
               <table className="w-full text-left">
                 <tbody>
                   <tr className="border-b">
-                    <td className="px-2 py-1 text-muted-foreground">
+                    <td className="whitespace-nowrap px-2 py-1 text-muted-foreground">
                       {t('backup.backupCount')}
                     </td>
                     <td className="px-2 py-1 text-right">{backupCount}</td>
                   </tr>
                   <tr className="border-b">
-                    <td className="px-2 py-1 text-muted-foreground">
+                    <td className="whitespace-nowrap px-2 py-1 text-muted-foreground">
                       {t('backup.maxBackupCount')}
                     </td>
                     <td className="px-2 py-1 text-right">{MAX_BACKUP_COUNT}</td>

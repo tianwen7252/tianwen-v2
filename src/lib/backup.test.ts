@@ -41,7 +41,7 @@ describe('backup utilities', () => {
       const filename = generateBackupFilename()
 
       expect(filename).toMatch(
-        /^backup-\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}\.sqlite\.gz$/,
+        /^tianwen-backup-\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}\.sqlite\.gz$/,
       )
     })
   })
