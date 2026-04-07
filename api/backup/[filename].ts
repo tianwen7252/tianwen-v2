@@ -10,7 +10,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import type { Readable } from 'node:stream'
 
-const VALID_FILENAME_RE = /^backup-\d+\.sqlite\.gz$/
+const VALID_FILENAME_RE = /^backup-\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}\.sqlite\.gz$/
 const MAX_UPLOAD_BYTES = 1024 * 1024 * 1024 // 1 GB
 const MAX_BACKUPS = 30
 

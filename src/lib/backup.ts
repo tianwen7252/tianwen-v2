@@ -80,11 +80,33 @@ export async function decompress(data: Uint8Array): Promise<Uint8Array> {
 }
 
 /**
+ * Format a date as YYYY-MM-DD_HH-mm-ss in Taiwan time (UTC+8).
+ */
+function formatTaiwanTimestamp(date: Date): string {
+  const tw = new Date(date.getTime() + 8 * 60 * 60 * 1000)
+  const y = tw.getUTCFullYear()
+  const mo = String(tw.getUTCMonth() + 1).padStart(2, '0')
+  const d = String(tw.getUTCDate()).padStart(2, '0')
+  const h = String(tw.getUTCHours()).padStart(2, '0')
+  const mi = String(tw.getUTCMinutes()).padStart(2, '0')
+  const s = String(tw.getUTCSeconds()).padStart(2, '0')
+  return `${y}-${mo}-${d}_${h}-${mi}-${s}`
+}
+
+/**
  * Generate a timestamped backup filename.
- * Format: backup-{unix_timestamp}.sqlite.gz
+ * Format: backup-YYYY-MM-DD_HH-mm-ss.sqlite.gz (Taiwan time)
  */
 export function generateBackupFilename(): string {
-  return `backup-${Date.now()}.sqlite.gz`
+  return `backup-${formatTaiwanTimestamp(new Date())}.sqlite.gz`
+}
+
+/**
+ * Generate a timestamped export filename.
+ * Format: tianwen-db-YYYY-MM-DD_HH-mm-ss.sqlite (Taiwan time)
+ */
+export function generateExportFilename(): string {
+  return `tianwen-db-${formatTaiwanTimestamp(new Date())}.sqlite`
 }
 
 /**

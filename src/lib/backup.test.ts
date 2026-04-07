@@ -37,15 +37,12 @@ describe('backup utilities', () => {
   })
 
   describe('generateBackupFilename', () => {
-    it('should generate a filename with unix timestamp', () => {
+    it('should generate a filename with date timestamp', () => {
       const filename = generateBackupFilename()
 
-      expect(filename).toMatch(/^backup-\d+\.sqlite\.gz$/)
-    })
-
-    it('should generate unique filenames on consecutive calls', () => {
-      const name1 = generateBackupFilename()
-      expect(name1).toMatch(/^backup-\d+\.sqlite\.gz$/)
+      expect(filename).toMatch(
+        /^backup-\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}\.sqlite\.gz$/,
+      )
     })
   })
 
@@ -69,7 +66,7 @@ describe('backup utilities', () => {
         json: async () => ({
           success: true,
           metadata: {
-            filename: 'backup-1711814400000.sqlite.gz',
+            filename: 'backup-2026-04-07_13-00-00.sqlite.gz',
             size: 3,
             createdAt: '2026-03-30T00:00:00Z',
           },
@@ -80,18 +77,18 @@ describe('backup utilities', () => {
       const data = new Uint8Array([1, 2, 3])
       const metadata = await service.upload(
         data,
-        'backup-1711814400000.sqlite.gz',
+        'backup-2026-04-07_13-00-00.sqlite.gz',
       )
 
       expect(fetchSpy).toHaveBeenCalledWith(
-        '/api/backup/backup-1711814400000.sqlite.gz',
+        '/api/backup/backup-2026-04-07_13-00-00.sqlite.gz',
         expect.objectContaining({
           method: 'PUT',
           headers: { 'Content-Type': 'application/gzip' },
           body: expect.any(Blob),
         }),
       )
-      expect(metadata.filename).toBe('backup-1711814400000.sqlite.gz')
+      expect(metadata.filename).toBe('backup-2026-04-07_13-00-00.sqlite.gz')
       expect(metadata.size).toBe(3)
       expect(metadata.createdAt).toBe('2026-03-30T00:00:00Z')
     })
@@ -156,7 +153,7 @@ describe('backup utilities', () => {
           success: true,
           data: [
             {
-              filename: 'backup-1711814400000.sqlite.gz',
+              filename: 'backup-2026-04-07_13-00-00.sqlite.gz',
               size: 1024,
               createdAt: '2026-03-21T10:00:00Z',
             },
@@ -174,7 +171,7 @@ describe('backup utilities', () => {
 
       expect(fetchSpy).toHaveBeenCalledWith('/api/backup')
       expect(backups).toHaveLength(1)
-      expect(backups[0]?.filename).toBe('backup-1711814400000.sqlite.gz')
+      expect(backups[0]?.filename).toBe('backup-2026-04-07_13-00-00.sqlite.gz')
       expect(backups[0]?.size).toBe(1024)
     })
 

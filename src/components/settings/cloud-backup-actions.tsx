@@ -11,6 +11,7 @@ import { RippleButton } from '@/components/ui/ripple-button'
 import { notify } from '@/components/ui/sonner'
 import { useBackupStore, type ScheduleType } from '@/stores/backup-store'
 import { performBackup } from '@/lib/perform-backup'
+import { generateExportFilename } from '@/lib/backup'
 import { getDatabase } from '@/lib/repositories/provider'
 
 // ── Constants ──────────────────────────────────────────────────────────────
@@ -57,7 +58,7 @@ export function CloudBackupActions() {
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = `tianwen-db-${Date.now()}.sqlite`
+      a.download = generateExportFilename()
       a.click()
       URL.revokeObjectURL(url)
       notify.success(t('backup.exportSuccess'))
