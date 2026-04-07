@@ -198,10 +198,9 @@ export function createOrderRepository(db: AsyncDatabase): OrderRepository {
     },
 
     async toggleServed(id: string, isServed: boolean) {
-      const now = Date.now()
       await db.exec(
-        'UPDATE orders SET is_served = ?, updated_at = ? WHERE id = ?',
-        [isServed ? 1 : 0, now, id],
+        'UPDATE orders SET is_served = ? WHERE id = ?',
+        [isServed ? 1 : 0, id],
       )
     },
 
