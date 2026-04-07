@@ -103,7 +103,7 @@ export function OrderItemRow({
       <div className="flex items-center justify-between gap-2">
         <span
           className={cn(
-            'flex-1 whitespace-nowrap text-lg',
+            'flex-1 whitespace-nowrap text-xl',
             isCustom && 'text-(--color-red)',
           )}
         >
@@ -192,7 +192,7 @@ export function OrderItemRow({
         </div>
 
         {/* Price */}
-        <span className="min-w-[3rem] text-right text-base font-medium">
+        <span className="min-w-[3rem] text-lg text-right font-medium">
           ${totalPrice.toLocaleString()}
         </span>
 

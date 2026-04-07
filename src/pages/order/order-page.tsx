@@ -25,7 +25,7 @@ export function OrderPage() {
       </div>
 
       {/* Right panel — order summary (35%) */}
-      <div className="flex-36 overflow-y-auto border-l border-border bg-card p-4">
+      <div className="flex-36 overflow-y-auto border-l border-border bg-card p-4 pt-0">
         <OrderPanelTabs />
       </div>
     </div>
