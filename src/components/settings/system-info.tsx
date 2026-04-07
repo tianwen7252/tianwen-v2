@@ -179,8 +179,14 @@ export function SystemInfo() {
               className="size-28 text-xl"
             />
             <div className="flex w-full justify-between text-muted-foreground">
-              <span>{t('settings.storageUsed')}: {formatBytes(usageBytes, 2)}</span>
-              <span>{t('settings.storageRemaining')}: {formatBytes(quotaBytes - usageBytes, 2)}</span>
+              <div>
+                <div>{t('settings.storageUsed')}</div>
+                <div>{formatBytes(usageBytes, 2)}</div>
+              </div>
+              <div className="text-right">
+                <div>{t('settings.storageRemaining')}</div>
+                <div>{formatBytes(quotaBytes - usageBytes, 2)}</div>
+              </div>
             </div>
           </CardContent>
         </Card>
