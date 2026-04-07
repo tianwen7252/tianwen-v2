@@ -22,6 +22,8 @@ interface OrderPanelProps {
   readonly submitColor?: string
   /** Override SwipeToDelete foreground background class (default: 'bg-card'). Use 'bg-transparent' inside modals. */
   readonly swipeForegroundClassName?: string
+  /** When true, hide the header row (icon, title, count, clear button). Used when OrderPanelTabs manages the header. */
+  readonly hideHeader?: boolean
 }
 
 // ─── Component ───────────────────────────────────────────────────────────────
@@ -32,6 +34,7 @@ export function OrderPanel({
   submitLabel,
   submitColor,
   swipeForegroundClassName,
+  hideHeader,
 }: OrderPanelProps) {
   const items = useOrderStore(s => s.items)
   const discounts = useOrderStore(s => s.discounts)
@@ -101,28 +104,30 @@ export function OrderPanel({
 
   return (
     <div className="flex h-full flex-col gap-4 px-4">
-      {/* Header */}
-      <div className="flex items-center gap-2">
-        <ClipboardList className="size-5" />
-        <h3 className="text-base">{t('order.currentOrder')}</h3>
-        {itemCount > 0 && (
-          <span className="rounded-full bg-primary px-2 py-0.5 text-xs font-medium text-primary-foreground">
-            {itemCount}
-          </span>
-        )}
-        <div className="flex-1" />
-        {itemCount > 0 && (
-          <RippleButton
-            aria-label={t('order.clearCart')}
-            disabled={isEmpty}
-            onClick={clearCart}
-            rippleColor="rgba(0, 0, 0, 0.1)"
-            className="size-8 rounded-md border border-border bg-background text-muted-foreground shadow-xs flex items-center gap-2 justify-center hover:text-destructive"
-          >
-            <Trash2 className="size-4" />
-          </RippleButton>
-        )}
-      </div>
+      {/* Header — hidden when OrderPanelTabs manages the header */}
+      {!hideHeader && (
+        <div className="flex items-center gap-2">
+          <ClipboardList className="size-5" />
+          <h3 className="text-base">{t('order.currentOrder')}</h3>
+          {itemCount > 0 && (
+            <span className="rounded-full bg-primary px-2 py-0.5 text-xs font-medium text-primary-foreground">
+              {itemCount}
+            </span>
+          )}
+          <div className="flex-1" />
+          {itemCount > 0 && (
+            <RippleButton
+              aria-label={t('order.clearCart')}
+              disabled={isEmpty}
+              onClick={clearCart}
+              rippleColor="rgba(0, 0, 0, 0.1)"
+              className="size-8 rounded-md border border-border bg-background text-muted-foreground shadow-xs flex items-center gap-2 justify-center hover:text-destructive"
+            >
+              <Trash2 className="size-4" />
+            </RippleButton>
+          )}
+        </div>
+      )}
 
       {/* Order items list */}
       <ScrollArea

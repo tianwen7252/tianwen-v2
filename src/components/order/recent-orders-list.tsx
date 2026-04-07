@@ -9,8 +9,11 @@ import { useTranslation } from 'react-i18next'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { OrderHistoryCard } from '@/components/orders/order-history-card'
+import { DeleteOrderModal } from '@/components/orders/delete-order-modal'
+import { notify } from '@/components/ui/sonner'
 import { useOrderStore } from '@/stores/order-store'
 import { getOrderRepo, getCommodityRepo } from '@/lib/repositories/provider'
+import type { Order } from '@/lib/schemas'
 
 // ─── Component ───────────────────────────────────────────────────────────────
 
@@ -22,6 +25,10 @@ export function RecentOrdersList() {
 
   // Swipe reset key — increment to close any open swipe actions
   const [swipeResetKey, setSwipeResetKey] = useState(0)
+
+  // Delete order state
+  const [deletingOrder, setDeletingOrder] = useState<Order | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   // Fetch recent 10 orders (refetch when submitSeq changes)
   const { data: orders = [] } = useQuery({
@@ -64,6 +71,23 @@ export function RecentOrdersList() {
     [startEditOrder, typeIdMap],
   )
 
+  // Handle delete — remove order and invalidate query
+  const handleDeleteConfirm = useCallback(async () => {
+    if (!deletingOrder) return
+    setIsDeleting(true)
+    try {
+      const repo = getOrderRepo()
+      await repo.remove(deletingOrder.id)
+      queryClient.invalidateQueries({ queryKey: ['orders', 'recent'] })
+      notify.success(t('orders.deleteSuccess'))
+    } catch {
+      notify.error(t('orders.deleteError'))
+    } finally {
+      setIsDeleting(false)
+      setDeletingOrder(null)
+    }
+  }, [deletingOrder, queryClient, t])
+
   // Close swipe actions when tapping background
   const handleBackgroundTap = useCallback(() => {
     setSwipeResetKey(k => k + 1)
@@ -83,23 +107,33 @@ export function RecentOrdersList() {
   }
 
   return (
-    <ScrollArea className="flex-1">
-      {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions */}
-      <div className="flex flex-col gap-3 pr-2 pb-4" onClick={handleBackgroundTap}>
-        {orders.map(order => (
-          <OrderHistoryCard
-            key={order.id}
-            order={order}
-            typeIdMap={typeIdMap}
-            onDelete={() => {}}
-            onEdit={() => handleEdit(order)}
-            resetKey={swipeResetKey}
-            isServed={order.isServed}
-            onTap={() => handleToggleServed(order.id, order.isServed)}
-            hideDelete
-          />
-        ))}
-      </div>
-    </ScrollArea>
+    <>
+      <ScrollArea className="flex-1">
+        {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions */}
+        <div className="flex flex-col gap-3 pr-2 pb-4" onClick={handleBackgroundTap}>
+          {orders.map(order => (
+            <OrderHistoryCard
+              key={order.id}
+              order={order}
+              typeIdMap={typeIdMap}
+              onDelete={() => setDeletingOrder(order)}
+              onEdit={() => handleEdit(order)}
+              resetKey={swipeResetKey}
+              isServed={order.isServed}
+              onTap={() => handleToggleServed(order.id, order.isServed)}
+            />
+          ))}
+        </div>
+      </ScrollArea>
+
+      {/* Delete confirmation modal — reuses the same modal as orders page */}
+      <DeleteOrderModal
+        open={deletingOrder !== null}
+        orderNumber={deletingOrder?.number ?? 0}
+        onConfirm={handleDeleteConfirm}
+        onCancel={() => setDeletingOrder(null)}
+        loading={isDeleting}
+      />
+    </>
   )
 }

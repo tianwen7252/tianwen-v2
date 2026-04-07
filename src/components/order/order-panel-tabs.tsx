@@ -1,10 +1,11 @@
 /**
  * OrderPanelTabs — tabbed wrapper for the order page right panel.
  * Provides "目前訂單" (Current Order) and "近期訂單" (Recent Orders) tabs.
+ * Uses underline-style tabs matching the settings page pattern.
  */
 
 import { useState, useEffect } from 'react'
-import { ClipboardList, ListOrdered } from 'lucide-react'
+import { ClipboardList, ListOrdered, Trash2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
 import { cn } from '@/lib/cn'
@@ -17,20 +18,9 @@ import { RecentOrdersList } from './recent-orders-list'
 
 type OrderTab = 'current' | 'recent'
 
-interface TabDef {
-  readonly value: OrderTab
-  readonly labelKey: string
-  readonly icon: React.ReactNode
-}
-
 // ─── Constants ───────────────────────────────────────────────────────────────
 
 const EDIT_BUTTON_COLOR = '#4A90D9'
-
-const TABS: readonly TabDef[] = [
-  { value: 'current', labelKey: 'order.currentOrder', icon: <ClipboardList size={16} /> },
-  { value: 'recent', labelKey: 'order.recentOrders', icon: <ListOrdered size={16} /> },
-]
 
 // ─── Component ───────────────────────────────────────────────────────────────
 
@@ -41,6 +31,8 @@ export function OrderPanelTabs() {
 
   const editingOrderId = useOrderStore(s => s.editingOrderId)
   const editingOrderNumber = useOrderStore(s => s.editingOrderNumber)
+  const itemCount = useOrderStore(s => s.getItemCount)()
+  const clearCart = useOrderStore(s => s.clearCart)
 
   // Auto-switch to current tab when edit mode is activated
   useEffect(() => {
@@ -58,42 +50,80 @@ export function OrderPanelTabs() {
   }
 
   return (
-    <div className="flex h-full flex-col gap-3">
-      {/* Tab bar */}
-      <div role="tablist" className="flex gap-1 rounded-lg bg-muted p-1">
-        {TABS.map(tab => (
+    <div className="flex h-full flex-col">
+      {/* Tab bar — underline style */}
+      <div className="flex items-center border-b border-border">
+        {/* Current Order tab */}
+        <RippleButton
+          role="tab"
+          type="button"
+          aria-selected={activeTab === 'current'}
+          onClick={() => handleTabChange('current')}
+          className={cn(
+            'flex items-center gap-1.5 border-b-2 px-4 py-3 text-base transition-colors',
+            activeTab === 'current'
+              ? 'border-primary text-primary'
+              : 'border-transparent text-muted-foreground hover:border-border hover:text-foreground',
+          )}
+        >
+          <ClipboardList size={16} />
+          {t('order.currentOrder')}
+          {itemCount > 0 && (
+            <span className="rounded-full bg-primary px-2 py-0.5 text-xs font-medium text-primary-foreground">
+              {itemCount}
+            </span>
+          )}
+        </RippleButton>
+
+        {/* Recent Orders tab */}
+        <RippleButton
+          role="tab"
+          type="button"
+          aria-selected={activeTab === 'recent'}
+          onClick={() => handleTabChange('recent')}
+          className={cn(
+            'flex items-center gap-1.5 border-b-2 px-4 py-3 text-base transition-colors',
+            activeTab === 'recent'
+              ? 'border-primary text-primary'
+              : 'border-transparent text-muted-foreground hover:border-border hover:text-foreground',
+          )}
+        >
+          <ListOrdered size={16} />
+          {t('order.recentOrders')}
+        </RippleButton>
+
+        {/* Spacer */}
+        <div className="flex-1" />
+
+        {/* Delete (clear cart) button — only visible on current order tab */}
+        {activeTab === 'current' && itemCount > 0 && (
           <RippleButton
-            key={tab.value}
-            role="tab"
-            type="button"
-            aria-selected={activeTab === tab.value}
-            onClick={() => handleTabChange(tab.value)}
-            className={cn(
-              'flex flex-1 items-center justify-center gap-1.5 rounded-md px-4 py-2 text-base font-normal transition-colors',
-              activeTab === tab.value
-                ? 'bg-background text-foreground shadow-sm'
-                : 'text-muted-foreground hover:text-foreground',
-            )}
+            aria-label={t('order.clearCart')}
+            onClick={clearCart}
+            rippleColor="rgba(0, 0, 0, 0.1)"
+            className="mr-1 size-8 rounded-md border border-border bg-background text-muted-foreground shadow-xs flex items-center justify-center hover:text-destructive"
           >
-            {tab.icon}
-            {t(tab.labelKey)}
+            <Trash2 className="size-4" />
           </RippleButton>
-        ))}
+        )}
       </div>
 
       {/* Tab content */}
-      {activeTab === 'current' ? (
-        <OrderPanel
-          submitLabel={
-            editingOrderId
-              ? `${t('order.editOrderButton')}#${editingOrderNumber}`
-              : undefined
-          }
-          submitColor={editingOrderId ? EDIT_BUTTON_COLOR : undefined}
-        />
-      ) : (
-        <RecentOrdersList />
-      )}
+      <div className="flex-1 overflow-hidden pt-3">
+        {activeTab === 'current' ? (
+          <OrderPanel
+            submitLabel={
+              editingOrderId
+                ? `${t('order.editOrderButton')}#${editingOrderNumber}`
+                : undefined
+            }
+            submitColor={editingOrderId ? EDIT_BUTTON_COLOR : undefined}
+            hideHeader
+          />
+        ) : (
+          <RecentOrdersList />
+        )}
+      </div>
     </div>
   )
 }
