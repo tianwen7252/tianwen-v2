@@ -23,11 +23,13 @@ vi.mock('@/stores/app-store', () => ({
 }))
 
 const mockLogin = vi.fn()
+const mockRefreshToken = vi.fn().mockResolvedValue('new-token')
 const mockHandleAuthError = vi.fn()
 vi.mock('@/hooks/use-google-auth', () => ({
   useGoogleAuth: () => ({
     login: mockLogin,
     isLoggedIn: mockAppStoreState.googleUser !== null,
+    refreshToken: mockRefreshToken,
     handleAuthError: mockHandleAuthError,
   }),
 }))
@@ -38,6 +40,10 @@ vi.mock('@/lib/google-drive-service', () => ({
   listDriveBackupFiles: (...args: unknown[]) =>
     mockListDriveBackupFiles(...args),
   downloadDriveFile: (...args: unknown[]) => mockDownloadDriveFile(...args),
+  withTokenRefresh: async (
+    fn: (token: string) => Promise<unknown>,
+    token: string,
+  ) => fn(token),
 }))
 
 const mockTransformV1Data = vi.fn()

@@ -129,6 +129,42 @@ export function useGoogleAuth() {
     notify.success(t('auth.logoutSuccess'))
   }, [appLogout, t])
 
+  // Silently refresh the Google access token.
+  // Returns a Promise that resolves with the new token, or null if
+  // the user must re-authenticate (e.g. Google session expired).
+  const refreshToken = useCallback((): Promise<string | null> => {
+    return new Promise(resolve => {
+      if (!window.google?.accounts?.oauth2) {
+        resolve(null)
+        return
+      }
+
+      // Create a one-shot token client with a fresh callback
+      const client = window.google.accounts.oauth2.initTokenClient({
+        client_id: GOOGLE_CLIENT_ID,
+        scope: GIS_SCOPES,
+        callback: async (response: TokenResponse) => {
+          if (response.error || !response.access_token) {
+            resolve(null)
+            return
+          }
+          // Update store with the new token
+          const currentUser = useAppStore.getState().googleUser
+          if (currentUser) {
+            setGoogleUser(
+              currentUser,
+              response.access_token,
+              isAdminUser(currentUser.sub),
+            )
+          }
+          resolve(response.access_token)
+        },
+      })
+
+      client.requestAccessToken()
+    })
+  }, [setGoogleUser])
+
   // Handle auth errors from Google API calls.
   // On AuthExpiredError: logs the user out and shows a toast notification.
   const handleAuthError = useCallback(
@@ -147,6 +183,7 @@ export function useGoogleAuth() {
     isAdmin,
     login,
     logout,
+    refreshToken,
     handleAuthError,
   }
 }
