@@ -13,6 +13,7 @@ export interface BackupService {
   exportDatabase(dbData: Uint8Array): Promise<Uint8Array>
   upload(data: Uint8Array, filename: string): Promise<BackupMetadata>
   download(filename: string): Promise<Uint8Array>
+  deleteBackup(filename: string): Promise<void>
   restoreDatabase(compressed: Uint8Array): Promise<Uint8Array>
   listBackups(): Promise<readonly BackupMetadata[]>
 }
@@ -128,6 +129,18 @@ export function createBackupService(): BackupService {
       }
 
       return new Uint8Array(await response.arrayBuffer())
+    },
+
+    async deleteBackup(filename: string): Promise<void> {
+      const response = await fetch(`/api/backup/${filename}`, {
+        method: 'DELETE',
+      })
+
+      if (!response.ok) {
+        throw new Error(
+          `Delete failed: ${response.status} ${response.statusText}`,
+        )
+      }
     },
 
     async restoreDatabase(compressed: Uint8Array): Promise<Uint8Array> {

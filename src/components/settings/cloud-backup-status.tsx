@@ -17,7 +17,6 @@ export function CloudBackupStatus() {
   const { t } = useTranslation()
   const lastBackupTime = useBackupStore(s => s.lastBackupTime)
   const scheduleType = useBackupStore(s => s.scheduleType) as ScheduleType
-  const scheduleHour = useBackupStore(s => s.scheduleHour)
   const { totalSize, isLoading, error } = useCloudBackups()
 
   const cloudSizeDisplay = error
@@ -65,7 +64,7 @@ export function CloudBackupStatus() {
         </CardHeader>
         <CardContent className="flex flex-col flex-1">
           <div className="text-2xl">
-            {formatSchedule(t, scheduleType, scheduleHour)}
+            {formatSchedule(t, scheduleType)}
           </div>
         </CardContent>
       </Card>
@@ -76,15 +75,14 @@ export function CloudBackupStatus() {
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 function formatSchedule(
-  t: (key: string, options?: Record<string, unknown>) => string,
+  t: (key: string) => string,
   scheduleType: ScheduleType,
-  scheduleHour: number,
 ): string {
   switch (scheduleType) {
     case 'daily':
-      return t('backup.dailyAt', { hour: scheduleHour })
+      return t('backup.scheduleDaily')
     case 'weekly':
-      return t('backup.weeklyAt', { hour: scheduleHour })
+      return t('backup.scheduleWeekly')
     case 'none':
       return t('backup.scheduleNone')
   }
