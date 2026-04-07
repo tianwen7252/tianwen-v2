@@ -19,10 +19,13 @@ import { getErrorLogRepo } from '@/lib/repositories/provider'
 import { SCHEMA_VERSION } from '@/lib/schema'
 import { useAppVersion } from '@/lib/version'
 import { formatBytes } from '@/lib/format-bytes'
+import { useCloudBackups } from '@/hooks/use-cloud-backups'
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
 const PAGE_SIZE = 20
+// Cloudflare R2 free tier storage limit
+const R2_FREE_QUOTA_BYTES = 10 * 1024 * 1024 * 1024 // 10 GB
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -86,6 +89,8 @@ export function SystemInfo() {
   const appVersion = useAppVersion()
 
   const { googleUser, isAdmin } = useGoogleAuth()
+  const { totalSize: cloudUsageBytes, isLoading: cloudLoading } = useCloudBackups()
+  const cloudPercent = cloudLoading ? 0 : Math.min(100, Math.round((cloudUsageBytes / R2_FREE_QUOTA_BYTES) * 100))
 
   // ── Pagination via route search params ────────────────────────────────
   const search = useSearch({ from: '/settings/system-info' })
@@ -191,19 +196,29 @@ export function SystemInfo() {
           </CardContent>
         </Card>
 
-        {/* Backup Card */}
+        {/* Cloud Backup Card — R2 usage progress */}
         <Card shadow className="py-4">
           <CardHeader className="py-0">
             <CardTitle fontSize="text-md" className="text-muted-foreground">
               {t('settings.cloudBackup')}
             </CardTitle>
           </CardHeader>
-          <CardContent className="flex flex-col flex-1">
-            <div className="text-lg text-amber-500">
-              {t('settings.noBackup')}
-            </div>
-            <div className="mt-auto text-md text-muted-foreground">
-              {t('settings.lastBackup')}: {t('settings.noBackupRecord')}
+          <CardContent className="flex flex-col items-center gap-2">
+            <AnimatedCircularProgressBar
+              value={cloudPercent}
+              gaugePrimaryColor="rgb(74, 144, 217)"
+              gaugeSecondaryColor="rgba(0, 0, 0, 0.1)"
+              className="size-28 text-xl"
+            />
+            <div className="flex w-full justify-between text-muted-foreground">
+              <div>
+                <div>{t('settings.storageUsed')}</div>
+                <div>{cloudLoading ? '...' : formatBytes(cloudUsageBytes, 2)}</div>
+              </div>
+              <div className="text-right">
+                <div>{t('settings.storageRemaining')}</div>
+                <div>{cloudLoading ? '...' : formatBytes(R2_FREE_QUOTA_BYTES - cloudUsageBytes, 2)}</div>
+              </div>
             </div>
           </CardContent>
         </Card>

@@ -102,6 +102,7 @@ function makeOrder(overrides: Partial<Order> = {}): Order {
       },
     ],
     discounts: [],
+    isServed: false,
     createdAt: new Date('2026-03-24T12:45:00').getTime(),
     updatedAt: new Date('2026-03-24T12:45:00').getTime(),
     ...overrides,

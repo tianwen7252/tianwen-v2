@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { ArrowLeft, CircleCheckBig, LoaderCircle } from 'lucide-react'
 import { Modal } from '@/components/modal/modal'
 import { RippleButton } from '@/components/ui/ripple-button'
+import { logError } from '@/lib/error-logger'
 import { ProductGrid } from '@/components/order/product-grid'
 import { OrderPanel } from '@/components/order/order-panel'
 import { ConfirmOrderContent } from '@/components/order/confirm-order-content'
@@ -107,7 +108,9 @@ export function EditOrderModal({
       onClose()
       onSaved()
       notify.success(t('order.editSuccess'))
-    } catch {
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err)
+      logError(msg, 'EditOrderModal.handleConfirm', err instanceof Error ? err.stack : undefined)
       notify.error(t('order.editError'))
     } finally {
       setIsSubmitting(false)

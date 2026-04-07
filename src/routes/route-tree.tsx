@@ -75,6 +75,14 @@ function RootLayout() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
+  // Reset scroll position and header shadow on route change.
+  // Without this, navigating from a scrolled page to one with overflow:hidden
+  // (e.g., order page) leaves window.scrollY > 0 and the shadow stays.
+  useEffect(() => {
+    window.scrollTo(0, 0)
+    setScrolled(false)
+  }, [pathname])
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* Navigation header — sticky with glassmorphism on scroll */}

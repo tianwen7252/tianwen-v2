@@ -96,10 +96,10 @@ function formatTaiwanTimestamp(date: Date): string {
 
 /**
  * Generate a timestamped backup filename.
- * Format: backup-YYYY-MM-DD_HH-mm-ss.sqlite.gz (Taiwan time)
+ * Format: tianwen-backup-YYYY-MM-DD_HH-mm-ss.sqlite.gz (Taiwan time)
  */
 export function generateBackupFilename(): string {
-  return `backup-${formatTaiwanTimestamp(new Date())}.sqlite.gz`
+  return `tianwen-backup-${formatTaiwanTimestamp(new Date())}.sqlite.gz`
 }
 
 /**

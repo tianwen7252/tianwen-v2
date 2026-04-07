@@ -63,6 +63,7 @@ function makeOrder(overrides: Partial<Order> = {}): Order {
       },
     ],
     discounts: [],
+    isServed: false,
     createdAt: Date.now(),
     updatedAt: Date.now(),
     ...overrides,
@@ -123,8 +124,8 @@ describe('EditOrderModal', () => {
     await renderModal()
     // ProductGrid is mocked
     expect(screen.getByTestId('product-grid')).toBeTruthy()
-    // OrderPanel renders the header "目前訂單"
-    expect(screen.getByText('目前訂單')).toBeTruthy()
+    // OrderPanel renders the header "餐點項目"
+    expect(screen.getByText('餐點項目')).toBeTruthy()
   })
 
   it('should show submit button with edit order text in ordering mode', async () => {

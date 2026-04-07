@@ -31,6 +31,7 @@ function makeOrder(overrides: Partial<Order> = {}): Order {
     editor: '',
     items: [],
     discounts: [],
+    isServed: false,
     createdAt: dayjs('2026-03-24T10:00:00').valueOf(),
     updatedAt: dayjs('2026-03-24T10:00:00').valueOf(),
     ...overrides,

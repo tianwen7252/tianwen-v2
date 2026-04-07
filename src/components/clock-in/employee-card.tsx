@@ -6,7 +6,7 @@
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/cn'
 import { AvatarImage } from '@/components/avatar-image'
-import { calcTotalHours, formatTotalHours } from '@/lib/attendance-utils'
+// calcTotalHours / formatTotalHours removed — total hours display disabled
 import {
   formatTime,
   deriveCardAction,
@@ -46,7 +46,7 @@ export function EmployeeCard({
   const lastRecord =
     records.length > 0 ? records[records.length - 1] : undefined
   const isVacation = lastRecord !== undefined && lastRecord.type !== 'regular'
-  const totalHours = calcTotalHours(records)
+  // const totalHours = calcTotalHours(records)
   const action = deriveCardAction(records)
   const isClockedIn = records.length > 0 && !isVacation && action === 'clockOut'
   const isClockedOut = records.length > 0 && !isVacation && action === 'clockIn'
@@ -63,7 +63,7 @@ export function EmployeeCard({
       tabIndex={0}
       aria-label={`${employee.name} ${t('nav.clockIn')} — ${badgeText}`}
       onClick={() => onCardClick(employee, records)}
-      onKeyDown={e => e.key === 'Enter' && onCardClick(employee, records)}
+      onKeyDown={(e) => e.key === 'Enter' && onCardClick(employee, records)}
     >
       {/* Avatar with colored border */}
       <div className="mx-auto mb-3">
@@ -76,7 +76,7 @@ export function EmployeeCard({
       </div>
 
       {/* Name */}
-      <div className="text-[20px]" style={{ color: '#1a202c' }}>
+      <div className="text-xl" style={{ color: '#1a202c' }}>
         {employee.name}
       </div>
 
@@ -99,39 +99,36 @@ export function EmployeeCard({
 
       {/* Clock times */}
       {isVacation ? (
-        <div className="space-y-1 text-sm" style={{ color: '#718096' }}>
+        <div className="space-y-1 text-md" style={{ color: '#718096' }}>
           <div>
             {t('clockIn.vacationLabel')}：{formatTime(lastRecord?.clockIn)}
           </div>
         </div>
       ) : (
-        <div className="space-y-1 text-sm" style={{ color: '#718096' }}>
+        <div className="space-y-1.5 text-md px-2 text-regal-navy">
           {records.map((shift, index) => (
-            <div key={shift.id ?? index}>
-              {t('clockIn.arrival')}：{formatTime(shift.clockIn)}{' '}
-              {t('clockIn.departure')}：{formatTime(shift.clockOut)}
+            <div
+              key={shift.id ?? index}
+              className="border-l-2 border-morning-butter"
+            >
+              <div>
+                {t('clockIn.arrival')}：{formatTime(shift.clockIn)}
+              </div>
+              <div>
+                {t('clockIn.departure')}：{formatTime(shift.clockOut)}
+              </div>
             </div>
           ))}
           {records.length === 0 && (
-            <>
+            <div className="border-l-2 border-morning-butter">
               <div>
                 {t('clockIn.arrival')}：{formatTime(undefined)}
               </div>
               <div>
                 {t('clockIn.departure')}：{formatTime(undefined)}
               </div>
-            </>
+            </div>
           )}
-        </div>
-      )}
-
-      {/* Total hours */}
-      {totalHours > 0 && (
-        <div
-          className="mt-2 text-sm font-semibold"
-          style={{ color: '#7f956a' }}
-        >
-          {t('clockIn.totalHours')}: {formatTotalHours(totalHours)}
         </div>
       )}
 
@@ -142,14 +139,16 @@ export function EmployeeCard({
             <button
               type="button"
               className="rounded-lg border bg-white text-[#444] px-3 py-1.5 text-sm hover:bg-[#6b8058]"
-              onClick={e => onButtonAction(e, employee, 'clockIn', undefined)}
+              onClick={(e) => onButtonAction(e, employee, 'clockIn', undefined)}
             >
               {t('clockIn.clockIn')}
             </button>
             <button
               type="button"
               className="rounded-lg border bg-white text-[#444] px-3 py-1.5 text-sm hover:bg-[#e06868]"
-              onClick={e => onButtonAction(e, employee, 'vacation', undefined)}
+              onClick={(e) =>
+                onButtonAction(e, employee, 'vacation', undefined)
+              }
             >
               {t('clockIn.applyVacation')}
             </button>
@@ -159,7 +158,7 @@ export function EmployeeCard({
           <button
             type="button"
             className="rounded-lg border bg-white text-[#444] px-3 py-1.5 text-sm hover:bg-[#6b8058]"
-            onClick={e => onButtonAction(e, employee, 'clockOut', lastRecord)}
+            onClick={(e) => onButtonAction(e, employee, 'clockOut', lastRecord)}
           >
             {t('clockIn.clockOut')}
           </button>
@@ -168,7 +167,7 @@ export function EmployeeCard({
           <button
             type="button"
             className="rounded-lg border bg-white text-[#444] px-3 py-1.5 text-sm hover:bg-[#6b8058]"
-            onClick={e => onButtonAction(e, employee, 'clockIn', undefined)}
+            onClick={(e) => onButtonAction(e, employee, 'clockIn', undefined)}
           >
             {t('clockIn.clockIn')}
           </button>
@@ -177,7 +176,7 @@ export function EmployeeCard({
           <button
             type="button"
             className="rounded-lg border bg-white text-[#444] px-3 py-1.5 text-sm hover:bg-gray-500"
-            onClick={e =>
+            onClick={(e) =>
               onButtonAction(e, employee, 'cancelVacation', lastRecord)
             }
           >

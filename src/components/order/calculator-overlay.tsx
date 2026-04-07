@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
-import { X } from 'lucide-react'
+import { X, Info } from 'lucide-react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   createInitialState,
@@ -160,6 +160,24 @@ export function CalculatorOverlay({
       className="absolute inset-0 z-20 flex items-center justify-center bg-white/60 backdrop-blur-[30px]"
       onClick={onClose}
     >
+      {/* Info hints — overlay top-left corner, only shown when value is non-zero */}
+      {numericValue !== null && numericValue !== 0 && (
+        <div className="absolute left-3 top-3 z-30 flex flex-col gap-1 text-md text-muted-foreground">
+          {numericValue > 0 && (
+            <div className="flex items-center gap-1">
+              <Info size={14} />
+              <span>{t('order.calculatorPositiveHint')}</span>
+            </div>
+          )}
+          {numericValue < 0 && (
+            <div className="flex items-center gap-1">
+              <Info size={14} />
+              <span>{t('order.calculatorNegativeHint')}</span>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Close button — overlay top-right corner */}
       <RippleButton
         onClick={onClose}

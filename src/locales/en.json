@@ -153,7 +153,7 @@
   },
   "order": {
     "title": "Order",
-    "currentOrder": "Current Order",
+    "currentOrder": "Order Items",
     "emptyOrder": "No items in order",
     "bentoCount": "{{count}} bentos",
     "soupCount": "{{count}} soups",
@@ -194,8 +194,14 @@
     "calculatorSubmit": "Confirm",
     "calculatorNamePlaceholder": "Custom order name",
     "calculatorError": "Error",
+    "calculatorPositiveHint": "Positive defaults to \"Custom Order\"",
+    "calculatorNegativeHint": "Negative defaults to \"Discount\"",
     "addTagError": "Failed to add note",
-    "deleteTagError": "Failed to delete note"
+    "deleteTagError": "Failed to delete note",
+    "recentOrders": "Recent Orders",
+    "served": "Served",
+    "noRecentOrders": "No recent orders",
+    "editOrderButton": "Edit Order"
   },
   "orders": {
     "title": "Order History",
@@ -535,6 +541,7 @@
     "cloudDbStats": "Cloud Database",
     "cloudStatsUnavailable": "Connect to view cloud data",
     "backupCount": "Backup Count",
+    "maxBackupCount": "Max Backup Count",
     "totalCloudSize": "Total Cloud Size",
     "latestBackup": "Latest Backup",
     "noBackups": "No backups",

@@ -68,6 +68,18 @@ vi.mock('@tanstack/react-router', () => ({
   useNavigate: () => mockNavigate,
 }))
 
+// Mock useCloudBackups
+vi.mock('@/hooks/use-cloud-backups', () => ({
+  useCloudBackups: () => ({
+    totalSize: 0,
+    backupCount: 0,
+    latestBackup: null,
+    isLoading: false,
+    error: null,
+    refetch: vi.fn(),
+  }),
+}))
+
 // Mock import.meta.env
 vi.stubEnv('MODE', 'development')
 
@@ -130,7 +142,8 @@ describe('SystemInfo', () => {
       mockEstimate.mockResolvedValue({ usage: 0, quota: 0 })
       renderWithProviders(<SystemInfo />)
       await waitFor(() => {
-        expect(screen.getByText('0%')).toBeTruthy()
+        // Both local and cloud progress bars show 0%; verify at least one is present
+        expect(screen.getAllByText('0%').length).toBeGreaterThanOrEqual(1)
       })
     })
 
@@ -139,14 +152,16 @@ describe('SystemInfo', () => {
       renderWithProviders(<SystemInfo />)
       // Should not crash — should show 0% or fallback
       await waitFor(() => {
-        expect(screen.getByText('0%')).toBeTruthy()
+        // Both local and cloud progress bars show 0%; verify at least one is present
+        expect(screen.getAllByText('0%').length).toBeGreaterThanOrEqual(1)
       })
     })
 
     it('displays backup status placeholder', () => {
       renderWithProviders(<SystemInfo />)
-      expect(screen.getByText('尚未備份')).toBeTruthy()
-      expect(screen.getByText(/尚無記錄/)).toBeTruthy()
+      // Cloud backup card now shows AnimatedCircularProgressBar with usage/remaining labels
+      expect(screen.getAllByText('使用量').length).toBeGreaterThanOrEqual(1)
+      expect(screen.getAllByText('剩餘量').length).toBeGreaterThanOrEqual(1)
     })
   })
 

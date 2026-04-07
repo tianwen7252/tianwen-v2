@@ -48,6 +48,10 @@ interface OrderState {
   readonly submitSeq: number
   /** Quick submit mode — when true, skip confirmation modal */
   readonly quickSubmit: boolean
+  /** When editing an existing order from recent orders, the order's DB id */
+  readonly editingOrderId: string | null
+  /** When editing an existing order from recent orders, the order's display number */
+  readonly editingOrderNumber: number | null
 }
 
 interface OrderActions {
@@ -69,6 +73,8 @@ interface OrderActions {
   removeDiscount: (discountId: string) => void
   clearCart: () => void
   loadOrder: (order: Order, typeIdMap: ReadonlyMap<string, string>) => void
+  startEditOrder: (orderId: string, orderNumber: number, order: Order, typeIdMap: ReadonlyMap<string, string>) => void
+  clearEditMode: () => void
   submitOrder: (memoTags?: string[]) => Promise<void>
   getSubtotal: () => number
   getTotalDiscount: () => number
@@ -88,6 +94,8 @@ export const useOrderStore = create<OrderState & OrderActions>((set, get) => ({
   lastAddedItem: null,
   submitSeq: 0,
   quickSubmit: true,
+  editingOrderId: null,
+  editingOrderNumber: null,
 
   setOperator: (employeeId, name) =>
     set({ operatorId: employeeId, operatorName: name }),
@@ -194,7 +202,7 @@ export const useOrderStore = create<OrderState & OrderActions>((set, get) => ({
       discounts: state.discounts.filter(d => d.id !== discountId),
     })),
 
-  clearCart: () => set({ items: [], discounts: [] }),
+  clearCart: () => set({ items: [], discounts: [], editingOrderId: null, editingOrderNumber: null }),
 
   loadOrder: (order, typeIdMap) =>
     set({
@@ -215,11 +223,21 @@ export const useOrderStore = create<OrderState & OrderActions>((set, get) => ({
       })),
     }),
 
+  startEditOrder: (orderId, orderNumber, order, typeIdMap) => {
+    // Load order items into cart and set edit mode
+    get().loadOrder(order, typeIdMap)
+    set({ editingOrderId: orderId, editingOrderNumber: orderNumber })
+  },
+
+  clearEditMode: () => set({ editingOrderId: null, editingOrderNumber: null }),
+
   submitOrder: async memoTags => {
     const {
       items,
       discounts,
       operatorId,
+      editingOrderId,
+      editingOrderNumber,
       getSubtotal,
       getTotal,
       getSoupCount,
@@ -234,14 +252,13 @@ export const useOrderStore = create<OrderState & OrderActions>((set, get) => ({
     const total = getTotal()
 
     const repo = getOrderRepo()
-    const number = await repo.getNextOrderNumber()
 
     // Collect non-empty notes, prepended by memoTags
     const itemNotes = items.map(item => item.note).filter(note => note !== '')
     const memo = [...(memoTags ?? []), ...itemNotes]
 
-    await repo.create({
-      number,
+    const orderData = {
+      number: editingOrderNumber ?? (await repo.getNextOrderNumber()),
       items: items.map(item => ({
         commodityId: item.commodityId,
         name: item.name,
@@ -258,12 +275,22 @@ export const useOrderStore = create<OrderState & OrderActions>((set, get) => ({
       total,
       originalTotal: subtotal,
       editor: operatorId ?? '',
-    })
+    }
 
-    // Clear cart and increment submitSeq to reset ProductGrid tab
+    if (editingOrderId) {
+      // Edit mode: update existing order
+      await repo.update(editingOrderId, orderData)
+    } else {
+      // Normal mode: create new order
+      await repo.create(orderData)
+    }
+
+    // Clear cart, edit mode, and increment submitSeq to reset dependent UI
     set(state => ({
       items: [],
       discounts: [],
+      editingOrderId: null,
+      editingOrderNumber: null,
       submitSeq: state.submitSeq + 1,
     }))
   },

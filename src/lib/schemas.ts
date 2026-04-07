@@ -188,6 +188,7 @@ export const orderSchema = z.object({
   originalTotal: z.number().optional(),
   editedMemo: z.string().optional(),
   editor: z.string().default(''),
+  isServed: z.boolean().default(false),
   createdAt: z.number(),
   updatedAt: z.number(),
   // Normalized items and discounts — populated on read, empty array for old orders

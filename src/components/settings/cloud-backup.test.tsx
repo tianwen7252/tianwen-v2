@@ -84,9 +84,8 @@ describe('CloudBackup', () => {
     expect(screen.getAllByText('筆數').length).toBeGreaterThanOrEqual(1)
   })
 
-  it('renders CloudBackupActions section', () => {
+  it('renders backup action buttons in cloud stats section', () => {
     renderWithProviders(<CloudBackup />)
-    expect(screen.getByText('備份操作')).toBeTruthy()
     expect(screen.getByText('立即備份')).toBeTruthy()
   })
 })

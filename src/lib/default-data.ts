@@ -52,7 +52,7 @@ const EMPLOYEE_TIMESTAMPS: Record<
 }
 
 export const DEFAULT_EMPLOYEES: readonly Employee[] = EMPLOYEE_SEEDS.map(
-  seed => {
+  (seed) => {
     const ts = EMPLOYEE_TIMESTAMPS[seed.id] ?? {
       createdAt: BASE_TS,
       updatedAt: BASE_TS,
@@ -68,7 +68,7 @@ export const DEFAULT_EMPLOYEES: readonly Employee[] = EMPLOYEE_SEEDS.map(
 // ─── Build Commodity Types ──────────────────────────────────────────────────
 
 export const DEFAULT_COMMODITY_TYPES: readonly CommodityType[] =
-  COMMODITY_TYPE_SEEDS.map(seed => ({
+  COMMODITY_TYPE_SEEDS.map((seed) => ({
     ...seed,
     createdAt: BASE_TS,
     updatedAt: BASE_TS,
@@ -77,7 +77,7 @@ export const DEFAULT_COMMODITY_TYPES: readonly CommodityType[] =
 // ─── Build Commodities ──────────────────────────────────────────────────────
 
 export const DEFAULT_COMMODITIES: readonly Commodity[] = COMMODITY_SEEDS.map(
-  seed => ({
+  (seed) => ({
     id: seed.id,
     typeId: seed.typeId,
     name: seed.name,
@@ -95,7 +95,7 @@ export const DEFAULT_COMMODITIES: readonly Commodity[] = COMMODITY_SEEDS.map(
 // ─── Build Order Types ─────────────────────────────────────────────────────
 
 export const DEFAULT_ORDER_TYPES: readonly OrderType[] = ORDER_TYPE_SEEDS.map(
-  seed => ({
+  (seed) => ({
     ...seed,
     createdAt: BASE_TS,
     updatedAt: BASE_TS,
@@ -137,10 +137,10 @@ export function markDefaultDataVersion(): void {
  *   attendances (for default employees) → employees
  */
 export function deleteDefaultData(db: Database): void {
-  const employeeIds = EMPLOYEE_SEEDS.map(s => s.id)
-  const typeIds = COMMODITY_TYPE_SEEDS.map(s => s.id)
-  const typeIdValues = COMMODITY_TYPE_SEEDS.map(s => s.typeId)
-  const commodityIds = COMMODITY_SEEDS.map(s => s.id)
+  const employeeIds = EMPLOYEE_SEEDS.map((s) => s.id)
+  const typeIds = COMMODITY_TYPE_SEEDS.map((s) => s.id)
+  const typeIdValues = COMMODITY_TYPE_SEEDS.map((s) => s.typeId)
+  const commodityIds = COMMODITY_SEEDS.map((s) => s.id)
 
   const placeholders = (ids: readonly string[]) => ids.map(() => '?').join(', ')
 

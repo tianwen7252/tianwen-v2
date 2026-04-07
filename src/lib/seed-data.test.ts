@@ -40,8 +40,8 @@ describe('Seed Data', () => {
   })
 
   describe('SEED_COMMODITIES', () => {
-    it('has 46 total items (17 bento + 15 single + 9 drink + 5 dumpling)', () => {
-      expect(SEED_COMMODITIES).toHaveLength(46)
+    it('has 48 total items (19 bento + 15 single + 9 drink + 5 dumpling)', () => {
+      expect(SEED_COMMODITIES).toHaveLength(48)
     })
 
     it('has correct item counts per category', () => {
@@ -49,7 +49,7 @@ describe('Seed Data', () => {
       const single = SEED_COMMODITIES.filter(c => c.typeId === 'single')
       const drink = SEED_COMMODITIES.filter(c => c.typeId === 'drink')
       const dumpling = SEED_COMMODITIES.filter(c => c.typeId === 'dumpling')
-      expect(bento).toHaveLength(17)
+      expect(bento).toHaveLength(19)
       expect(single).toHaveLength(15)
       expect(drink).toHaveLength(9)
       expect(dumpling).toHaveLength(5)
@@ -78,16 +78,16 @@ describe('Seed Data', () => {
       expect(SEED_COMMODITIES[0]!.price).toBe(140)
     })
 
-    it('bento 加蛋 and 加菜 have hideOnMode', () => {
+    it('bento 加蛋, 加菜, 加菜(大), and 白飯 have hideOnMode', () => {
       const hidden = SEED_COMMODITIES.filter(c => c.hideOnMode != null)
-      expect(hidden).toHaveLength(2)
-      expect(hidden.map(c => c.name)).toEqual(['加蛋', '加菜'])
+      expect(hidden).toHaveLength(4)
+      expect(hidden.map(c => c.name)).toEqual(['加蛋', '加菜', '加菜(大)', '白飯'])
     })
   })
 
   describe('SEED_EMPLOYEES', () => {
-    it('has 11 employees', () => {
-      expect(SEED_EMPLOYEES).toHaveLength(11)
+    it('has 8 employees', () => {
+      expect(SEED_EMPLOYEES).toHaveLength(8)
     })
   })
 
