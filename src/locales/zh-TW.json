@@ -541,6 +541,7 @@
     "cloudDbStats": "雲端資料庫",
     "cloudStatsUnavailable": "連線後顯示雲端資料",
     "backupCount": "備份數量",
+    "maxBackupCount": "最大備份數量",
     "totalCloudSize": "雲端總大小",
     "latestBackup": "最近備份",
     "noBackups": "尚無備份",

@@ -541,6 +541,7 @@
     "cloudDbStats": "Cloud Database",
     "cloudStatsUnavailable": "Connect to view cloud data",
     "backupCount": "Backup Count",
+    "maxBackupCount": "Max Backup Count",
     "totalCloudSize": "Total Cloud Size",
     "latestBackup": "Latest Backup",
     "noBackups": "No backups",
