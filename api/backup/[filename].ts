@@ -12,6 +12,7 @@ import type { Readable } from 'node:stream'
 
 const VALID_FILENAME_RE = /^backup-\d+\.sqlite\.gz$/
 const MAX_UPLOAD_BYTES = 1024 * 1024 * 1024 // 1 GB
+const MAX_BACKUPS = 30
 
 async function streamToBuffer(stream: Readable): Promise<Buffer> {
   const chunks: Buffer[] = []
@@ -82,6 +83,31 @@ export default async function handler(
         await client.send(
           new PutObjectCommand({ Bucket: bucket, Key: key, Body: body, ContentType: 'application/gzip' }),
         )
+
+        // Clean up old backups — keep only MAX_BACKUPS newest files
+        try {
+          const { ListObjectsV2Command } = await import('@aws-sdk/client-s3')
+          const listResult = await client.send(
+            new ListObjectsV2Command({ Bucket: bucket, Prefix: prefix }),
+          )
+          const backups = (listResult.Contents ?? [])
+            .filter(obj => (obj.Key ?? '').endsWith('.sqlite.gz'))
+            .sort((a, b) =>
+              (b.LastModified?.getTime() ?? 0) - (a.LastModified?.getTime() ?? 0),
+            )
+
+          if (backups.length > MAX_BACKUPS) {
+            const toDelete = backups.slice(MAX_BACKUPS)
+            await Promise.all(
+              toDelete.map(obj =>
+                client.send(new DeleteObjectCommand({ Bucket: bucket, Key: obj.Key! })),
+              ),
+            )
+          }
+        } catch (cleanupErr) {
+          // Cleanup failure is non-critical — log but don't fail the upload
+          console.error('[api/backup] Cleanup error:', cleanupErr)
+        }
 
         res.status(200).json({
           success: true,

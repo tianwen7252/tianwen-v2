@@ -1,19 +1,13 @@
 /**
  * Shared backup orchestrator — used by both manual and auto backup.
  * Exports DB → compresses → uploads to R2 → logs result.
+ *
+ * R2 cleanup (max 30 backups) is handled server-side in the PUT handler
+ * at api/backup/[filename].ts, not here.
  */
 
 import { getDatabase, getBackupLogRepo, getErrorLogRepo } from '@/lib/repositories/provider'
-import {
-  createBackupService,
-  generateBackupFilename,
-  type BackupService,
-} from '@/lib/backup'
-
-// ── Constants ──────────────────────────────────────────────────────────────
-
-/** Maximum number of backups to keep in R2. Oldest are deleted after upload. */
-const MAX_BACKUPS = 30
+import { createBackupService, generateBackupFilename } from '@/lib/backup'
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -45,7 +39,7 @@ export async function performBackup(
     // 3. Generate timestamped filename
     const filename = generateBackupFilename()
 
-    // 4. Upload to R2
+    // 4. Upload to R2 (server-side cleanup of old backups happens here)
     const metadata = await backupService.upload(compressed, filename)
 
     const durationMs = Date.now() - startTime
@@ -56,13 +50,6 @@ export async function performBackup(
       size: metadata.size,
       durationMs,
     })
-
-    // 6. Clean up old backups (keep only MAX_BACKUPS newest)
-    try {
-      await cleanupOldBackups(backupService)
-    } catch {
-      // Cleanup failure is non-critical — don't fail the backup
-    }
 
     return {
       filename: metadata.filename,
@@ -85,25 +72,4 @@ export async function performBackup(
 
     throw error
   }
-}
-
-// ── Cleanup ────────────────────────────────────────────────────────────────
-
-/**
- * Delete old backups from R2 if total count exceeds MAX_BACKUPS.
- * Keeps the newest MAX_BACKUPS files, deletes the rest.
- */
-async function cleanupOldBackups(backupService: BackupService): Promise<void> {
-  const backups = await backupService.listBackups()
-
-  if (backups.length <= MAX_BACKUPS) {
-    return
-  }
-
-  // listBackups returns newest-first; delete everything after MAX_BACKUPS
-  const toDelete = backups.slice(MAX_BACKUPS)
-
-  await Promise.all(
-    toDelete.map(b => backupService.deleteBackup(b.filename)),
-  )
 }
