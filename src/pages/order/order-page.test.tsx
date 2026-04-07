@@ -9,6 +9,10 @@ vi.mock('@/components/order', () => ({
   OrderPanel: () => <div data-testid="order-panel">OrderPanel</div>,
 }))
 
+vi.mock('@/components/order/order-panel-tabs', () => ({
+  OrderPanelTabs: () => <div data-testid="order-panel">OrderPanelTabs</div>,
+}))
+
 // ─── Tests ───────────────────────────────────────────────────────────────────
 
 describe('OrderPage', () => {
@@ -103,7 +107,7 @@ describe('OrderPage', () => {
     const rightPanel = container.querySelector('[data-testid="order-panel"]')
       ?.parentElement as HTMLElement
     expect(leftPanel.classList.contains('px-4')).toBe(true)
-    expect(rightPanel.classList.contains('p-4')).toBe(true)
+    expect(rightPanel.classList.contains('p-4')).toBe(true) // p-4 pt-0
   })
 
   it('should render exactly two child panels inside the wrapper', () => {
