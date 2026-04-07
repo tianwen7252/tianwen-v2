@@ -1,52 +1,56 @@
 /**
  * GET /api/backup — List all backup files from R2.
+ *
+ * IMPORTANT: @aws-sdk/client-s3 MUST be imported via dynamic import().
+ * Static imports cause Vercel's Function bundler to crash with
+ * FUNCTION_INVOCATION_FAILED due to ESM resolution issues in aws-sdk v3.
+ * See: https://github.com/aws/aws-sdk-js-v3/issues/6614
  */
 
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import { ListObjectsV2Command } from '@aws-sdk/client-s3'
-import {
-  getR2Client,
-  getBucketName,
-  getKeyPrefix,
-  errorResponse,
-  jsonResponse,
-} from './_lib/r2-client'
 
 export default async function handler(
   req: VercelRequest,
   res: VercelResponse,
 ): Promise<void> {
   if (req.method !== 'GET') {
-    errorResponse(res, 'Method not allowed', 405)
+    res.status(405).json({ success: false, error: 'Method not allowed' })
     return
   }
 
   try {
-    const prefix = getKeyPrefix()
-    const client = getR2Client()
+    const { S3Client, ListObjectsV2Command } = await import('@aws-sdk/client-s3')
 
-    const objects: Array<{
-      filename: string
-      size: number
-      createdAt: string
-    }> = []
+    const accountId = process.env.R2_ACCOUNT_ID ?? ''
+    const bucketName = process.env.R2_BUCKET_NAME ?? ''
+    const userId = process.env.ALLOWED_USER_ID ?? ''
+    const prefix = userId.length > 0 ? `${userId}/` : ''
 
+    const client = new S3Client({
+      region: 'auto',
+      endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
+      credentials: {
+        accessKeyId: process.env.R2_ACCESS_KEY_ID ?? '',
+        secretAccessKey: process.env.R2_SECRET_ACCESS_KEY ?? '',
+      },
+    })
+
+    const objects: Array<{ filename: string; size: number; createdAt: string }> = []
     let continuationToken: string | undefined
 
     do {
-      const command = new ListObjectsV2Command({
-        Bucket: getBucketName(),
-        Prefix: prefix,
-        ContinuationToken: continuationToken,
-        MaxKeys: 1000,
-      })
-
-      const result = await client.send(command)
+      const result = await client.send(
+        new ListObjectsV2Command({
+          Bucket: bucketName,
+          Prefix: prefix,
+          ContinuationToken: continuationToken,
+          MaxKeys: 1000,
+        }),
+      )
 
       for (const obj of result.Contents ?? []) {
         const key = obj.Key ?? ''
         if (!key.endsWith('.sqlite.gz')) continue
-
         objects.push({
           filename: key.replace(prefix, ''),
           size: obj.Size ?? 0,
@@ -54,20 +58,15 @@ export default async function handler(
         })
       }
 
-      continuationToken = result.IsTruncated
-        ? result.NextContinuationToken
-        : undefined
+      continuationToken = result.IsTruncated ? result.NextContinuationToken : undefined
     } while (continuationToken)
 
-    // Sort by createdAt descending
-    objects.sort(
-      (a, b) =>
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-    )
+    objects.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
 
-    jsonResponse(res, { success: true, data: objects })
+    res.status(200).json({ success: true, data: objects })
   } catch (err: unknown) {
     console.error('[api/backup] List error:', err)
-    errorResponse(res, 'Internal server error', 500)
+    const message = err instanceof Error ? err.message : 'Internal server error'
+    res.status(500).json({ success: false, error: message })
   }
 }

@@ -122,7 +122,7 @@ describe('SystemInfo', () => {
       renderWithProviders(<SystemInfo />)
       // 250MB / 1GB = 25%
       await waitFor(() => {
-        expect(screen.getByText('25')).toBeTruthy()
+        expect(screen.getByText('25%')).toBeTruthy()
       })
     })
 
@@ -130,16 +130,16 @@ describe('SystemInfo', () => {
       mockEstimate.mockResolvedValue({ usage: 0, quota: 0 })
       renderWithProviders(<SystemInfo />)
       await waitFor(() => {
-        expect(screen.getByText('0')).toBeTruthy()
+        expect(screen.getByText('0%')).toBeTruthy()
       })
     })
 
     it('handles storage estimate failure gracefully', async () => {
       mockEstimate.mockRejectedValue(new Error('Not supported'))
       renderWithProviders(<SystemInfo />)
-      // Should not crash — should show 0 or fallback
+      // Should not crash — should show 0% or fallback
       await waitFor(() => {
-        expect(screen.getByText('0')).toBeTruthy()
+        expect(screen.getByText('0%')).toBeTruthy()
       })
     })
 

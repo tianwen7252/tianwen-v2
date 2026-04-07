@@ -239,6 +239,8 @@
     "appVersion": "目前版本",
     "lastUpdated": "最後更新",
     "localStorage": "本機儲存空間",
+    "storageUsed": "使用量",
+    "storageRemaining": "剩餘量",
     "cloudBackup": "雲端備份狀態",
     "noBackup": "尚未備份",
     "lastBackup": "最後備份",

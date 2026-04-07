@@ -19,7 +19,6 @@ let mockStoreState = {
   backupProgress: 0,
   backupError: null as string | null,
   scheduleType: 'daily' as 'daily' | 'weekly' | 'none',
-  scheduleHour: 22,
   startBackup: mockStartBackup,
   updateProgress: vi.fn(),
   finishBackup: mockFinishBackup,
@@ -82,7 +81,6 @@ describe('CloudBackupActions', () => {
       backupProgress: 0,
       backupError: null,
       scheduleType: 'daily',
-      scheduleHour: 22,
       startBackup: mockStartBackup,
       updateProgress: vi.fn(),
       finishBackup: mockFinishBackup,
@@ -284,53 +282,4 @@ describe('CloudBackupActions', () => {
     })
   })
 
-  // ── Hour picker tests ────────────────────────────────────────────────────
-
-  describe('Hour Picker', () => {
-    it('renders the hour picker label when schedule is not none', () => {
-      mockStoreState = { ...mockStoreState, scheduleType: 'daily' }
-      render(<CloudBackupActions />)
-      expect(screen.getByText('排程時間')).toBeTruthy()
-    })
-
-    it('does not render the hour picker when schedule is none', () => {
-      mockStoreState = { ...mockStoreState, scheduleType: 'none' }
-      render(<CloudBackupActions />)
-      expect(screen.queryByText('排程時間')).toBeNull()
-    })
-
-    it('displays the current schedule hour', () => {
-      mockStoreState = {
-        ...mockStoreState,
-        scheduleType: 'daily',
-        scheduleHour: 14,
-      }
-      render(<CloudBackupActions />)
-
-      const select = screen.getByRole('combobox') as HTMLSelectElement
-      expect(select.value).toBe('14')
-    })
-
-    it('calls setSchedule with new hour when changed', () => {
-      mockStoreState = {
-        ...mockStoreState,
-        scheduleType: 'daily',
-        scheduleHour: 22,
-      }
-      render(<CloudBackupActions />)
-
-      const select = screen.getByRole('combobox') as HTMLSelectElement
-      fireEvent.change(select, { target: { value: '8' } })
-
-      expect(mockSetSchedule).toHaveBeenCalledWith('daily', 8)
-    })
-
-    it('renders all 24 hour options (0-23)', () => {
-      mockStoreState = { ...mockStoreState, scheduleType: 'daily' }
-      render(<CloudBackupActions />)
-
-      const select = screen.getByRole('combobox') as HTMLSelectElement
-      expect(select.options.length).toBe(24)
-    })
-  })
 })

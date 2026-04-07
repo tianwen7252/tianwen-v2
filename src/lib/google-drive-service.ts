@@ -25,6 +25,33 @@ const DRIVE_API_BASE = 'https://www.googleapis.com/drive/v3/files'
 const FOLDER_MIME = 'application/vnd.google-apps.folder'
 const BACKUP_FOLDER_NAME = 'backup'
 
+// ── Token refresh callback ─────────────────────────────────────────────────
+
+/** Callback to silently refresh the Google access token. Set by the consumer. */
+export type TokenRefreshFn = () => Promise<string | null>
+
+/**
+ * Wrapper that calls a Drive API function, and on 401 (AuthExpiredError)
+ * automatically refreshes the token and retries once.
+ */
+export async function withTokenRefresh<T>(
+  fn: (token: string) => Promise<T>,
+  token: string,
+  refreshFn: TokenRefreshFn | null,
+): Promise<T> {
+  try {
+    return await fn(token)
+  } catch (err) {
+    if (err instanceof AuthExpiredError && refreshFn) {
+      const newToken = await refreshFn()
+      if (newToken) {
+        return await fn(newToken)
+      }
+    }
+    throw err
+  }
+}
+
 // ── Internal helpers ────────────────────────────────────────────────────────
 
 /**

@@ -1,9 +1,12 @@
 /**
  * Shared backup orchestrator — used by both manual and auto backup.
  * Exports DB → compresses → uploads to R2 → logs result.
+ *
+ * R2 cleanup (max 30 backups) is handled server-side in the PUT handler
+ * at api/backup/[filename].ts, not here.
  */
 
-import { getDatabase, getBackupLogRepo } from '@/lib/repositories/provider'
+import { getDatabase, getBackupLogRepo, getErrorLogRepo } from '@/lib/repositories/provider'
 import { createBackupService, generateBackupFilename } from '@/lib/backup'
 
 // ── Types ──────────────────────────────────────────────────────────────────
@@ -36,7 +39,7 @@ export async function performBackup(
     // 3. Generate timestamped filename
     const filename = generateBackupFilename()
 
-    // 4. Upload to R2
+    // 4. Upload to R2 (server-side cleanup of old backups happens here)
     const metadata = await backupService.upload(compressed, filename)
 
     const durationMs = Date.now() - startTime
@@ -57,10 +60,15 @@ export async function performBackup(
     const message =
       error instanceof Error ? error.message : 'Unknown backup error'
 
-    // Log failure
+    // Log failure to backup_logs and error_logs
     await getBackupLogRepo().create(triggerType, 'failed', {
       errorMessage: message,
     })
+    await getErrorLogRepo().create(
+      message,
+      'perform-backup',
+      error instanceof Error ? error.stack : undefined,
+    )
 
     throw error
   }

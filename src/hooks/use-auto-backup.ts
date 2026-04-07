@@ -1,18 +1,17 @@
 /**
  * useAutoBackup — React hook for automatic backup scheduling.
- * Manages setTimeout-based scheduling with Page Visibility API support,
- * overdue backup detection, and cloud backup execution.
+ * Checks if a backup is overdue on mount and when the page becomes visible.
+ *
+ * Schedule rules:
+ * - daily: backup once per day. If missed, skip (no retroactive backup).
+ * - weekly: backup every Monday. If missed, backup immediately.
  */
 
-import { useEffect, useRef } from 'react'
+import { useEffect } from 'react'
 import { useBackupStore } from '@/stores/backup-store'
 import { isBackupConfigured } from '@/lib/backup-config'
 import { performBackup } from '@/lib/perform-backup'
-import {
-  calculateNextDailyBackup,
-  calculateNextWeeklyBackup,
-  isBackupOverdue,
-} from '@/lib/backup-schedule'
+import { isBackupOverdue } from '@/lib/backup-schedule'
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -54,67 +53,30 @@ export function useAutoBackup(options: UseAutoBackupOptions): void {
   const { enabled } = options
 
   const scheduleType = useBackupStore(s => s.scheduleType)
-  const scheduleHour = useBackupStore(s => s.scheduleHour)
   const lastBackupTime = useBackupStore(s => s.lastBackupTime)
   const startBackup = useBackupStore(s => s.startBackup)
   const finishBackup = useBackupStore(s => s.finishBackup)
   const setLastBackupTime = useBackupStore(s => s.setLastBackupTime)
 
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-
+  // Check for overdue backup on mount and when dependencies change
   useEffect(() => {
-    // Clear any existing timer
-    if (timerRef.current !== null) {
-      clearTimeout(timerRef.current)
-      timerRef.current = null
-    }
-
     if (!enabled || scheduleType === 'none') {
       return
     }
 
-    // Check for overdue backup on mount
-    const overdue = isBackupOverdue(scheduleType, scheduleHour, lastBackupTime)
-
-    if (overdue) {
-      // Queue overdue backup with minimal delay
-      timerRef.current = setTimeout(() => {
-        void executeBackup(startBackup, finishBackup, setLastBackupTime)
-      }, 50)
-      return
-    }
-
-    // Calculate next scheduled backup time
-    const now = Date.now()
-    const nextBackupTime =
-      scheduleType === 'daily'
-        ? calculateNextDailyBackup(scheduleHour, now)
-        : calculateNextWeeklyBackup(scheduleHour, now)
-
-    const delay = nextBackupTime - now
-
-    timerRef.current = setTimeout(() => {
+    if (isBackupOverdue(scheduleType, lastBackupTime)) {
       void executeBackup(startBackup, finishBackup, setLastBackupTime)
-    }, delay)
-
-    // Cleanup on unmount or dependency change
-    return () => {
-      if (timerRef.current !== null) {
-        clearTimeout(timerRef.current)
-        timerRef.current = null
-      }
     }
   }, [
     enabled,
     scheduleType,
-    scheduleHour,
     lastBackupTime,
     startBackup,
     finishBackup,
     setLastBackupTime,
   ])
 
-  // Page Visibility API: recalculate when tab becomes visible
+  // Page Visibility API: re-check when tab becomes visible
   useEffect(() => {
     if (!enabled || scheduleType === 'none') {
       return
@@ -123,13 +85,10 @@ export function useAutoBackup(options: UseAutoBackupOptions): void {
     function handleVisibilityChange(): void {
       if (document.visibilityState === 'visible') {
         const state = useBackupStore.getState()
-        const overdue = isBackupOverdue(
-          state.scheduleType,
-          state.scheduleHour,
-          state.lastBackupTime,
-        )
-
-        if (overdue && isBackupConfigured()) {
+        if (
+          isBackupOverdue(state.scheduleType, state.lastBackupTime) &&
+          isBackupConfigured()
+        ) {
           void executeBackup(
             state.startBackup,
             state.finishBackup,

@@ -1,6 +1,6 @@
 /**
  * Cloud Backup Actions — provides manual backup trigger button,
- * export DB button, schedule type selector, and hour picker.
+ * export DB button, and schedule type selector.
  */
 
 import { useCallback } from 'react'
@@ -11,6 +11,7 @@ import { RippleButton } from '@/components/ui/ripple-button'
 import { notify } from '@/components/ui/sonner'
 import { useBackupStore, type ScheduleType } from '@/stores/backup-store'
 import { performBackup } from '@/lib/perform-backup'
+import { generateExportFilename } from '@/lib/backup'
 import { getDatabase } from '@/lib/repositories/provider'
 
 // ── Constants ──────────────────────────────────────────────────────────────
@@ -24,15 +25,12 @@ const SCHEDULE_OPTIONS: readonly {
   { type: 'none', labelKey: 'backup.scheduleNone' },
 ]
 
-const HOURS = Array.from({ length: 24 }, (_, i) => i)
-
 // ── Component ──────────────────────────────────────────────────────────────
 
 export function CloudBackupActions() {
   const { t } = useTranslation()
   const isBackingUp = useBackupStore(s => s.isBackingUp)
   const scheduleType = useBackupStore(s => s.scheduleType)
-  const scheduleHour = useBackupStore(s => s.scheduleHour)
   const setSchedule = useBackupStore(s => s.setSchedule)
   const startBackup = useBackupStore(s => s.startBackup)
   const finishBackup = useBackupStore(s => s.finishBackup)
@@ -60,7 +58,7 @@ export function CloudBackupActions() {
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = `tianwen-db-${Date.now()}.sqlite`
+      a.download = generateExportFilename()
       a.click()
       URL.revokeObjectURL(url)
       notify.success(t('backup.exportSuccess'))
@@ -76,14 +74,6 @@ export function CloudBackupActions() {
       setSchedule(type)
     },
     [setSchedule],
-  )
-
-  const handleHourChange = useCallback(
-    (event: React.ChangeEvent<HTMLSelectElement>) => {
-      const hour = Number(event.target.value)
-      setSchedule(scheduleType, hour)
-    },
-    [setSchedule, scheduleType],
   )
 
   return (
@@ -131,26 +121,6 @@ export function CloudBackupActions() {
             ))}
           </div>
         </div>
-
-        {/* Hour picker (only shown when schedule is active) */}
-        {scheduleType !== 'none' && (
-          <div className="mt-4">
-            <p className="mb-2 text-muted-foreground">
-              {t('backup.scheduleTime')}
-            </p>
-            <select
-              className="rounded-md border bg-background px-3 py-2 text-foreground"
-              value={scheduleHour}
-              onChange={handleHourChange}
-            >
-              {HOURS.map(hour => (
-                <option key={hour} value={hour}>
-                  {String(hour).padStart(2, '0')}:00
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
       </CardContent>
     </Card>
   )

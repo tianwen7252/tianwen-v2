@@ -1,187 +1,62 @@
 /**
- * /api/backup/:filename — Upload, download, or delete a backup file.
+ * /api/backup/:filename — Delete a backup file from R2.
  *
- * PUT    — Upload a backup file to R2
- * GET    — Download a backup file from R2
- * DELETE — Delete a backup file from R2
+ * Upload and download now use presigned URLs (see presign.ts).
+ * This endpoint only handles DELETE requests.
+ *
+ * IMPORTANT: @aws-sdk/client-s3 MUST be imported via dynamic import().
+ * Static imports cause Vercel's Function bundler to crash with
+ * FUNCTION_INVOCATION_FAILED due to ESM resolution issues in aws-sdk v3.
+ * See: https://github.com/aws/aws-sdk-js-v3/issues/6614
  */
 
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import {
-  PutObjectCommand,
-  GetObjectCommand,
-  DeleteObjectCommand,
-  S3ServiceException,
-} from '@aws-sdk/client-s3'
-import type { Readable } from 'node:stream'
-import {
-  getR2Client,
-  getBucketName,
-  r2Key,
-  isValidFilename,
-  isFileTooLarge,
-  errorResponse,
-  jsonResponse,
-  MAX_UPLOAD_BYTES,
-} from './_lib/r2-client'
 
-// ── Stream to Buffer ──────────────────────────────────────────────────────
-
-async function streamToBuffer(stream: Readable): Promise<Buffer> {
-  const chunks: Buffer[] = []
-  for await (const chunk of stream) {
-    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk))
-  }
-  return Buffer.concat(chunks)
-}
-
-// ── Collect request body ──────────────────────────────────────────────────
-
-async function collectBody(req: VercelRequest): Promise<Buffer> {
-  const chunks: Buffer[] = []
-  for await (const chunk of req) {
-    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk))
-  }
-  return Buffer.concat(chunks)
-}
-
-// ── Handler ───────────────────────────────────────────────────────────────
-
-export const config = {
-  api: {
-    bodyParser: false, // Handle binary body manually
-  },
-}
+const VALID_FILENAME_RE = /^backup-\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}\.sqlite\.gz$/
 
 export default async function handler(
   req: VercelRequest,
   res: VercelResponse,
 ): Promise<void> {
-  const filename = req.query.filename as string | undefined
-  if (!filename || !isValidFilename(filename)) {
-    errorResponse(res, 'Invalid filename', 400)
+  if (req.method !== 'DELETE') {
+    res.status(405).json({ success: false, error: 'Method not allowed' })
     return
   }
 
-  const client = getR2Client()
-  const bucket = getBucketName()
-  const key = r2Key(filename)
+  const filename = req.query.filename as string | undefined
+  if (!filename || !VALID_FILENAME_RE.test(filename)) {
+    res.status(400).json({ success: false, error: 'Invalid filename' })
+    return
+  }
 
   try {
-    switch (req.method) {
-      case 'PUT':
-        await handleUpload(req, res, client, bucket, key, filename)
-        break
-      case 'GET':
-        await handleDownload(res, client, bucket, key, filename)
-        break
-      case 'DELETE':
-        await handleDelete(res, client, bucket, key)
-        break
-      default:
-        errorResponse(res, 'Method not allowed', 405)
-    }
+    const { S3Client, DeleteObjectCommand } =
+      await import('@aws-sdk/client-s3')
+
+    const accountId = process.env.R2_ACCOUNT_ID ?? ''
+    const userId = process.env.ALLOWED_USER_ID ?? ''
+    const prefix = userId.length > 0 ? `${userId}/` : ''
+    const bucket = process.env.R2_BUCKET_NAME ?? ''
+    const key = `${prefix}${filename}`
+
+    const client = new S3Client({
+      region: 'auto',
+      endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
+      credentials: {
+        accessKeyId: process.env.R2_ACCESS_KEY_ID ?? '',
+        secretAccessKey: process.env.R2_SECRET_ACCESS_KEY ?? '',
+      },
+    })
+
+    await client.send(new DeleteObjectCommand({ Bucket: bucket, Key: key }))
+    res.status(200).json({ success: true })
   } catch (err: unknown) {
-    // S3 NoSuchKey → 404
+    const { S3ServiceException } = await import('@aws-sdk/client-s3')
     if (err instanceof S3ServiceException && err.$metadata.httpStatusCode === 404) {
-      errorResponse(res, 'Backup not found', 404)
+      res.status(404).json({ success: false, error: 'Backup not found' })
       return
     }
-
     console.error(`[api/backup/${filename}] Error:`, err)
-    errorResponse(res, 'Internal server error', 500)
+    res.status(500).json({ success: false, error: 'Internal server error' })
   }
-}
-
-// ── Upload ────────────────────────────────────────────────────────────────
-
-async function handleUpload(
-  req: VercelRequest,
-  res: VercelResponse,
-  client: ReturnType<typeof getR2Client>,
-  bucket: string,
-  key: string,
-  filename: string,
-): Promise<void> {
-  // Early reject based on Content-Length header
-  if (isFileTooLarge(req)) {
-    errorResponse(res, 'File too large (max 1 GB)', 413)
-    return
-  }
-
-  const body = await collectBody(req)
-
-  // Verify actual body size (Content-Length can be spoofed)
-  if (body.length > MAX_UPLOAD_BYTES) {
-    errorResponse(res, 'File too large (max 1 GB)', 413)
-    return
-  }
-
-  await client.send(
-    new PutObjectCommand({
-      Bucket: bucket,
-      Key: key,
-      Body: body,
-      ContentType: 'application/gzip',
-    }),
-  )
-
-  jsonResponse(res, {
-    success: true,
-    metadata: {
-      filename,
-      size: body.length,
-      createdAt: new Date().toISOString(),
-    },
-  })
-}
-
-// ── Download ──────────────────────────────────────────────────────────────
-
-async function handleDownload(
-  res: VercelResponse,
-  client: ReturnType<typeof getR2Client>,
-  bucket: string,
-  key: string,
-  filename: string,
-): Promise<void> {
-  const result = await client.send(
-    new GetObjectCommand({
-      Bucket: bucket,
-      Key: key,
-    }),
-  )
-
-  if (!result.Body) {
-    errorResponse(res, 'Backup not found', 404)
-    return
-  }
-
-  const buffer = await streamToBuffer(result.Body as Readable)
-
-  res.setHeader('Content-Type', 'application/gzip')
-  res.setHeader(
-    'Content-Disposition',
-    `attachment; filename*=UTF-8''${encodeURIComponent(filename)}`,
-  )
-  res.setHeader('Content-Length', buffer.length)
-  res.status(200).send(buffer)
-}
-
-// ── Delete ────────────────────────────────────────────────────────────────
-
-async function handleDelete(
-  res: VercelResponse,
-  client: ReturnType<typeof getR2Client>,
-  bucket: string,
-  key: string,
-): Promise<void> {
-  await client.send(
-    new DeleteObjectCommand({
-      Bucket: bucket,
-      Key: key,
-    }),
-  )
-
-  jsonResponse(res, { success: true })
 }

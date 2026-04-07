@@ -89,7 +89,7 @@ export function SwipeToDelete({
 
   return (
     <div
-      className={cn('relative overflow-hidden', className)}
+      className={cn('relative overflow-hidden rounded-md', className)}
       data-testid="swipe-to-delete"
     >
       {/* Background layer — red delete zone */}

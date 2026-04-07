@@ -1,14 +1,9 @@
 /**
- * Tests for backup schedule time calculation utilities.
- * Pure functions tested without React hook complexity.
+ * Tests for backup schedule overdue check utilities.
  */
 
-import { describe, it, expect } from 'vitest'
-import {
-  calculateNextDailyBackup,
-  calculateNextWeeklyBackup,
-  isBackupOverdue,
-} from './backup-schedule'
+import { describe, it, expect, vi, afterEach } from 'vitest'
+import { isBackupOverdue } from './backup-schedule'
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
@@ -23,192 +18,137 @@ function taiwanDate(
   hour: number,
   minute = 0,
 ): number {
-  // Taiwan is UTC+8, so we subtract 8 hours to get UTC
   const utcHour = hour - 8
   return Date.UTC(year, month - 1, day, utcHour, minute)
 }
 
-// ── calculateNextDailyBackup ───────────────────────────────────────────────
-
-describe('calculateNextDailyBackup', () => {
-  it('returns later today if schedule hour has not passed yet', () => {
-    // Now: 2025-06-15 10:00 Taiwan time => schedule at 22:00 today
-    const now = taiwanDate(2025, 6, 15, 10, 0)
-    const result = calculateNextDailyBackup(22, now)
-    const expected = taiwanDate(2025, 6, 15, 22, 0)
-    expect(result).toBe(expected)
-  })
-
-  it('returns tomorrow if schedule hour has already passed', () => {
-    // Now: 2025-06-15 23:00 Taiwan time => schedule at 22:00 tomorrow
-    const now = taiwanDate(2025, 6, 15, 23, 0)
-    const result = calculateNextDailyBackup(22, now)
-    const expected = taiwanDate(2025, 6, 16, 22, 0)
-    expect(result).toBe(expected)
-  })
-
-  it('returns tomorrow if schedule hour is exactly now', () => {
-    // Now: 2025-06-15 22:00 Taiwan time => schedule at 22:00 tomorrow
-    const now = taiwanDate(2025, 6, 15, 22, 0)
-    const result = calculateNextDailyBackup(22, now)
-    const expected = taiwanDate(2025, 6, 16, 22, 0)
-    expect(result).toBe(expected)
-  })
-
-  it('handles midnight (hour=0) schedule', () => {
-    // Now: 2025-06-15 01:00 Taiwan time => schedule at 00:00 tomorrow
-    // (hour 0 has passed)
-    const now = taiwanDate(2025, 6, 15, 1, 0)
-    const result = calculateNextDailyBackup(0, now)
-    const expected = taiwanDate(2025, 6, 16, 0, 0)
-    expect(result).toBe(expected)
-  })
-
-  it('handles hour=0 schedule when current hour is 23', () => {
-    // Now: 2025-06-15 23:00 Taiwan time => schedule at 00:00 next day
-    const now = taiwanDate(2025, 6, 15, 23, 0)
-    const result = calculateNextDailyBackup(0, now)
-    const expected = taiwanDate(2025, 6, 16, 0, 0)
-    expect(result).toBe(expected)
-  })
-
-  it('handles month boundary', () => {
-    // Now: 2025-06-30 23:00 Taiwan time => schedule at 22:00 next day (July 1)
-    const now = taiwanDate(2025, 6, 30, 23, 0)
-    const result = calculateNextDailyBackup(22, now)
-    const expected = taiwanDate(2025, 7, 1, 22, 0)
-    expect(result).toBe(expected)
-  })
-
-  it('handles year boundary', () => {
-    // Now: 2025-12-31 23:00 Taiwan time => schedule at 22:00 next day (Jan 1 2026)
-    const now = taiwanDate(2025, 12, 31, 23, 0)
-    const result = calculateNextDailyBackup(22, now)
-    const expected = taiwanDate(2026, 1, 1, 22, 0)
-    expect(result).toBe(expected)
-  })
-
-  it('returns a future timestamp (always > now)', () => {
-    const now = Date.now()
-    const result = calculateNextDailyBackup(14, now)
-    expect(result).toBeGreaterThan(now)
-  })
-})
-
-// ── calculateNextWeeklyBackup ──────────────────────────────────────────────
-
-describe('calculateNextWeeklyBackup', () => {
-  it('returns this Sunday if today is before Sunday', () => {
-    // 2025-06-11 is Wednesday => next Sunday is 2025-06-15
-    const now = taiwanDate(2025, 6, 11, 10, 0) // Wed 10:00
-    const result = calculateNextWeeklyBackup(22, now)
-    const expected = taiwanDate(2025, 6, 15, 22, 0) // Sun 22:00
-    expect(result).toBe(expected)
-  })
-
-  it('returns next Sunday if today is Sunday but hour has passed', () => {
-    // 2025-06-15 is Sunday, 23:00 => next Sunday 2025-06-22
-    const now = taiwanDate(2025, 6, 15, 23, 0)
-    const result = calculateNextWeeklyBackup(22, now)
-    const expected = taiwanDate(2025, 6, 22, 22, 0)
-    expect(result).toBe(expected)
-  })
-
-  it('returns today if it is Sunday and hour has not passed', () => {
-    // 2025-06-15 is Sunday, 10:00 => today 22:00
-    const now = taiwanDate(2025, 6, 15, 10, 0)
-    const result = calculateNextWeeklyBackup(22, now)
-    const expected = taiwanDate(2025, 6, 15, 22, 0)
-    expect(result).toBe(expected)
-  })
-
-  it('returns next Sunday if today is Sunday and hour is exactly now', () => {
-    // 2025-06-15 is Sunday, 22:00 => next Sunday 2025-06-22
-    const now = taiwanDate(2025, 6, 15, 22, 0)
-    const result = calculateNextWeeklyBackup(22, now)
-    const expected = taiwanDate(2025, 6, 22, 22, 0)
-    expect(result).toBe(expected)
-  })
-
-  it('handles Saturday (1 day before Sunday)', () => {
-    // 2025-06-14 is Saturday => next Sunday 2025-06-15
-    const now = taiwanDate(2025, 6, 14, 10, 0)
-    const result = calculateNextWeeklyBackup(3, now)
-    const expected = taiwanDate(2025, 6, 15, 3, 0)
-    expect(result).toBe(expected)
-  })
-
-  it('handles Monday (6 days before Sunday)', () => {
-    // 2025-06-09 is Monday => next Sunday 2025-06-15
-    const now = taiwanDate(2025, 6, 9, 10, 0)
-    const result = calculateNextWeeklyBackup(22, now)
-    const expected = taiwanDate(2025, 6, 15, 22, 0)
-    expect(result).toBe(expected)
-  })
-
-  it('handles month boundary for weekly schedule', () => {
-    // 2025-06-28 is Saturday => next Sunday 2025-06-29
-    const now = taiwanDate(2025, 6, 28, 10, 0)
-    const result = calculateNextWeeklyBackup(22, now)
-    const expected = taiwanDate(2025, 6, 29, 22, 0)
-    expect(result).toBe(expected)
-  })
-
-  it('returns a future timestamp (always > now)', () => {
-    const now = Date.now()
-    const result = calculateNextWeeklyBackup(14, now)
-    expect(result).toBeGreaterThan(now)
-  })
-})
-
 // ── isBackupOverdue ────────────────────────────────────────────────────────
 
 describe('isBackupOverdue', () => {
-  it('returns false when scheduleType is none', () => {
-    expect(isBackupOverdue('none', 22, null)).toBe(false)
+  afterEach(() => {
+    vi.useRealTimers()
   })
 
-  it('returns true when lastBackupTime is null (never backed up) and schedule is daily', () => {
-    expect(isBackupOverdue('daily', 22, null)).toBe(true)
+  // ── none ──────────────────────────────────────────────────────────────
+
+  it('returns false when scheduleType is none', () => {
+    expect(isBackupOverdue('none', null)).toBe(false)
+  })
+
+  it('returns false when scheduleType is none even with old backup', () => {
+    expect(isBackupOverdue('none', '2020-01-01T00:00:00Z')).toBe(false)
+  })
+
+  // ── null / invalid ───────────────────────────────────────────────────
+
+  it('returns true when lastBackupTime is null and schedule is daily', () => {
+    expect(isBackupOverdue('daily', null)).toBe(true)
   })
 
   it('returns true when lastBackupTime is null and schedule is weekly', () => {
-    expect(isBackupOverdue('weekly', 22, null)).toBe(true)
+    expect(isBackupOverdue('weekly', null)).toBe(true)
   })
 
-  it('returns false when daily backup was done recently', () => {
-    // Last backup was 2 hours ago
-    const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()
-    expect(isBackupOverdue('daily', 22, twoHoursAgo)).toBe(false)
+  it('returns true for invalid lastBackupTime with active schedule', () => {
+    expect(isBackupOverdue('daily', 'invalid-date')).toBe(true)
   })
 
-  it('returns true when daily backup was more than 24 hours ago', () => {
-    const thirtyHoursAgo = new Date(
-      Date.now() - 30 * 60 * 60 * 1000,
-    ).toISOString()
-    expect(isBackupOverdue('daily', 22, thirtyHoursAgo)).toBe(true)
+  // ── daily ─────────────────────────────────────────────────────────────
+
+  describe('daily schedule', () => {
+    it('not overdue if backed up today (Taiwan time)', () => {
+      // Now: 2026-04-07 14:00 Taiwan, last backup: 2026-04-07 09:00 Taiwan
+      const now = taiwanDate(2026, 4, 7, 14, 0)
+      const lastBackup = new Date(taiwanDate(2026, 4, 7, 9, 0)).toISOString()
+      vi.useFakeTimers()
+      vi.setSystemTime(now)
+
+      expect(isBackupOverdue('daily', lastBackup)).toBe(false)
+    })
+
+    it('overdue if last backup was yesterday', () => {
+      // Now: 2026-04-07 10:00 Taiwan, last backup: 2026-04-06 22:00 Taiwan
+      const now = taiwanDate(2026, 4, 7, 10, 0)
+      const lastBackup = new Date(taiwanDate(2026, 4, 6, 22, 0)).toISOString()
+      vi.useFakeTimers()
+      vi.setSystemTime(now)
+
+      expect(isBackupOverdue('daily', lastBackup)).toBe(true)
+    })
+
+    it('not overdue right after midnight if backed up late yesterday (edge case)', () => {
+      // Now: 2026-04-07 00:05 Taiwan, last backup: 2026-04-06 23:50 Taiwan
+      // This is a new day in Taiwan time, so last backup is "yesterday" → overdue
+      const now = taiwanDate(2026, 4, 7, 0, 5)
+      const lastBackup = new Date(taiwanDate(2026, 4, 6, 23, 50)).toISOString()
+      vi.useFakeTimers()
+      vi.setSystemTime(now)
+
+      expect(isBackupOverdue('daily', lastBackup)).toBe(true)
+    })
+
+    it('overdue if last backup was 3 days ago', () => {
+      const now = taiwanDate(2026, 4, 7, 10, 0)
+      const lastBackup = new Date(taiwanDate(2026, 4, 4, 10, 0)).toISOString()
+      vi.useFakeTimers()
+      vi.setSystemTime(now)
+
+      expect(isBackupOverdue('daily', lastBackup)).toBe(true)
+    })
   })
 
-  it('returns false when weekly backup was done 3 days ago', () => {
-    const threeDaysAgo = new Date(
-      Date.now() - 3 * 24 * 60 * 60 * 1000,
-    ).toISOString()
-    expect(isBackupOverdue('weekly', 22, threeDaysAgo)).toBe(false)
-  })
+  // ── weekly ────────────────────────────────────────────────────────────
 
-  it('returns true when weekly backup was more than 7 days ago', () => {
-    const eightDaysAgo = new Date(
-      Date.now() - 8 * 24 * 60 * 60 * 1000,
-    ).toISOString()
-    expect(isBackupOverdue('weekly', 22, eightDaysAgo)).toBe(true)
-  })
+  describe('weekly schedule (Monday)', () => {
+    it('not overdue if backed up this Monday', () => {
+      // 2026-04-07 is Tuesday, last backup was Monday 2026-04-06
+      const now = taiwanDate(2026, 4, 7, 10, 0) // Tue
+      const lastBackup = new Date(taiwanDate(2026, 4, 6, 9, 0)).toISOString() // Mon
+      vi.useFakeTimers()
+      vi.setSystemTime(now)
 
-  it('returns false for invalid lastBackupTime string with schedule none', () => {
-    expect(isBackupOverdue('none', 22, 'invalid-date')).toBe(false)
-  })
+      expect(isBackupOverdue('weekly', lastBackup)).toBe(false)
+    })
 
-  it('returns true for invalid lastBackupTime string with active schedule', () => {
-    // Invalid date should be treated as never backed up
-    expect(isBackupOverdue('daily', 22, 'invalid-date')).toBe(true)
+    it('not overdue if backed up on Wednesday of this week', () => {
+      // 2026-04-10 is Friday, last backup was Wed 2026-04-08 (same week)
+      const now = taiwanDate(2026, 4, 10, 10, 0) // Fri
+      const lastBackup = new Date(taiwanDate(2026, 4, 8, 10, 0)).toISOString() // Wed
+      vi.useFakeTimers()
+      vi.setSystemTime(now)
+
+      expect(isBackupOverdue('weekly', lastBackup)).toBe(false)
+    })
+
+    it('overdue if last backup was last week', () => {
+      // 2026-04-07 is Tuesday, last backup was last Monday 2026-03-30
+      const now = taiwanDate(2026, 4, 7, 10, 0) // Tue
+      const lastBackup = new Date(taiwanDate(2026, 3, 30, 10, 0)).toISOString() // last Mon
+      vi.useFakeTimers()
+      vi.setSystemTime(now)
+
+      expect(isBackupOverdue('weekly', lastBackup)).toBe(true)
+    })
+
+    it('overdue on Monday if last backup was Sunday (previous week)', () => {
+      // 2026-04-06 is Monday, last backup was Sunday 2026-04-05
+      const now = taiwanDate(2026, 4, 6, 10, 0) // Mon
+      const lastBackup = new Date(taiwanDate(2026, 4, 5, 22, 0)).toISOString() // Sun
+      vi.useFakeTimers()
+      vi.setSystemTime(now)
+
+      expect(isBackupOverdue('weekly', lastBackup)).toBe(true)
+    })
+
+    it('not overdue on Sunday if backed up this week', () => {
+      // 2026-04-12 is Sunday, last backup was Tue 2026-04-07
+      // Week started Mon 2026-04-06
+      const now = taiwanDate(2026, 4, 12, 10, 0) // Sun
+      const lastBackup = new Date(taiwanDate(2026, 4, 7, 10, 0)).toISOString() // Tue
+      vi.useFakeTimers()
+      vi.setSystemTime(now)
+
+      expect(isBackupOverdue('weekly', lastBackup)).toBe(false)
+    })
   })
 })

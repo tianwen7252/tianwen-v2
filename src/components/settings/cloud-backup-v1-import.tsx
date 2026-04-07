@@ -15,6 +15,7 @@ import { useGoogleAuth } from '@/hooks/use-google-auth'
 import {
   listDriveBackupFiles,
   downloadDriveFile,
+  withTokenRefresh,
   type DriveFile,
 } from '@/lib/google-drive-service'
 import { AuthExpiredError } from '@/lib/errors'
@@ -60,7 +61,7 @@ function formatDate(isoDate: string): string {
 export function CloudBackupV1Import() {
   const { t } = useTranslation()
   const accessToken = useAppStore(s => s.accessToken)
-  const { login, isLoggedIn, handleAuthError } = useGoogleAuth()
+  const { login, isLoggedIn, refreshToken, handleAuthError } = useGoogleAuth()
 
   const [files, setFiles] = useState<readonly DriveFile[]>([])
   const [loading, setLoading] = useState(false)
@@ -83,7 +84,11 @@ export function CloudBackupV1Import() {
     async function fetchFiles() {
       setLoading(true)
       try {
-        const result = await listDriveBackupFiles(accessToken!)
+        const result = await withTokenRefresh(
+          token => listDriveBackupFiles(token),
+          accessToken!,
+          refreshToken,
+        )
         if (!cancelled) {
           setFiles(result)
         }
@@ -110,7 +115,7 @@ export function CloudBackupV1Import() {
     return () => {
       cancelled = true
     }
-  }, [isLoggedIn, accessToken, t, handleAuthError])
+  }, [isLoggedIn, accessToken, t, refreshToken, handleAuthError])
 
   // Handle import button click — show confirmation modal
   const handleImportClick = useCallback((file: DriveFile) => {
@@ -137,7 +142,11 @@ export function CloudBackupV1Import() {
         total: 1,
         tableName: 'downloading',
       })
-      const buffer = await downloadDriveFile(accessToken, selectedFile.id)
+      const buffer = await withTokenRefresh(
+        token => downloadDriveFile(token, selectedFile.id),
+        accessToken,
+        refreshToken,
+      )
 
       // Phase 2: Parse + transform
       setImportProgress({
@@ -169,7 +178,7 @@ export function CloudBackupV1Import() {
         setImportResult({ counts: {}, errors: [msg] })
       }
     }
-  }, [selectedFile, accessToken, t, handleAuthError])
+  }, [selectedFile, accessToken, t, refreshToken, handleAuthError])
 
   // Handle closing the import progress modal
   const handleCloseImportModal = useCallback(() => {

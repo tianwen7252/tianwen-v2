@@ -157,24 +157,22 @@ describe('CloudBackupStatus', () => {
       expect(screen.getByText('自動備份排程')).toBeTruthy()
     })
 
-    it('shows daily schedule with hour', () => {
+    it('shows daily schedule', () => {
       mockStoreState = {
         ...mockStoreState,
         scheduleType: 'daily',
-        scheduleHour: 22,
       }
       render(<CloudBackupStatus />, { wrapper: createWrapper() })
-      expect(screen.getByText('每日 22:00')).toBeTruthy()
+      expect(screen.getByText('每日')).toBeTruthy()
     })
 
-    it('shows weekly schedule with hour', () => {
+    it('shows weekly schedule', () => {
       mockStoreState = {
         ...mockStoreState,
         scheduleType: 'weekly',
-        scheduleHour: 8,
       }
       render(<CloudBackupStatus />, { wrapper: createWrapper() })
-      expect(screen.getByText('每週 8:00')).toBeTruthy()
+      expect(screen.getByText('每週')).toBeTruthy()
     })
 
     it('shows schedule off when type is none', () => {

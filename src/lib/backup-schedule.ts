@@ -1,92 +1,60 @@
 /**
- * Pure utility functions for backup schedule time calculations.
+ * Pure utility functions for backup schedule overdue checks.
  * All time calculations use Taiwan time (UTC+8).
+ *
+ * Schedule rules:
+ * - daily: backup once per day. If missed today, skip (no retroactive backup).
+ * - weekly: backup every Monday. If Monday is missed, backup immediately.
  */
 
 import type { ScheduleType } from '@/stores/backup-store'
 
 // Taiwan is UTC+8
 const TAIWAN_OFFSET_MS = 8 * 60 * 60 * 1000
-const ONE_DAY_MS = 24 * 60 * 60 * 1000
-const ONE_WEEK_MS = 7 * ONE_DAY_MS
 
 /**
- * Get the current hour in Taiwan time (UTC+8) from a UTC timestamp.
+ * Get the start of "today" in Taiwan time (UTC+8) as UTC milliseconds.
  */
-function getTaiwanDate(utcMs: number): Date {
-  return new Date(utcMs + TAIWAN_OFFSET_MS)
+function getTaiwanDayStart(utcMs: number): number {
+  const taiwanDate = new Date(utcMs + TAIWAN_OFFSET_MS)
+  return (
+    Date.UTC(
+      taiwanDate.getUTCFullYear(),
+      taiwanDate.getUTCMonth(),
+      taiwanDate.getUTCDate(),
+    ) - TAIWAN_OFFSET_MS
+  )
 }
 
 /**
- * Calculate the next daily backup time in UTC milliseconds.
- * If the schedule hour has already passed today (Taiwan time), returns tomorrow.
- * If the schedule hour is exactly now, returns tomorrow.
+ * Get the start of this week's Monday in Taiwan time as UTC milliseconds.
+ * If today is Monday, returns today's start.
  */
-export function calculateNextDailyBackup(
-  scheduleHour: number,
-  nowMs: number,
-): number {
-  const taiwanDate = getTaiwanDate(nowMs)
-
-  // Build today's scheduled time in Taiwan timezone
-  const year = taiwanDate.getUTCFullYear()
-  const month = taiwanDate.getUTCMonth()
-  const day = taiwanDate.getUTCDate()
-
-  // Scheduled time today in UTC = Taiwan scheduled time - 8 hours offset
-  let scheduledUtcMs =
-    Date.UTC(year, month, day, scheduleHour) - TAIWAN_OFFSET_MS
-
-  // If the scheduled time has passed or is exactly now, move to tomorrow
-  if (scheduledUtcMs <= nowMs) {
-    scheduledUtcMs += ONE_DAY_MS
-  }
-
-  return scheduledUtcMs
+function getTaiwanWeekStart(utcMs: number): number {
+  const taiwanDate = new Date(utcMs + TAIWAN_OFFSET_MS)
+  const dayOfWeek = taiwanDate.getUTCDay() // 0=Sun, 1=Mon, ...
+  // Days since Monday (Monday=0, Tue=1, ..., Sun=6)
+  const daysSinceMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1
+  return (
+    Date.UTC(
+      taiwanDate.getUTCFullYear(),
+      taiwanDate.getUTCMonth(),
+      taiwanDate.getUTCDate() - daysSinceMonday,
+    ) - TAIWAN_OFFSET_MS
+  )
 }
 
 /**
- * Calculate the next weekly backup time (Sunday) in UTC milliseconds.
- * If today is Sunday and the hour hasn't passed, returns today.
- * Otherwise returns the next Sunday.
- */
-export function calculateNextWeeklyBackup(
-  scheduleHour: number,
-  nowMs: number,
-): number {
-  const taiwanDate = getTaiwanDate(nowMs)
-
-  const currentDayOfWeek = taiwanDate.getUTCDay() // 0 = Sunday
-  // Days until next Sunday (0 if today is Sunday)
-  const daysUntilSunday = currentDayOfWeek === 0 ? 0 : 7 - currentDayOfWeek
-
-  const year = taiwanDate.getUTCFullYear()
-  const month = taiwanDate.getUTCMonth()
-  const day = taiwanDate.getUTCDate()
-
-  // Build the Sunday's scheduled time in UTC
-  let scheduledUtcMs =
-    Date.UTC(year, month, day + daysUntilSunday, scheduleHour) -
-    TAIWAN_OFFSET_MS
-
-  // If it's Sunday but the hour has passed or is exactly now, move to next week
-  if (scheduledUtcMs <= nowMs) {
-    scheduledUtcMs += ONE_WEEK_MS
-  }
-
-  return scheduledUtcMs
-}
-
-/**
- * Check if a backup is overdue based on the schedule type and last backup time.
+ * Check if a backup is overdue based on the schedule type.
+ *
  * - 'none': never overdue
- * - 'daily': overdue if last backup was more than 24 hours ago
- * - 'weekly': overdue if last backup was more than 7 days ago
- * - null/invalid lastBackupTime: treated as never backed up (overdue)
+ * - 'daily': overdue if no backup today (Taiwan time). If today passes
+ *   without a backup, it is NOT retroactively overdue tomorrow.
+ * - 'weekly': overdue if no backup since this week's Monday (Taiwan time).
+ *   If Monday is missed, backup immediately on the next app open.
  */
 export function isBackupOverdue(
   scheduleType: ScheduleType,
-  _scheduleHour: number,
   lastBackupTime: string | null,
 ): boolean {
   if (scheduleType === 'none') {
@@ -98,14 +66,19 @@ export function isBackupOverdue(
   }
 
   const lastTime = new Date(lastBackupTime).getTime()
-
-  // Invalid date string
   if (Number.isNaN(lastTime)) {
     return true
   }
 
-  const elapsed = Date.now() - lastTime
-  const interval = scheduleType === 'daily' ? ONE_DAY_MS : ONE_WEEK_MS
+  const now = Date.now()
 
-  return elapsed > interval
+  if (scheduleType === 'daily') {
+    // Overdue if last backup was before today (Taiwan time)
+    const todayStart = getTaiwanDayStart(now)
+    return lastTime < todayStart
+  }
+
+  // weekly: overdue if last backup was before this week's Monday
+  const weekStart = getTaiwanWeekStart(now)
+  return lastTime < weekStart
 }
