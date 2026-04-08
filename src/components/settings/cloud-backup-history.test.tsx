@@ -82,6 +82,7 @@ function renderComponent() {
 describe('CloudBackupHistory', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    mockReload.mockClear()
     mockUseCloudBackups.mockReturnValue({
       backups: [
         {

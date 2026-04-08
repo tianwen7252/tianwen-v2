@@ -6,7 +6,7 @@
 import { useState, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import dayjs from 'dayjs'
-import { LoaderCircle, Upload } from 'lucide-react'
+import { LoaderCircle } from 'lucide-react'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { RippleButton } from '@/components/ui/ripple-button'
 import { ConfirmModal } from '@/components/modal/modal'
@@ -125,10 +125,9 @@ export function CloudBackupHistory() {
                       </td>
                       <td className="px-2 py-1 text-center">
                         <RippleButton
-                          className="flex items-center gap-1 rounded-md border-none bg-(--color-blue) px-3 py-1 text-white hover:opacity-80"
+                          className="rounded-md border-none bg-(--color-blue) px-3 py-1 text-white hover:opacity-80"
                           onClick={() => handleImportClick(backup.filename)}
                         >
-                          <Upload size={14} />
                           {t('backup.importBackup')}
                         </RippleButton>
                       </td>
