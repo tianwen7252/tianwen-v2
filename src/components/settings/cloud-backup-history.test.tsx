@@ -206,7 +206,7 @@ describe('CloudBackupHistory', () => {
     })
   })
 
-  it('reloads the page after a successful import', async () => {
+  it('reloads the page after a successful import', { timeout: 15000 }, async () => {
     renderComponent()
     const importButton = screen.getAllByText('匯入')[0]!
     fireEvent.click(importButton)
@@ -216,7 +216,10 @@ describe('CloudBackupHistory', () => {
 
     await waitFor(() => {
       expect(mockReload).toHaveBeenCalledOnce()
-    })
+    }, { timeout: 10000 })
+
+    // Reset reload mock so it doesn't leak into subsequent tests
+    mockReload.mockClear()
   })
 
   // ── Overlay ────────────────────────────────────────────────────────────────

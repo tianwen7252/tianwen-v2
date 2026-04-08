@@ -24,6 +24,8 @@ import { formatBytes } from '@/lib/format-bytes'
 const MAX_BACKUP_COUNT = 30
 // Cloudflare R2 free tier storage limit
 const R2_FREE_QUOTA_BYTES = 10 * 1024 * 1024 * 1024 // 10 GB
+// Minimum time (ms) to show the overlay so the animation plays
+export const MIN_RESTORE_OVERLAY_MS = 5000
 
 const SCHEDULE_OPTIONS: readonly {
   readonly type: ScheduleType
@@ -96,8 +98,12 @@ export function CloudBackupDbStats() {
   const handleRestoreConfirm = useCallback(async () => {
     setRestoreConfirmOpen(false)
     setOverlayMessage(t('backup.restoringDatabase'))
+
+    // Ensure overlay is visible for at least MIN_RESTORE_OVERLAY_MS so the animation plays
+    const minDelay = new Promise(resolve => setTimeout(resolve, MIN_RESTORE_OVERLAY_MS))
+
     try {
-      await getDatabase().restorePreviousDatabase()
+      await Promise.all([getDatabase().restorePreviousDatabase(), minDelay])
       window.location.reload()
     } catch (err: unknown) {
       setOverlayMessage(null)

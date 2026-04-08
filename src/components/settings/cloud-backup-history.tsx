@@ -15,6 +15,11 @@ import { useCloudBackups } from '@/hooks/use-cloud-backups'
 import { createBackupService, decompress } from '@/lib/backup'
 import { getDatabase } from '@/lib/repositories/provider'
 
+// ── Constants ───────────────────────────────────────────────────────────────
+
+// Minimum time (ms) to show the overlay so the animation plays
+export const MIN_OVERLAY_MS = 5000
+
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
 function formatSize(bytes: number): string {
@@ -66,10 +71,16 @@ export function CloudBackupHistory() {
     setConfirmFilename(null)
     setOverlayMessage(t('backup.importingDatabase'))
 
+    // Ensure overlay is visible for at least MIN_OVERLAY_MS so the animation plays
+    const minDelay = new Promise(resolve => setTimeout(resolve, MIN_OVERLAY_MS))
+
     try {
-      const compressedData = await createBackupService().download(filename)
-      const rawBytes = await decompress(compressedData)
-      await getDatabase().importDatabase(rawBytes.buffer as ArrayBuffer)
+      const work = (async () => {
+        const compressedData = await createBackupService().download(filename)
+        const rawBytes = await decompress(compressedData)
+        await getDatabase().importDatabase(rawBytes.buffer as ArrayBuffer)
+      })()
+      await Promise.all([work, minDelay])
       window.location.reload()
     } catch (err: unknown) {
       setOverlayMessage(null)
