@@ -660,6 +660,7 @@ export const COMMODITY_SEEDS: readonly CommoditySeed[] = [
     name: '京醬肉絲飯',
     price: 110,
     priority: 1,
+    imageKey: 'beijing-sauce-pork-rice',
     includesSoup: true,
   },
   {
@@ -668,6 +669,7 @@ export const COMMODITY_SEEDS: readonly CommoditySeed[] = [
     name: '糖醋雞丁飯',
     price: 110,
     priority: 2,
+    imageKey: 'sweet-sour-chicken-rice',
     includesSoup: true,
   },
   {
@@ -676,6 +678,7 @@ export const COMMODITY_SEEDS: readonly CommoditySeed[] = [
     name: '舒肥雞胸飯',
     price: 120,
     priority: 3,
+    imageKey: 'chicken-breast-salad',
     includesSoup: true,
   },
   {
@@ -684,6 +687,7 @@ export const COMMODITY_SEEDS: readonly CommoditySeed[] = [
     name: '無骨雞排飯',
     price: 110,
     priority: 4,
+    imageKey: 'boneless-chicken-cutlet-rice',
     includesSoup: true,
   },
   {
@@ -692,6 +696,7 @@ export const COMMODITY_SEEDS: readonly CommoditySeed[] = [
     name: '巴薩米克醋豬飯',
     price: 135,
     priority: 5,
+    imageKey: 'braised-pork-belly-rice',
     includesSoup: true,
   },
   {
@@ -700,6 +705,7 @@ export const COMMODITY_SEEDS: readonly CommoditySeed[] = [
     name: '醬燒梅花豬飯',
     price: 135,
     priority: 6,
+    imageKey: 'garlic-pork-rice',
     includesSoup: true,
   },
   {
@@ -708,6 +714,7 @@ export const COMMODITY_SEEDS: readonly CommoditySeed[] = [
     name: '滷雞腿飯',
     price: 130,
     priority: 7,
+    imageKey: 'braised-chicken-leg-rice',
     includesSoup: true,
   },
   {
@@ -716,6 +723,7 @@ export const COMMODITY_SEEDS: readonly CommoditySeed[] = [
     name: '炸雞腿飯',
     price: 130,
     priority: 8,
+    imageKey: 'fried-chicken-leg-rice',
     includesSoup: true,
   },
   {
@@ -724,6 +732,7 @@ export const COMMODITY_SEEDS: readonly CommoditySeed[] = [
     name: '油淋雞腿飯',
     price: 140,
     priority: 9,
+    imageKey: 'poached-chicken-leg-rice',
     includesSoup: true,
   },
   {
@@ -732,6 +741,7 @@ export const COMMODITY_SEEDS: readonly CommoditySeed[] = [
     name: '紅燒肉飯',
     price: 120,
     priority: 10,
+    imageKey: 'braised-pork-belly-rice',
     includesSoup: true,
   },
   {
@@ -740,6 +750,7 @@ export const COMMODITY_SEEDS: readonly CommoditySeed[] = [
     name: '鹽酥雞飯',
     price: 110,
     priority: 11,
+    imageKey: 'boneless-chicken-cutlet-rice',
     includesSoup: true,
   },
   {
@@ -748,6 +759,7 @@ export const COMMODITY_SEEDS: readonly CommoditySeed[] = [
     name: '魚排飯',
     price: 110,
     priority: 12,
+    imageKey: 'fish-fillet-rice',
     includesSoup: true,
   },
   {
@@ -756,6 +768,7 @@ export const COMMODITY_SEEDS: readonly CommoditySeed[] = [
     name: '排骨飯',
     price: 115,
     priority: 13,
+    imageKey: 'pork-ribs-rice',
     includesSoup: true,
   },
   {
@@ -764,6 +777,7 @@ export const COMMODITY_SEEDS: readonly CommoditySeed[] = [
     name: '蒜泥白肉飯',
     price: 115,
     priority: 14,
+    imageKey: 'garlic-pork-rice',
     includesSoup: true,
   },
   {
@@ -772,6 +786,7 @@ export const COMMODITY_SEEDS: readonly CommoditySeed[] = [
     name: '蔬菜飯',
     price: 100,
     priority: 15,
+    imageKey: 'vegetable-rice',
     includesSoup: true,
   },
   {
@@ -780,6 +795,7 @@ export const COMMODITY_SEEDS: readonly CommoditySeed[] = [
     name: '加菜',
     price: 20,
     priority: 16,
+    imageKey: 'add-vegetable',
   },
   {
     id: 'com-417',
@@ -787,5 +803,6 @@ export const COMMODITY_SEEDS: readonly CommoditySeed[] = [
     name: '低醣',
     price: 15,
     priority: 17,
+    imageKey: 'vegetable',
   },
 ] as const
