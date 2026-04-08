@@ -265,38 +265,7 @@ export function InitCanvas({ className }: InitCanvasProps) {
       }
     }
 
-    function updateRipples(dt: number) {
-      ripples = ripples
-        .map((r) => ({
-          ...r,
-          radius: r.radius + r.speed * dt,
-          life: r.life - r.decay * dt,
-        }))
-        .filter((r) => r.life > 0 && r.radius <= r.maxRadius)
-    }
-
-    function updateWaves() {
-      const damping = 0.97
-      const tension = 0.03
-      const spread = 0.25
-
-      // Apply tension + damping
-      wavePoints = wavePoints.map((p) => {
-        const newVy = (p.vy + -tension * p.y) * damping
-        return { y: p.y + newVy, vy: newVy }
-      })
-
-      // Spread passes
-      for (let pass = 0; pass < 3; pass++) {
-        wavePoints = wavePoints.map((p, i) => {
-          let newVy = p.vy
-          if (i > 0) newVy += spread * (wavePoints[i - 1]!.y - p.y)
-          if (i < wavePoints.length - 1)
-            newVy += spread * (wavePoints[i + 1]!.y - p.y)
-          return { ...p, vy: newVy }
-        })
-      }
-    }
+    // updateRipples / updateWaves removed (water effects disabled)
 
     // ── Draw systems ──────────────────────────────────────────────────
     function drawColumns() {
@@ -362,141 +331,8 @@ export function InitCanvas({ className }: InitCanvasProps) {
       }
     }
 
-    function drawReflections() {
-      ctx!.save()
-      ctx!.beginPath()
-      ctx!.rect(0, waterSurface, width, height - waterSurface)
-      ctx!.clip()
-
-      ctx!.font = fontSize + 'px ' + FONT_FAMILY
-      ctx!.textAlign = 'center'
-      ctx!.textBaseline = 'top'
-
-      for (const col of columns) {
-        if (!col.active) continue
-        for (let j = 0; j < Math.min(col.length, 8); j++) {
-          const charY = col.y - j * fontSize
-          if (charY > waterSurface || charY < waterSurface - fontSize * 8)
-            continue
-
-          const charIndex = j % col.chars.length
-          const reflectY = waterSurface + (waterSurface - charY)
-          const depthBelow = reflectY - waterSurface
-          const reflectAlpha = Math.max(
-            0,
-            0.12 * (1 - depthBelow / (height * 0.2)),
-          )
-
-          const waveIdx = Math.floor(col.x / WAVE_RESOLUTION)
-          const waveOffset =
-            waveIdx >= 0 && waveIdx < wavePoints.length
-              ? wavePoints[waveIdx]!.y * 2
-              : 0
-
-          if (reflectAlpha < 0.01) continue
-
-          ctx!.fillStyle = `rgba(200, 149, 108, ${reflectAlpha})`
-          ctx!.fillText(
-            col.chars[charIndex]!.char,
-            col.x + fontSize * 0.5 + Math.sin(depthBelow * 0.05) * 3,
-            reflectY + waveOffset,
-          )
-        }
-      }
-      ctx!.restore()
-    }
-
-    function drawRipples() {
-      for (const r of ripples) {
-        const alpha = r.life * 0.3
-        for (let ring = 0; ring < 3; ring++) {
-          const ringRadius = r.radius - ring * 8
-          if (ringRadius <= 0) continue
-          const ringAlpha = alpha * (1 - ring * 0.3)
-
-          ctx!.beginPath()
-          ctx!.ellipse(
-            r.x,
-            r.y + ring * 2,
-            ringRadius,
-            ringRadius * 0.3,
-            0,
-            0,
-            Math.PI * 2,
-          )
-          ctx!.strokeStyle = `rgba(200, 170, 130, ${ringAlpha})`
-          ctx!.lineWidth = 1 - ring * 0.2
-          ctx!.stroke()
-        }
-      }
-    }
-
-    function drawWaterSurface(time: number) {
-      const waterGrad = ctx!.createLinearGradient(0, waterSurface, 0, height)
-      waterGrad.addColorStop(0, 'rgba(15, 13, 11, 0.6)')
-      waterGrad.addColorStop(0.3, 'rgba(12, 11, 10, 0.85)')
-      waterGrad.addColorStop(1, 'rgba(10, 10, 10, 0.95)')
-      ctx!.fillStyle = waterGrad
-      ctx!.fillRect(0, waterSurface - 2, width, height - waterSurface + 2)
-
-      // Wave surface line
-      ctx!.beginPath()
-      for (let x = 0; x <= width; x += WAVE_RESOLUTION) {
-        const idx = Math.floor(x / WAVE_RESOLUTION)
-        const waveY = idx < wavePoints.length ? wavePoints[idx]!.y : 0
-        const ambient =
-          Math.sin(x * 0.01 + time * 0.8) * 1.5 +
-          Math.sin(x * 0.023 + time * 0.5) * 1.0 +
-          Math.sin(x * 0.007 + time * 0.3) * 2.0
-        const py = waterSurface + waveY + ambient
-        if (x === 0) ctx!.moveTo(x, py)
-        else ctx!.lineTo(x, py)
-      }
-      ctx!.strokeStyle = 'rgba(200, 170, 130, 0.25)'
-      ctx!.lineWidth = 1.5
-      ctx!.stroke()
-
-      // Surface glow
-      const surfGlow = ctx!.createLinearGradient(
-        0,
-        waterSurface - 10,
-        0,
-        waterSurface + 20,
-      )
-      surfGlow.addColorStop(0, 'rgba(200, 149, 108, 0)')
-      surfGlow.addColorStop(0.4, 'rgba(200, 149, 108, 0.06)')
-      surfGlow.addColorStop(0.6, 'rgba(200, 149, 108, 0.04)')
-      surfGlow.addColorStop(1, 'rgba(200, 149, 108, 0)')
-      ctx!.fillStyle = surfGlow
-      ctx!.fillRect(0, waterSurface - 10, width, 30)
-
-      // Zen ripples
-      drawZenRipples(time)
-    }
-
-    function drawZenRipples(time: number) {
-      const zenPoints = [
-        { x: width * 0.3, y: waterSurface + (height - waterSurface) * 0.4 },
-        { x: width * 0.7, y: waterSurface + (height - waterSurface) * 0.5 },
-        { x: width * 0.5, y: waterSurface + (height - waterSurface) * 0.7 },
-      ]
-
-      for (let z = 0; z < zenPoints.length; z++) {
-        const zp = zenPoints[z]!
-        for (let ring = 0; ring < 4; ring++) {
-          const phase = time * 0.4 + ring * 1.5 + z * 2.0
-          const radius = 20 + (phase % 6) * 15
-          const alpha = 0.06 * Math.max(0, 1 - (phase % 6) / 6)
-          if (alpha < 0.005) continue
-
-          ctx!.beginPath()
-          ctx!.ellipse(zp.x, zp.y, radius, radius * 0.3, 0, 0, Math.PI * 2)
-          ctx!.strokeStyle = `rgba(200, 170, 130, ${alpha})`
-          ctx!.lineWidth = 0.8
-          ctx!.stroke()
-        }
-      }
-    }
+    // Water draw functions removed (drawReflections, drawRipples,
+    // drawWaterSurface, drawZenRipples, drawWaterParticles)
 
     function drawVignette() {
       const cx = width / 2
@@ -516,27 +352,7 @@ export function InitCanvas({ className }: InitCanvasProps) {
       ctx!.fillRect(0, 0, width, height)
     }
 
-    function drawWaterParticles(time: number) {
-      ctx!.save()
-      ctx!.beginPath()
-      ctx!.rect(0, waterSurface, width, height - waterSurface)
-      ctx!.clip()
-
-      for (let i = 0; i < 30; i++) {
-        const px = (Math.sin(i * 73.1 + time * 0.07) * 0.5 + 0.5) * width
-        const py =
-          waterSurface +
-          (Math.cos(i * 127.3 + time * 0.05) * 0.5 + 0.5) *
-            (height - waterSurface)
-        const alpha = 0.04 + 0.03 * Math.sin(time * 0.5 + i * 1.7)
-
-        ctx!.fillStyle = `rgba(200, 149, 108, ${alpha})`
-        ctx!.beginPath()
-        ctx!.arc(px, py, 1, 0, Math.PI * 2)
-        ctx!.fill()
-      }
-      ctx!.restore()
-    }
+    // drawWaterParticles — disabled (water effects removed)
 
     // ── Click / touch interaction ─────────────────────────────────────
     function handleInteraction(clientX: number, clientY: number) {
@@ -581,8 +397,6 @@ export function InitCanvas({ className }: InitCanvasProps) {
         ? 0
         : Math.min((timestamp - lastTime) / 1000, 0.05)
       lastTime = timestamp
-
-      const time = timestamp / 1000
 
       ctx!.clearRect(0, 0, width, height)
       ctx!.fillStyle = '#0a0a0a'

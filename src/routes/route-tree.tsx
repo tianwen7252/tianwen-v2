@@ -1,4 +1,4 @@
-import { lazy, Suspense, useState, useEffect } from 'react'
+import { lazy, Suspense, useEffect } from 'react'
 import {
   createRootRoute,
   createRoute,
@@ -7,14 +7,12 @@ import {
   useRouterState,
 } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
-import { Settings, Code } from 'lucide-react'
 import { OrderPage } from '@/pages/order'
 import { SwUpdatePrompt } from '@/components/sw-update-prompt'
 import { PageTransition } from '@/components/animations'
 import { AppErrorBoundary } from '@/components/app-error-boundary'
 import { ScrollToTop } from '@/components/ui/scroll-to-top'
-import { HeaderUserMenu } from '@/components/header/header-user-menu'
-import { RippleButton } from '@/components/ui/ripple-button'
+import { AppHeader } from '@/components/header/app-header'
 import { cn } from '@/lib/cn'
 import { useAutoBackup } from '@/hooks/use-auto-backup'
 import { useInitStore } from '@/stores/init-store'
@@ -44,21 +42,24 @@ import { Records } from '@/components/records'
 import { StaffAdmin } from '@/components/staff-admin'
 import { ProductManagement } from '@/components/settings/product-management'
 // Dev preview pages — lazy-loaded (dev-only, no flash since PageTransition key uses top-level route)
-const ModalPreview = lazy(() => import('@/pages/preview').then(m => ({ default: m.ModalPreview })))
-const NotifyPreview = lazy(() => import('@/pages/preview').then(m => ({ default: m.NotifyPreview })))
-const SwPreview = lazy(() => import('@/pages/preview').then(m => ({ default: m.SwPreview })))
-const TestDataPreview = lazy(() => import('@/pages/preview').then(m => ({ default: m.TestDataPreview })))
-const V1ImportPreview = lazy(() => import('@/pages/preview').then(m => ({ default: m.V1ImportPreview })))
-const InitUiPreview = lazy(() => import('@/pages/preview').then(m => ({ default: m.InitUiPreview })))
-
-// ─── Constants ───────────────────────────────────────────────────────────────
-
-const GLASSMORPHISM_STYLE = {
-  backdropFilter: 'blur(10px)',
-  WebkitBackdropFilter: 'blur(10px)',
-  boxShadow:
-    'rgb(0, 0, 0) 0px 0px, rgba(0, 0, 0, 0) 0px 0px, rgb(0, 0, 0) 0px 0px, rgba(0, 0, 0, 0) 0px 0px, rgba(0, 0, 0, 0.3) 0px 16px 32px -16px, rgba(0, 0, 0, 0.1) 0px 0px 0px 1px',
-} as const
+const ModalPreview = lazy(() =>
+  import('@/pages/preview').then((m) => ({ default: m.ModalPreview })),
+)
+const NotifyPreview = lazy(() =>
+  import('@/pages/preview').then((m) => ({ default: m.NotifyPreview })),
+)
+const SwPreview = lazy(() =>
+  import('@/pages/preview').then((m) => ({ default: m.SwPreview })),
+)
+const TestDataPreview = lazy(() =>
+  import('@/pages/preview').then((m) => ({ default: m.TestDataPreview })),
+)
+const V1ImportPreview = lazy(() =>
+  import('@/pages/preview').then((m) => ({ default: m.V1ImportPreview })),
+)
+const InitUiPreview = lazy(() =>
+  import('@/pages/preview').then((m) => ({ default: m.InitUiPreview })),
+)
 
 // Root layout with navigation
 const rootRoute = createRootRoute({
@@ -72,10 +73,10 @@ function RootLayout() {
   const pathname = useRouterState({ select: (s) => s.location.pathname })
 
   // Init store — gate content on bootstrap status
-  const bootstrapDone = useInitStore(s => s.bootstrapDone)
-  const showInitUI = useInitStore(s => s.showInitUI)
-  const initError = useInitStore(s => s.error)
-  const forceInitUI = useInitStore(s => s.forceInitUI)
+  const bootstrapDone = useInitStore((s) => s.bootstrapDone)
+  const showInitUI = useInitStore((s) => s.showInitUI)
+  const initError = useInitStore((s) => s.error)
+  const forceInitUI = useInitStore((s) => s.forceInitUI)
 
   const shouldShowOverlay = showInitUI || forceInitUI
   // Header stays clickable in dev forceInitUI mode
@@ -95,79 +96,9 @@ function RootLayout() {
     return () => window.removeEventListener('keydown', handleKey)
   }, [forceInitUI])
 
-  // Detect scroll for glassmorphism header
-  const [scrolled, setScrolled] = useState(false)
-
-  useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 0)
-    window.addEventListener('scroll', handleScroll, { passive: true })
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
-
-  // Reset scroll position and header shadow on route change.
-  // Without this, navigating from a scrolled page to one with overflow:hidden
-  // (e.g., order page) leaves window.scrollY > 0 and the shadow stays.
-  useEffect(() => {
-    window.scrollTo(0, 0)
-    setScrolled(false)
-  }, [pathname])
-
   return (
     <div className="min-h-screen bg-background text-foreground">
-      {/* Navigation header — disable interactions during real init, transparent when overlay shows */}
-      <div className={headerDisabled ? 'pointer-events-none' : undefined}>
-        <header
-        className={cn(
-          'sticky top-0 z-50 px-5 py-2 transition-all duration-300',
-          shouldShowOverlay
-            ? ''
-            : scrolled
-              ? 'border-b border-transparent'
-              : 'shadow-[0_1px_0_0_rgba(0,0,0,0.08)]', // to replace "border-b border-border" for ipad
-        )}
-        style={{
-          backgroundColor: shouldShowOverlay
-            ? 'transparent'
-            : scrolled
-              ? 'color-mix(in srgb, var(--header-bg) 70%, transparent)'
-              : 'var(--header-bg)',
-          ...(scrolled && !shouldShowOverlay ? GLASSMORPHISM_STYLE : {}),
-        }}
-      >
-        <nav className={cn('flex items-center gap-4', shouldShowOverlay && '[&_*]:text-white/80')}>
-          {/* Left: app title + nav links */}
-          <a
-            href="/"
-            className="text-lg text-primary"
-            onClick={(e) => {
-              e.preventDefault()
-              window.location.href = '/'
-            }}
-          >
-            {t('nav.appTitle')}
-          </a>
-          <div className="flex gap-2">
-            <NavLink to="/">{t('nav.home')}</NavLink>
-            <NavLink to="/orders">{t('nav.orders')}</NavLink>
-            <NavLink to="/clock-in">{t('nav.clockIn')}</NavLink>
-            <NavLink to="/analytics">{t('nav.analytics')}</NavLink>
-          </div>
-
-          {/* Right: dev + settings + login icons */}
-          <div className="ml-auto flex items-center gap-2">
-            {import.meta.env.DEV && (
-              <NavIconLink to="/dev" ariaLabel="DEV">
-                <Code size={20} />
-              </NavIconLink>
-            )}
-            <NavIconLink to="/settings" ariaLabel={t('nav.settings')}>
-              <Settings size={20} />
-            </NavIconLink>
-            <HeaderUserMenu />
-          </div>
-        </nav>
-      </header>
-      </div>
+      <AppHeader disabled={headerDisabled} overlayActive={shouldShowOverlay} />
 
       {/* Main content — gated on init status */}
       <main>
@@ -175,7 +106,11 @@ function RootLayout() {
           <DatabaseLockedScreen />
         ) : shouldShowOverlay ? (
           <InitOverlay
-            onClose={forceInitUI ? () => useInitStore.getState().setForceInitUI(false) : undefined}
+            onClose={
+              forceInitUI
+                ? () => useInitStore.getState().setForceInitUI(false)
+                : undefined
+            }
           />
         ) : isReady ? (
           <AppErrorBoundary title={t('error.appError')}>
@@ -196,47 +131,6 @@ function RootLayout() {
         </>
       )}
     </div>
-  )
-}
-
-function NavLink({ to, children }: { to: string; children: React.ReactNode }) {
-  return (
-    <Link
-      to={to}
-      className="rounded-md px-3 py-1.5 text-md text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground [&.active]:bg-primary [&.active]:text-primary-foreground"
-    >
-      {children}
-    </Link>
-  )
-}
-
-function NavIconLink({
-  to,
-  ariaLabel,
-  children,
-}: {
-  to: string
-  ariaLabel: string
-  children: React.ReactNode
-}) {
-  const pathname = useRouterState({ select: (s) => s.location.pathname })
-  const isActive = pathname === to || pathname.startsWith(`${to}/`)
-
-  return (
-    <Link to={to}>
-      <RippleButton
-        aria-label={ariaLabel}
-        rippleColor="rgba(0,0,0,0.1)"
-        className={cn(
-          'flex size-9 items-center justify-center rounded-md transition-colors hover:bg-accent hover:text-accent-foreground',
-          isActive
-            ? 'bg-primary text-primary-foreground'
-            : 'text-muted-foreground',
-        )}
-      >
-        {children}
-      </RippleButton>
-    </Link>
   )
 }
 
