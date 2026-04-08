@@ -23,7 +23,7 @@ import { formatBytes } from '@/lib/format-bytes'
 import { useCloudBackups } from '@/hooks/use-cloud-backups'
 import {
   getDeviceId,
-  getDeviceName,
+  getDeviceDisplayName,
   getDeviceType,
   setDeviceName,
 } from '@/lib/device'
@@ -100,8 +100,8 @@ export function SystemInfo() {
   const cloudPercent = cloudLoading ? 0 : Math.min(100, Math.round((cloudUsageBytes / R2_FREE_QUOTA_BYTES) * 100))
 
   // ── Device Name State ─────────────────────────────────────────────────
-  const [deviceDisplayName, setDeviceDisplayName] = useState<string | null>(
-    () => getDeviceName(),
+  const [deviceDisplayName, setDeviceDisplayName] = useState<string>(
+    () => getDeviceDisplayName(),
   )
   const [editDeviceNameOpen, setEditDeviceNameOpen] = useState(false)
   const [deviceNameInput, setDeviceNameInput] = useState('')
@@ -144,7 +144,7 @@ export function SystemInfo() {
   // ── Device Name Handlers ──────────────────────────────────────────────
 
   const handleOpenEditDeviceName = useCallback(() => {
-    setDeviceNameInput(deviceDisplayName ?? '')
+    setDeviceNameInput(deviceDisplayName)
     setEditDeviceNameOpen(true)
   }, [deviceDisplayName])
 
@@ -308,9 +308,10 @@ export function SystemInfo() {
                 {t('settings.deviceName')}
               </span>
               <div className="flex items-center gap-2">
-                <span data-testid="device-name-display">
-                  {deviceDisplayName ?? getDeviceType()}
-                </span>
+                <div className="text-right">
+                  <div data-testid="device-name-display">{deviceDisplayName}</div>
+                  <div className="text-sm text-muted-foreground">ID: {getDeviceId()}</div>
+                </div>
                 {isAdmin && (
                   <RippleButton
                     data-testid="edit-device-name-btn"

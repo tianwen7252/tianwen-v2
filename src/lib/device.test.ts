@@ -231,6 +231,55 @@ describe('device utilities', () => {
     })
   })
 
+  describe('getDefaultDeviceName', () => {
+    it('returns "{type}-{id}" format', async () => {
+      Object.defineProperty(navigator, 'userAgent', {
+        value: 'Mozilla/5.0 (Unknown Device)',
+        writable: true,
+        configurable: true,
+      })
+      Object.defineProperty(navigator, 'maxTouchPoints', {
+        value: 0,
+        writable: true,
+        configurable: true,
+      })
+
+      const { getDefaultDeviceName, getDeviceId } = await import('./device')
+      const id = getDeviceId()
+      expect(getDefaultDeviceName()).toBe(`Browser-${id}`)
+    })
+  })
+
+  describe('getDeviceDisplayName', () => {
+    it('returns custom name when set', async () => {
+      mockLocalStorage.getItem.mockImplementation((key: string) => {
+        if (key === 'DEVICE_NAME') return 'iPad-MAIN'
+        if (key === 'DEVICE_ID') return 'abc123'
+        return null
+      })
+
+      const { getDeviceDisplayName } = await import('./device')
+      expect(getDeviceDisplayName()).toBe('iPad-MAIN')
+    })
+
+    it('falls back to default name when no custom name set', async () => {
+      Object.defineProperty(navigator, 'userAgent', {
+        value: 'Mozilla/5.0 (Unknown Device)',
+        writable: true,
+        configurable: true,
+      })
+      Object.defineProperty(navigator, 'maxTouchPoints', {
+        value: 0,
+        writable: true,
+        configurable: true,
+      })
+
+      const { getDeviceDisplayName, getDeviceId } = await import('./device')
+      const id = getDeviceId()
+      expect(getDeviceDisplayName()).toBe(`Browser-${id}`)
+    })
+  })
+
   describe('setDeviceName', () => {
     it('writes the device name to localStorage', async () => {
       const { setDeviceName } = await import('./device')

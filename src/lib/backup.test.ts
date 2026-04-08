@@ -8,10 +8,10 @@ import {
 
 // ─── Module Mocks ──────────────────────────────────────────────────────────
 
-let mockDeviceName: string | null = null
+let mockDeviceDisplayName = 'Browser-test123'
 
 vi.mock('@/lib/device', () => ({
-  getDeviceName: () => mockDeviceName,
+  getDeviceDisplayName: () => mockDeviceDisplayName,
 }))
 
 // ─── Tests ──────────────────────────────────────────────────────────────────
@@ -45,22 +45,22 @@ describe('backup utilities', () => {
   })
 
   describe('generateBackupFilename', () => {
-    it('should generate a filename with device name as label when set', () => {
-      mockDeviceName = 'dining-room'
+    it('should generate a filename with device display name as label', () => {
+      mockDeviceDisplayName = 'iPad-MAIN'
       const filename = generateBackupFilename()
 
       // Format: tianwen-<label>-YYYY-MM-DD_HH-mm-ss.sqlite.gz
       expect(filename).toMatch(
-        /^tianwen-dining-room-\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}\.sqlite\.gz$/,
+        /^tianwen-iPad-MAIN-\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}\.sqlite\.gz$/,
       )
     })
 
-    it('should use "backup" as default label when no device name is set', () => {
-      mockDeviceName = null
+    it('should use default device display name when no custom name set', () => {
+      mockDeviceDisplayName = 'Browser-test123'
       const filename = generateBackupFilename()
 
       expect(filename).toMatch(
-        /^tianwen-backup-\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}\.sqlite\.gz$/,
+        /^tianwen-Browser-test123-\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}\.sqlite\.gz$/,
       )
     })
   })

@@ -1,6 +1,9 @@
 /**
  * Client-side device utility functions.
  * Handles device ID generation, device type detection, and device name management.
+ *
+ * Device ID (DEVICE_ID): permanent nanoid, never changes.
+ * Device Name (DEVICE_NAME): user-editable label, defaults to "{type}-{id}".
  */
 
 import { nanoid } from 'nanoid'
@@ -53,6 +56,22 @@ export function getDeviceType(): string {
  */
 export function getDeviceName(): string | null {
   return localStorage.getItem(DEVICE_NAME_KEY)
+}
+
+/**
+ * Generate the default device name: "{deviceType}-{deviceId}".
+ * Used when the user has not set a custom name.
+ */
+export function getDefaultDeviceName(): string {
+  return `${getDeviceType()}-${getDeviceId()}`
+}
+
+/**
+ * Get the display name for the device.
+ * Returns the user-set name, or the default "{type}-{id}" if not set.
+ */
+export function getDeviceDisplayName(): string {
+  return getDeviceName() ?? getDefaultDeviceName()
 }
 
 /**

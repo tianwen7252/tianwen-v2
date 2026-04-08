@@ -4,7 +4,7 @@
  * Vercel Function's 4.5 MB payload limit.
  */
 
-import { getDeviceName } from '@/lib/device'
+import { getDeviceDisplayName } from '@/lib/device'
 
 export interface BackupMetadata {
   readonly filename: string
@@ -98,12 +98,11 @@ function formatTaiwanTimestamp(date: Date): string {
 
 /**
  * Generate a timestamped backup filename.
- * Uses the device name as the label when set, otherwise falls back to "backup".
+ * Uses the device display name (user-set or default "{type}-{id}") as the label.
  * Format: tianwen-<label>-YYYY-MM-DD_HH-mm-ss.sqlite.gz (Taiwan time)
  */
 export function generateBackupFilename(): string {
-  const deviceName = getDeviceName()
-  const label = deviceName ?? 'backup'
+  const label = getDeviceDisplayName()
   return `tianwen-${label}-${formatTaiwanTimestamp(new Date())}.sqlite.gz`
 }
 

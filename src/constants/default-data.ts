@@ -403,6 +403,7 @@ export const COMMODITY_SEEDS: readonly CommoditySeed[] = [
     name: '白飯',
     price: 10,
     priority: 19,
+    imageKey: 'steamed-rice',
     hideOnMode: 'both',
   },
 

@@ -83,16 +83,16 @@ vi.mock('@/hooks/use-cloud-backups', () => ({
 }))
 
 // Mock device utilities
-let mockDeviceName: string | null = null
+let mockDeviceDisplayName = 'Mac-test123'
 const mockGetDeviceId = vi.fn(() => 'test-device-id')
 const mockGetDeviceType = vi.fn(() => 'Mac')
-const mockGetDeviceName = vi.fn(() => mockDeviceName)
+const mockGetDeviceDisplayName = vi.fn(() => mockDeviceDisplayName)
 const mockSetDeviceName = vi.fn()
 
 vi.mock('@/lib/device', () => ({
   getDeviceId: () => mockGetDeviceId(),
   getDeviceType: () => mockGetDeviceType(),
-  getDeviceName: () => mockGetDeviceName(),
+  getDeviceDisplayName: () => mockGetDeviceDisplayName(),
   setDeviceName: (name: string) => mockSetDeviceName(name),
 }))
 
@@ -119,14 +119,14 @@ describe('SystemInfo', () => {
     vi.clearAllMocks()
     mockGoogleUser = null
     mockIsAdmin = false
-    mockDeviceName = null
+    mockDeviceDisplayName = 'Mac-test123'
     mockFindPaginatedErrors.mockResolvedValue([])
     mockCountErrors.mockResolvedValue(0)
     mockClearAllErrors.mockResolvedValue(undefined)
     mockEstimate.mockResolvedValue({ usage: 50_000_000, quota: 1_000_000_000 })
     mockGetDeviceId.mockReturnValue('test-device-id')
     mockGetDeviceType.mockReturnValue('Mac')
-    mockGetDeviceName.mockReturnValue(null)
+    mockGetDeviceDisplayName.mockReturnValue('Mac-test123')
   })
 
   // ── Section 1: KPI Cards ────────────────────────────────────────────────
@@ -422,21 +422,25 @@ describe('SystemInfo', () => {
       expect(screen.getByText('裝置代號')).toBeTruthy()
     })
 
-    it('shows device type when no device name is set', () => {
-      mockGetDeviceName.mockReturnValue(null)
-      mockGetDeviceType.mockReturnValue('Mac')
+    it('shows default device display name (type-id)', () => {
+      mockGetDeviceDisplayName.mockReturnValue('Mac-test123')
       renderWithProviders(<SystemInfo />)
 
       const display = screen.getByTestId('device-name-display')
-      expect(display.textContent).toBe('Mac')
+      expect(display.textContent).toBe('Mac-test123')
     })
 
-    it('shows device name when one is set', () => {
-      mockGetDeviceName.mockReturnValue('Dining Room')
+    it('shows custom device name when set', () => {
+      mockGetDeviceDisplayName.mockReturnValue('iPad-MAIN')
       renderWithProviders(<SystemInfo />)
 
       const display = screen.getByTestId('device-name-display')
-      expect(display.textContent).toBe('Dining Room')
+      expect(display.textContent).toBe('iPad-MAIN')
+    })
+
+    it('shows device ID below the name', () => {
+      renderWithProviders(<SystemInfo />)
+      expect(screen.getByText('ID: test-device-id')).toBeTruthy()
     })
 
     it('hides edit button when not admin', () => {
