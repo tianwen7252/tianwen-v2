@@ -180,7 +180,12 @@ export function CloudBackupDbStats() {
 
           {/* Schedule type selector — pinned to bottom with buttons */}
           <div className="mt-4">
-            <p className="mb-2 text-muted-foreground">{t('backup.schedule')}</p>
+            <p className="mb-2 text-muted-foreground">
+              {t('backup.schedule')}
+              {import.meta.env.DEV && (
+                <span className="ml-2 text-sm text-(--color-red)">(DEV模式不啟用)</span>
+              )}
+            </p>
             <div className="flex gap-2">
               {SCHEDULE_OPTIONS.map(option => (
                 <RippleButton

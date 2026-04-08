@@ -71,8 +71,9 @@ export async function hydrateBackupScheduleFromDb(): Promise<void> {
 // ─── Store ──────────────────────────────────────────────────────────────────
 
 export const useBackupStore = create<BackupState & BackupActions>(set => ({
-  // Default schedule (will be overwritten by DB hydration)
-  scheduleType: 'daily',
+  // Default schedule — none until user explicitly enables.
+  // Will be overwritten by DB hydration if previously set.
+  scheduleType: 'none',
 
   // Runtime state (not persisted)
   lastBackupTime: null,
