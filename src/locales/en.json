@@ -141,6 +141,11 @@
     "loginViaHeader": "Please click the login button in the header",
     "sessionExpired": "Session expired, please sign in again"
   },
+  "init": {
+    "loading": "Initializing POS system…",
+    "error": "Initialization failed",
+    "retryHint": "Please refresh the page"
+  },
   "error": {
     "title": "Error Occurred",
     "unknown": "Unknown error",
