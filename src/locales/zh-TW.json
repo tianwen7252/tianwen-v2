@@ -205,7 +205,7 @@
     "deleteTagError": "刪除備註失敗",
     "recentOrders": "近期訂單",
     "served": "已送餐",
-    "noRecentOrders": "目前無近期訂單",
+    "noRecentOrders": "本日無訂單",
     "editOrderButton": "編輯訂單"
   },
   "orders": {
