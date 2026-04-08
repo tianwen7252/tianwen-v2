@@ -127,7 +127,7 @@ export function InitCanvas({ className }: InitCanvasProps) {
     let height = 0
     let waterSurface = 0
     let columns: Column[] = []
-    let ripples: Ripple[] = []
+    const ripples: Ripple[] = []
     let wavePoints: WavePoint[] = []
     let rafId = 0
     let lastTime = 0
