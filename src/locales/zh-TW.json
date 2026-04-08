@@ -563,6 +563,7 @@
     "historyType": "類型",
     "historyStatus": "狀態",
     "historyFilename": "檔案名稱",
+    "historySource": "備份來源",
     "historySize": "大小",
     "historyDuration": "耗時",
     "typeManual": "手動",

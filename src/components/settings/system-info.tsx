@@ -92,16 +92,23 @@ function useStorageEstimate(): StorageEstimate {
 export function SystemInfo() {
   const { t } = useTranslation()
   const queryClient = useQueryClient()
-  const { percent: storagePercent, usageBytes, quotaBytes } = useStorageEstimate()
+  const {
+    percent: storagePercent,
+    usageBytes,
+    quotaBytes,
+  } = useStorageEstimate()
   const appVersion = useAppVersion()
 
   const { googleUser, isAdmin } = useGoogleAuth()
-  const { totalSize: cloudUsageBytes, isLoading: cloudLoading } = useCloudBackups()
-  const cloudPercent = cloudLoading ? 0 : Math.min(100, Math.round((cloudUsageBytes / R2_FREE_QUOTA_BYTES) * 100))
+  const { totalSize: cloudUsageBytes, isLoading: cloudLoading } =
+    useCloudBackups()
+  const cloudPercent = cloudLoading
+    ? 0
+    : Math.min(100, Math.round((cloudUsageBytes / R2_FREE_QUOTA_BYTES) * 100))
 
   // ── Device Name State ─────────────────────────────────────────────────
-  const [deviceDisplayName, setDeviceDisplayName] = useState<string>(
-    () => getDeviceDisplayName(),
+  const [deviceDisplayName, setDeviceDisplayName] = useState<string>(() =>
+    getDeviceDisplayName(),
   )
   const [editDeviceNameOpen, setEditDeviceNameOpen] = useState(false)
   const [deviceNameInput, setDeviceNameInput] = useState('')
@@ -190,7 +197,7 @@ export function SystemInfo() {
   const handleClearCache = useCallback(async () => {
     try {
       const keys = await caches.keys()
-      await Promise.all(keys.map(k => caches.delete(k)))
+      await Promise.all(keys.map((k) => caches.delete(k)))
       notify.success(t('settings.cacheCleared'))
     } catch {
       // Caches API not available
@@ -272,11 +279,17 @@ export function SystemInfo() {
             <div className="flex w-full justify-between text-muted-foreground">
               <div>
                 <div>{t('settings.storageUsed')}</div>
-                <div>{cloudLoading ? '...' : formatBytes(cloudUsageBytes, 2)}</div>
+                <div>
+                  {cloudLoading ? '...' : formatBytes(cloudUsageBytes, 2)}
+                </div>
               </div>
               <div className="text-right">
                 <div>{t('settings.storageRemaining')}</div>
-                <div>{cloudLoading ? '...' : formatBytes(R2_FREE_QUOTA_BYTES - cloudUsageBytes, 2)}</div>
+                <div>
+                  {cloudLoading
+                    ? '...'
+                    : formatBytes(R2_FREE_QUOTA_BYTES - cloudUsageBytes, 2)}
+                </div>
               </div>
             </div>
           </CardContent>
@@ -319,7 +332,10 @@ export function SystemInfo() {
                   </RippleButton>
                 )}
               </div>
-              <div data-testid="device-name-display" className="text-right text-muted-foreground break-all">
+              <div
+                data-testid="device-name-display"
+                className="text-right break-all"
+              >
                 {deviceDisplayName}
               </div>
             </div>
@@ -391,7 +407,7 @@ export function SystemInfo() {
           data-testid="device-name-input"
           type="text"
           value={deviceNameInput}
-          onChange={e => setDeviceNameInput(e.target.value)}
+          onChange={(e) => setDeviceNameInput(e.target.value)}
           placeholder={t('settings.deviceNamePlaceholder')}
           className="w-full rounded-md border border-gray-300 px-3 py-2 text-md outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400"
           style={{ background: 'rgba(255, 255, 255, 0.8)' }}
@@ -455,7 +471,7 @@ export function SystemInfo() {
                     </tr>
                   </thead>
                   <tbody>
-                    {logs.map(log => (
+                    {logs.map((log) => (
                       <tr key={log.id} className="border-b">
                         <td className="px-2 py-1 whitespace-nowrap">
                           {dayjs(log.createdAt).format('YYYY/MM/DD HH:mm:ss')}

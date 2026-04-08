@@ -563,6 +563,7 @@
     "historyType": "Type",
     "historyStatus": "Status",
     "historyFilename": "Filename",
+    "historySource": "Source",
     "historySize": "Size",
     "historyDuration": "Duration",
     "typeManual": "Manual",
