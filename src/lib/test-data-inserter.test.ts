@@ -29,6 +29,15 @@ function createMockDatabase(): AsyncDatabase & {
     async exportDatabase(): Promise<Uint8Array> {
       return new Uint8Array()
     },
+    async importDatabase(_data: ArrayBuffer): Promise<void> {
+      // no-op for test
+    },
+    async restorePreviousDatabase(): Promise<void> {
+      // no-op for test
+    },
+    async hasPreviousDatabase(): Promise<boolean> {
+      return false
+    },
   }
 }
 
@@ -321,6 +330,15 @@ describe('insertTestData', () => {
       },
       async exportDatabase(): Promise<Uint8Array> {
         return new Uint8Array()
+      },
+      async importDatabase(_data: ArrayBuffer): Promise<void> {
+        // no-op for test
+      },
+      async restorePreviousDatabase(): Promise<void> {
+        // no-op for test
+      },
+      async hasPreviousDatabase(): Promise<boolean> {
+        return false
       },
     }
 

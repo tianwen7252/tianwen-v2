@@ -6,6 +6,14 @@ import {
   createBackupService,
 } from './backup'
 
+// ─── Module Mocks ──────────────────────────────────────────────────────────
+
+let mockDeviceDisplayName = 'Browser-test123'
+
+vi.mock('@/lib/device', () => ({
+  getDeviceDisplayName: () => mockDeviceDisplayName,
+}))
+
 // ─── Tests ──────────────────────────────────────────────────────────────────
 
 describe('backup utilities', () => {
@@ -37,11 +45,22 @@ describe('backup utilities', () => {
   })
 
   describe('generateBackupFilename', () => {
-    it('should generate a filename with date timestamp', () => {
+    it('should generate a filename with device display name as label', () => {
+      mockDeviceDisplayName = 'iPad-MAIN'
+      const filename = generateBackupFilename()
+
+      // Format: tianwen-<label>-YYYY-MM-DD_HH-mm-ss.sqlite.gz
+      expect(filename).toMatch(
+        /^tianwen-iPad-MAIN-\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}\.sqlite\.gz$/,
+      )
+    })
+
+    it('should use default device display name when no custom name set', () => {
+      mockDeviceDisplayName = 'Browser-test123'
       const filename = generateBackupFilename()
 
       expect(filename).toMatch(
-        /^tianwen-backup-\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}\.sqlite\.gz$/,
+        /^tianwen-Browser-test123-\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}\.sqlite\.gz$/,
       )
     })
   })

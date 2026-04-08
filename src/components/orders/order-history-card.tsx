@@ -191,7 +191,7 @@ export function OrderHistoryCard({
             {order.memo.map((tag) => (
               <span
                 key={tag}
-                className="inline-block px-2 py-0.5 text-xs rounded-lg bg-[#F8F4EC] text-muted-foreground"
+                className="inline-block px-2 py-0.5 text-md rounded-lg bg-[#F8F4EC] text-muted-foreground"
               >
                 {tag}
               </span>

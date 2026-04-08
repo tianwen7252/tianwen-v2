@@ -14,7 +14,7 @@
 
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 
-const VALID_FILENAME_RE = /^backup-\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}\.sqlite\.gz$/
+const VALID_FILENAME_RE = /^tianwen-.+-\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}\.sqlite\.gz$/
 const PRESIGN_EXPIRY_SECONDS = 600 // 10 minutes
 
 export default async function handler(
@@ -47,10 +47,8 @@ export default async function handler(
     const { getSignedUrl } = await import('@aws-sdk/s3-request-presigner')
 
     const accountId = process.env.R2_ACCOUNT_ID ?? ''
-    const userId = process.env.ALLOWED_USER_ID ?? ''
-    const prefix = userId.length > 0 ? `${userId}/` : ''
     const bucket = process.env.R2_BUCKET_NAME ?? ''
-    const key = `${prefix}${filename}`
+    const key = filename
 
     const client = new S3Client({
       region: 'auto',

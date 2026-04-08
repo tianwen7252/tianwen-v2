@@ -5,6 +5,9 @@ node_modules
 /.pnp
 .pnp.js
 
+# TypeScript incremental build cache
+*.tsbuildinfo
+
 # testing
 /coverage
 /e2e-report
@@ -62,6 +65,10 @@ stats.html
 .claude/worktrees/*
 .claude/settings.local.json
 .claude/plans/*
+
+# graphify
+graphify-out/
+.graphify_*
 
 # MCP servers (contains tokens)
 .mcp.json

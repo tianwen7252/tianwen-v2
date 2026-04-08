@@ -38,9 +38,9 @@ const createUser = () =>
 describe('ClockIn', () => {
   it('should render employee cards from mock data', async () => {
     render(<ClockIn />)
-    // Active employees: emp-001 through emp-004, emp-006 through emp-011 (emp-005 is inactive/resigned)
+    // Active employees: emp-001 through emp-008 (all 8 are active)
     const cards = await screen.findAllByTestId('employee-card')
-    expect(cards).toHaveLength(10)
+    expect(cards).toHaveLength(8)
   })
 
   it('should show today date header', async () => {
@@ -60,7 +60,7 @@ describe('ClockIn', () => {
 
   it('should show correct status badge for clocked-in employee (正在上班)', async () => {
     render(<ClockIn />)
-    // emp-002 has clockIn but no clockOut
+    // emp-002 (妞妞) has clockIn but no clockOut
     await screen.findByText('正在上班')
   })
 
@@ -72,22 +72,22 @@ describe('ClockIn', () => {
 
   it('should show correct status badge for vacation employee (休假)', async () => {
     render(<ClockIn />)
-    // emp-003 has type: 'paid_leave' — badge and button both show 休假
+    // emp-003 (阿吉) has type: 'paid_leave' — badge and button both show 休假
     const vacationElements = await screen.findAllByText('休假')
     expect(vacationElements.length).toBeGreaterThanOrEqual(1)
   })
 
   it('should show employee names', async () => {
     render(<ClockIn />)
-    await screen.findByText('Alex')
-    expect(screen.getByText('Mia')).toBeTruthy()
-    expect(screen.getByText('David')).toBeTruthy()
-    expect(screen.getByText('Grace')).toBeTruthy()
+    await screen.findByText('Eric')
+    expect(screen.getByText('妞妞')).toBeTruthy()
+    expect(screen.getByText('阿吉')).toBeTruthy()
+    expect(screen.getByText('豬')).toBeTruthy()
   })
 
   it('should show admin label for admin employees', async () => {
     render(<ClockIn />)
-    // Only emp-001 (Alex) is admin
+    // Only emp-001 (Eric) is admin
     const adminLabels = await screen.findAllByText('管理員')
     expect(adminLabels).toHaveLength(1)
   })
@@ -95,9 +95,8 @@ describe('ClockIn', () => {
   it('should not show resigned employees', async () => {
     render(<ClockIn />)
     const cards = await screen.findAllByTestId('employee-card')
-    expect(cards).toHaveLength(10)
-    // emp-005 (Mark) is inactive with resignationDate
-    expect(screen.queryByText('Mark')).toBeNull()
+    expect(cards).toHaveLength(8)
+    // All employees are active, no inactive employees
   })
 
   it('should show action buttons per state', async () => {
@@ -129,15 +128,15 @@ describe('ClockIn', () => {
 
     // Wait for data to load
     const cards = await screen.findAllByTestId('employee-card')
-    expect(cards).toHaveLength(10)
+    expect(cards).toHaveLength(8)
 
     // Click on emp-004 card (no record) — should open modal with clockIn action
-    const emp4Card = cards.find(card => within(card).queryByText('Grace'))
+    const emp4Card = cards.find(card => within(card).queryByText('豬'))
     expect(emp4Card).toBeTruthy()
     await user.click(emp4Card!)
 
     // Modal title appears twice (sr-only + visual)
-    const titles = screen.getAllByText(/確認 Grace 的上班打卡？/)
+    const titles = screen.getAllByText(/確認 豬 的上班打卡？/)
     expect(titles.length).toBe(2)
   })
 
@@ -148,11 +147,11 @@ describe('ClockIn', () => {
     // Wait for data to load
     await screen.findByText('打卡下班')
 
-    // Click the 打卡下班 button for emp-002
+    // Click the 打卡下班 button for emp-002 (妞妞)
     await user.click(screen.getByText('打卡下班'))
 
     // Modal title appears twice (sr-only + visual)
-    const titles = screen.getAllByText(/確認 Mia 的下班打卡？/)
+    const titles = screen.getAllByText(/確認 妞妞 的下班打卡？/)
     expect(titles.length).toBe(2)
   })
 
@@ -198,8 +197,8 @@ describe('ClockIn', () => {
     render(<ClockIn />)
     await waitFor(() => {
       const cards = screen.getAllByTestId('employee-card')
-      // emp-002 (index 1 in active) is clocked in
-      const emp2Card = cards.find(card => within(card).queryByText('Mia'))
+      // emp-002 (妞妞) is clocked in
+      const emp2Card = cards.find(card => within(card).queryByText('妞妞'))
       expect(emp2Card?.className).toContain('bg-[#f0f5eb]')
     })
   })
@@ -208,8 +207,8 @@ describe('ClockIn', () => {
     render(<ClockIn />)
     await waitFor(() => {
       const cards = screen.getAllByTestId('employee-card')
-      // emp-001 is clocked out
-      const emp1Card = cards.find(card => within(card).queryByText('Alex'))
+      // emp-001 (Eric) is clocked out
+      const emp1Card = cards.find(card => within(card).queryByText('Eric'))
       expect(emp1Card?.className).toContain('bg-[#f5f0fa]')
     })
   })
@@ -218,8 +217,8 @@ describe('ClockIn', () => {
     render(<ClockIn />)
     await waitFor(() => {
       const cards = screen.getAllByTestId('employee-card')
-      // emp-003 is on vacation
-      const emp3Card = cards.find(card => within(card).queryByText('David'))
+      // emp-003 (阿吉) is on vacation
+      const emp3Card = cards.find(card => within(card).queryByText('阿吉'))
       expect(emp3Card?.className).toContain('bg-[#fef2f2]')
     })
   })
@@ -230,10 +229,10 @@ describe('ClockIn', () => {
 
     // Wait for data to load
     const cards = await screen.findAllByTestId('employee-card')
-    expect(cards).toHaveLength(10)
+    expect(cards).toHaveLength(8)
 
     // Click emp-004 card (no record) to open clockIn modal
-    const emp4Card = cards.find(card => within(card).queryByText('Grace'))
+    const emp4Card = cards.find(card => within(card).queryByText('豬'))
     await user.click(emp4Card!)
 
     // Confirm the clock-in
@@ -241,7 +240,7 @@ describe('ClockIn', () => {
 
     // Modal should close
     await waitFor(() => {
-      expect(screen.queryByText(/確認 Grace 的上班打卡？/)).toBeNull()
+      expect(screen.queryByText(/確認 豬 的上班打卡？/)).toBeNull()
     })
   })
 
@@ -252,7 +251,7 @@ describe('ClockIn', () => {
     // Wait for data to load
     await screen.findByText('打卡下班')
 
-    // Click 打卡下班 button for emp-002 (clocked in)
+    // Click 打卡下班 button for emp-002 (妞妞, clocked in)
     await user.click(screen.getByText('打卡下班'))
 
     // Confirm the clock-out
@@ -260,7 +259,7 @@ describe('ClockIn', () => {
 
     // Modal should close
     await waitFor(() => {
-      expect(screen.queryByText(/確認 Mia 的下班打卡？/)).toBeNull()
+      expect(screen.queryByText(/確認 妞妞 的下班打卡？/)).toBeNull()
     })
   })
 
@@ -271,11 +270,11 @@ describe('ClockIn', () => {
     // Wait for data to load
     await screen.findByText('取消休假')
 
-    // Click 取消休假 button for emp-003
+    // Click 取消休假 button for emp-003 (阿吉)
     await user.click(screen.getByText('取消休假'))
 
     // Modal should open with cancelVacation title
-    const titles = screen.getAllByText(/取消 David 的休假？/)
+    const titles = screen.getAllByText(/取消 阿吉 的休假？/)
     expect(titles.length).toBe(2)
 
     // Confirm the cancellation
@@ -283,7 +282,7 @@ describe('ClockIn', () => {
 
     // Modal should close
     await waitFor(() => {
-      expect(screen.queryByText(/取消 David 的休假？/)).toBeNull()
+      expect(screen.queryByText(/取消 阿吉 的休假？/)).toBeNull()
     })
   })
 
@@ -293,14 +292,14 @@ describe('ClockIn', () => {
 
     // Wait for data to load
     const allCards = await screen.findAllByTestId('employee-card')
-    expect(allCards).toHaveLength(10)
+    expect(allCards).toHaveLength(8)
 
-    // Click 申請休假 button for emp-004 (Grace)
-    const graceCard = allCards.find(card => within(card).queryByText('Grace'))!
-    await user.click(within(graceCard).getByText('休假'))
+    // Click 申請休假 button for emp-004 (豬)
+    const zhūCard = allCards.find(card => within(card).queryByText('豬'))!
+    await user.click(within(zhūCard).getByText('休假'))
 
     // Modal should open with vacation title
-    const titles = screen.getAllByText(/確認 Grace 的休假打卡？/)
+    const titles = screen.getAllByText(/確認 豬 的休假打卡？/)
     expect(titles.length).toBe(2)
 
     // Confirm the vacation
@@ -308,7 +307,7 @@ describe('ClockIn', () => {
 
     // Modal should close
     await waitFor(() => {
-      expect(screen.queryByText(/確認 Grace 的休假打卡？/)).toBeNull()
+      expect(screen.queryByText(/確認 豬 的休假打卡？/)).toBeNull()
     })
   })
 

@@ -134,7 +134,7 @@ describe('deleteDefaultData(db)', () => {
     expect(selectCall!.sql).toMatch(
       /SELECT COUNT\(\*\) as cnt FROM commodities WHERE type_id IN/,
     )
-    expect(selectCall!.params).toHaveLength(4) // 4 default typeId values
+    expect(selectCall!.params).toHaveLength(5) // 5 default typeId values
   })
 
   it('issues DELETE for commodity_types when SELECT COUNT returns 0', () => {
@@ -211,19 +211,19 @@ describe('deleteDefaultData(db)', () => {
 
     // Verify param counts match the known seed data sizes
     const empCall = db.calls.find(c => c.sql.includes('DELETE FROM employees'))
-    expect(empCall!.params).toHaveLength(11) // EMPLOYEE_SEEDS has 11 entries
+    expect(empCall!.params).toHaveLength(8) // EMPLOYEE_SEEDS has 8 entries
 
     const typesCall = db.calls.find(c =>
       c.sql.includes('DELETE FROM commodity_types'),
     )
-    expect(typesCall!.params).toHaveLength(4) // COMMODITY_TYPE_SEEDS has 4 entries
+    expect(typesCall!.params).toHaveLength(5) // COMMODITY_TYPE_SEEDS has 5 entries
 
     const comCall = db.calls.find(
       c =>
         c.sql.includes('DELETE FROM commodities') &&
         !c.sql.includes('commodity_types'),
     )
-    expect(comCall!.params).toHaveLength(46) // COMMODITY_SEEDS has 46 entries
+    expect(comCall!.params).toHaveLength(65) // COMMODITY_SEEDS has 65 entries
   })
 
   it('deletes commodities before SELECT-checking and deleting commodity_types', () => {
@@ -268,7 +268,7 @@ describe('deleteDefaultData(db)', () => {
     )
     expect(attCall).toBeDefined()
     expect(attCall!.sql).toMatch(/DELETE FROM attendances WHERE employee_id IN/)
-    expect(attCall!.params).toHaveLength(11)
+    expect(attCall!.params).toHaveLength(8)
   })
 })
 
@@ -385,14 +385,14 @@ describe('clearAllData(db)', () => {
 // ─── insertDefaultEmployees ──────────────────────────────────────────────────
 
 describe('insertDefaultEmployees(db)', () => {
-  it('inserts all 11 employees', () => {
+  it('inserts all 8 employees', () => {
     const db = makeMockDb()
     insertDefaultEmployees(db)
 
     const inserts = db.calls.filter(
       c => c.sql.includes('INSERT') && c.sql.includes('employees'),
     )
-    expect(inserts).toHaveLength(11)
+    expect(inserts).toHaveLength(8)
   })
 
   it('uses INSERT OR IGNORE to avoid duplicates', () => {
@@ -435,17 +435,17 @@ describe('insertDefaultEmployees(db)', () => {
 // ─── insertDefaultCommodities ────────────────────────────────────────────────
 
 describe('insertDefaultCommodities(db)', () => {
-  it('inserts all 4 commodity types', () => {
+  it('inserts all 5 commodity types', () => {
     const db = makeMockDb()
     insertDefaultCommodities(db)
 
     const typeInserts = db.calls.filter(
       c => c.sql.includes('INSERT') && c.sql.includes('commodity_types'),
     )
-    expect(typeInserts).toHaveLength(4)
+    expect(typeInserts).toHaveLength(5)
   })
 
-  it('inserts all 46 commodities', () => {
+  it('inserts all 65 commodities', () => {
     const db = makeMockDb()
     insertDefaultCommodities(db)
 
@@ -455,7 +455,7 @@ describe('insertDefaultCommodities(db)', () => {
         c.sql.includes('commodities') &&
         !c.sql.includes('commodity_types'),
     )
-    expect(comInserts).toHaveLength(46)
+    expect(comInserts).toHaveLength(65)
   })
 
   it('uses INSERT OR IGNORE for commodity types', () => {
@@ -559,8 +559,8 @@ describe('insertDefaultCommodities(db)', () => {
 // ─── Exported data arrays ────────────────────────────────────────────────────
 
 describe('DEFAULT_EMPLOYEES', () => {
-  it('has 11 employees', () => {
-    expect(DEFAULT_EMPLOYEES).toHaveLength(11)
+  it('has 8 employees', () => {
+    expect(DEFAULT_EMPLOYEES).toHaveLength(8)
   })
 
   it('all employees have required fields', () => {
@@ -580,19 +580,19 @@ describe('DEFAULT_EMPLOYEES', () => {
 })
 
 describe('DEFAULT_COMMODITY_TYPES', () => {
-  it('has 4 types', () => {
-    expect(DEFAULT_COMMODITY_TYPES).toHaveLength(4)
+  it('has 5 types', () => {
+    expect(DEFAULT_COMMODITY_TYPES).toHaveLength(5)
   })
 
-  it('contains bento, single, drink, dumpling typeIds', () => {
+  it('contains bento, single, drink, dumpling, stall typeIds', () => {
     const typeIds = DEFAULT_COMMODITY_TYPES.map(ct => ct.typeId)
-    expect(typeIds).toEqual(['bento', 'single', 'drink', 'dumpling'])
+    expect(typeIds).toEqual(['bento', 'single', 'drink', 'dumpling', 'stall'])
   })
 })
 
 describe('DEFAULT_COMMODITIES', () => {
-  it('has 46 items', () => {
-    expect(DEFAULT_COMMODITIES).toHaveLength(46)
+  it('has 65 items', () => {
+    expect(DEFAULT_COMMODITIES).toHaveLength(65)
   })
 
   it('all items are on market by default', () => {
@@ -893,7 +893,7 @@ describe('resetCommodityDataAsync()', () => {
     const typeInserts = execCalls.filter(
       c => c.sql.includes('INSERT') && c.sql.includes('commodity_types'),
     )
-    expect(typeInserts).toHaveLength(4)
+    expect(typeInserts).toHaveLength(5)
   })
 
   it('re-inserts all default commodities', async () => {
@@ -904,7 +904,7 @@ describe('resetCommodityDataAsync()', () => {
         c.sql.includes('commodities') &&
         !c.sql.includes('commodity_types'),
     )
-    expect(comInserts).toHaveLength(46)
+    expect(comInserts).toHaveLength(65)
   })
 
   it('re-inserts all default order types', async () => {

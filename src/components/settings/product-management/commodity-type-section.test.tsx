@@ -182,7 +182,7 @@ describe('CommodityTypeSection', () => {
       )
       await screen.findByText('餐盒')
       const handles = screen.getAllByTestId('drag-handle')
-      expect(handles.length).toBe(4)
+      expect(handles.length).toBe(5)
     })
 
     it('should render edit buttons for each type', async () => {
@@ -195,7 +195,7 @@ describe('CommodityTypeSection', () => {
       )
       await screen.findByText('餐盒')
       const editButtons = screen.getAllByTestId('edit-button')
-      expect(editButtons.length).toBe(4)
+      expect(editButtons.length).toBe(5)
     })
 
     it('should NOT render the Save Settings button (moved to parent)', async () => {

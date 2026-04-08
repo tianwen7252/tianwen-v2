@@ -141,6 +141,11 @@
     "loginViaHeader": "請點擊右上角的登入按鈕",
     "sessionExpired": "登入已過期，請重新登入"
   },
+  "init": {
+    "loading": "資料庫初始化中",
+    "error": "初始化失敗",
+    "retryHint": "請重新整理頁面"
+  },
   "error": {
     "title": "發生錯誤",
     "unknown": "未知錯誤",
@@ -200,7 +205,7 @@
     "deleteTagError": "刪除備註失敗",
     "recentOrders": "近期訂單",
     "served": "已送餐",
-    "noRecentOrders": "目前無近期訂單",
+    "noRecentOrders": "本日無訂單",
     "editOrderButton": "編輯訂單"
   },
   "orders": {
@@ -254,6 +259,11 @@
     "appInfo": "應用程式",
     "deployMode": "部署模式",
     "environment": "環境",
+    "deviceName": "裝置代號",
+    "deviceNamePlaceholder": "輸入裝置代號",
+    "deviceNameDuplicate": "裝置代號已被使用",
+    "deviceNameUpdated": "裝置代號已更新",
+    "editDeviceName": "編輯裝置代號",
     "database": "資料庫",
     "dbStatus": "DB 狀態",
     "dbNormal": "正常",
@@ -558,6 +568,7 @@
     "historyType": "類型",
     "historyStatus": "狀態",
     "historyFilename": "檔案名稱",
+    "historySource": "備份來源",
     "historySize": "大小",
     "historyDuration": "耗時",
     "typeManual": "手動",
@@ -593,7 +604,19 @@
     "v1Table_commodity_types": "商品分類",
     "v1Table_commodities": "商品",
     "v1Table_orders": "訂單",
-    "v1Table_order_items": "訂單品項"
+    "v1Table_order_items": "訂單品項",
+    "importBackup": "匯入",
+    "importConfirmTitle": "匯入備份",
+    "importConfirmDescription": "確定要匯入此備份？現有資料將被取代",
+    "importingDatabase": "更新資料庫中...",
+    "importSuccess": "資料庫已更新",
+    "importError": "匯入失敗",
+    "restorePrev": "還原上一版本",
+    "restoreConfirmTitle": "還原資料庫",
+    "restoreConfirmDescription": "確定要還原上一版本資料庫？",
+    "restoringDatabase": "還原資料庫中...",
+    "restoreError": "還原失敗",
+    "noPrevDatabase": "沒有上一版本資料庫"
   },
   "announcement": {
     "adminName": "天文老闆Eric",

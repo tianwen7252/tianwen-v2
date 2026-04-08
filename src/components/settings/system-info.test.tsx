@@ -53,11 +53,13 @@ vi.mock('@/lib/repositories/provider', () => ({
 // Mock sonner notifications
 const mockNotifySuccess = vi.fn()
 const mockNotifyInfo = vi.fn()
+const mockNotifyError = vi.fn()
 
 vi.mock('@/components/ui/sonner', () => ({
   notify: {
     success: (...args: unknown[]) => mockNotifySuccess(...args),
     info: (...args: unknown[]) => mockNotifyInfo(...args),
+    error: (...args: unknown[]) => mockNotifyError(...args),
   },
 }))
 
@@ -78,6 +80,20 @@ vi.mock('@/hooks/use-cloud-backups', () => ({
     error: null,
     refetch: vi.fn(),
   }),
+}))
+
+// Mock device utilities
+let mockDeviceDisplayName = 'Mac-test123'
+const mockGetDeviceId = vi.fn(() => 'test-device-id')
+const mockGetDeviceType = vi.fn(() => 'Mac')
+const mockGetDeviceDisplayName = vi.fn(() => mockDeviceDisplayName)
+const mockSetDeviceName = vi.fn()
+
+vi.mock('@/lib/device', () => ({
+  getDeviceId: () => mockGetDeviceId(),
+  getDeviceType: () => mockGetDeviceType(),
+  getDeviceDisplayName: () => mockGetDeviceDisplayName(),
+  setDeviceName: (name: string) => mockSetDeviceName(name),
 }))
 
 // Mock import.meta.env
@@ -103,10 +119,14 @@ describe('SystemInfo', () => {
     vi.clearAllMocks()
     mockGoogleUser = null
     mockIsAdmin = false
+    mockDeviceDisplayName = 'Mac-test123'
     mockFindPaginatedErrors.mockResolvedValue([])
     mockCountErrors.mockResolvedValue(0)
     mockClearAllErrors.mockResolvedValue(undefined)
     mockEstimate.mockResolvedValue({ usage: 50_000_000, quota: 1_000_000_000 })
+    mockGetDeviceId.mockReturnValue('test-device-id')
+    mockGetDeviceType.mockReturnValue('Mac')
+    mockGetDeviceDisplayName.mockReturnValue('Mac-test123')
   })
 
   // ── Section 1: KPI Cards ────────────────────────────────────────────────
@@ -391,6 +411,122 @@ describe('SystemInfo', () => {
       // PaginationControls should not render when totalPages <= 1
       expect(screen.queryByText(/上一頁/)).toBeNull()
       expect(screen.queryByText(/下一頁/)).toBeNull()
+    })
+  })
+
+  // ── Device Name ────────────────────────────────────────────────────────
+
+  describe('Device Name', () => {
+    it('renders device name row in application card', () => {
+      renderWithProviders(<SystemInfo />)
+      expect(screen.getByText('裝置代號')).toBeTruthy()
+    })
+
+    it('shows default device display name (type-id)', () => {
+      mockGetDeviceDisplayName.mockReturnValue('Mac-test123')
+      renderWithProviders(<SystemInfo />)
+
+      const display = screen.getByTestId('device-name-display')
+      expect(display.textContent).toBe('Mac-test123')
+    })
+
+    it('shows custom device name when set', () => {
+      mockGetDeviceDisplayName.mockReturnValue('iPad-MAIN')
+      renderWithProviders(<SystemInfo />)
+
+      const display = screen.getByTestId('device-name-display')
+      expect(display.textContent).toBe('iPad-MAIN')
+    })
+
+    it('hides edit button when not admin', () => {
+      mockIsAdmin = false
+      renderWithProviders(<SystemInfo />)
+
+      expect(screen.queryByTestId('edit-device-name-btn')).toBeNull()
+    })
+
+    it('shows edit button when admin', () => {
+      mockIsAdmin = true
+      renderWithProviders(<SystemInfo />)
+
+      expect(screen.getByTestId('edit-device-name-btn')).toBeTruthy()
+    })
+
+    it('opens modal when edit button is clicked', async () => {
+      mockIsAdmin = true
+      const user = userEvent.setup()
+      renderWithProviders(<SystemInfo />)
+
+      await user.click(screen.getByTestId('edit-device-name-btn'))
+
+      await waitFor(() => {
+        expect(screen.getByTestId('device-name-input')).toBeTruthy()
+      })
+    })
+
+    it('calls PUT /api/device on confirm and updates display', async () => {
+      mockIsAdmin = true
+      const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          success: true,
+          data: {
+            id: 'test-device-id',
+            name: 'Bar Counter',
+            type: 'Mac',
+            mode: 'development',
+            updatedAt: new Date().toISOString(),
+          },
+        }),
+      } as Response)
+
+      const user = userEvent.setup()
+      renderWithProviders(<SystemInfo />)
+
+      await user.click(screen.getByTestId('edit-device-name-btn'))
+      await waitFor(() => {
+        expect(screen.getByTestId('device-name-input')).toBeTruthy()
+      })
+
+      await user.clear(screen.getByTestId('device-name-input'))
+      await user.type(screen.getByTestId('device-name-input'), 'Bar Counter')
+
+      // Click the confirm button
+      await user.click(screen.getByText('確認'))
+
+      await waitFor(() => {
+        expect(fetchSpy).toHaveBeenCalledWith(
+          '/api/device',
+          expect.objectContaining({ method: 'PUT' }),
+        )
+        expect(mockSetDeviceName).toHaveBeenCalledWith('Bar Counter')
+        expect(mockNotifySuccess).toHaveBeenCalled()
+      })
+    })
+
+    it('shows duplicate error toast on 409 response', async () => {
+      mockIsAdmin = true
+      vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+        ok: false,
+        status: 409,
+        json: async () => ({ success: false, error: 'Device name already in use' }),
+      } as Response)
+
+      const user = userEvent.setup()
+      renderWithProviders(<SystemInfo />)
+
+      await user.click(screen.getByTestId('edit-device-name-btn'))
+      await waitFor(() => {
+        expect(screen.getByTestId('device-name-input')).toBeTruthy()
+      })
+
+      await user.type(screen.getByTestId('device-name-input'), 'Taken Name')
+      await user.click(screen.getByText('確認'))
+
+      await waitFor(() => {
+        expect(mockNotifyError).toHaveBeenCalledWith('裝置代號已被使用')
+      })
     })
   })
 })

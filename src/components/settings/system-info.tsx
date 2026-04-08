@@ -10,9 +10,10 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import dayjs from 'dayjs'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { AnimatedCircularProgressBar } from '@/components/ui/animated-circular-progress-bar'
-import { Trash2, Eraser, RefreshCw } from 'lucide-react'
+import { Trash2, Eraser, RefreshCw, Pencil } from 'lucide-react'
 import { RippleButton } from '@/components/ui/ripple-button'
 import { notify } from '@/components/ui/sonner'
+import { ConfirmModal } from '@/components/modal/modal'
 import { PaginationControls } from '@/components/settings/pagination-controls'
 import { useGoogleAuth } from '@/hooks/use-google-auth'
 import { getErrorLogRepo } from '@/lib/repositories/provider'
@@ -20,6 +21,12 @@ import { SCHEMA_VERSION } from '@/lib/schema'
 import { useAppVersion } from '@/lib/version'
 import { formatBytes } from '@/lib/format-bytes'
 import { useCloudBackups } from '@/hooks/use-cloud-backups'
+import {
+  getDeviceId,
+  getDeviceDisplayName,
+  getDeviceType,
+  setDeviceName,
+} from '@/lib/device'
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
@@ -85,12 +92,27 @@ function useStorageEstimate(): StorageEstimate {
 export function SystemInfo() {
   const { t } = useTranslation()
   const queryClient = useQueryClient()
-  const { percent: storagePercent, usageBytes, quotaBytes } = useStorageEstimate()
+  const {
+    percent: storagePercent,
+    usageBytes,
+    quotaBytes,
+  } = useStorageEstimate()
   const appVersion = useAppVersion()
 
   const { googleUser, isAdmin } = useGoogleAuth()
-  const { totalSize: cloudUsageBytes, isLoading: cloudLoading } = useCloudBackups()
-  const cloudPercent = cloudLoading ? 0 : Math.min(100, Math.round((cloudUsageBytes / R2_FREE_QUOTA_BYTES) * 100))
+  const { totalSize: cloudUsageBytes, isLoading: cloudLoading } =
+    useCloudBackups()
+  const cloudPercent = cloudLoading
+    ? 0
+    : Math.min(100, Math.round((cloudUsageBytes / R2_FREE_QUOTA_BYTES) * 100))
+
+  // ── Device Name State ─────────────────────────────────────────────────
+  const [deviceDisplayName, setDeviceDisplayName] = useState<string>(() =>
+    getDeviceDisplayName(),
+  )
+  const [editDeviceNameOpen, setEditDeviceNameOpen] = useState(false)
+  const [deviceNameInput, setDeviceNameInput] = useState('')
+  const [deviceNameLoading, setDeviceNameLoading] = useState(false)
 
   // ── Pagination via route search params ────────────────────────────────
   const search = useSearch({ from: '/settings/system-info' })
@@ -126,12 +148,56 @@ export function SystemInfo() {
     },
   })
 
+  // ── Device Name Handlers ──────────────────────────────────────────────
+
+  const handleOpenEditDeviceName = useCallback(() => {
+    setDeviceNameInput(deviceDisplayName)
+    setEditDeviceNameOpen(true)
+  }, [deviceDisplayName])
+
+  const handleConfirmDeviceName = useCallback(async () => {
+    const trimmedName = deviceNameInput.trim()
+    if (!trimmedName) return
+
+    setDeviceNameLoading(true)
+    try {
+      const response = await fetch('/api/device', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: getDeviceId(),
+          name: trimmedName,
+          type: getDeviceType(),
+          mode: import.meta.env.DEV ? 'development' : 'production',
+        }),
+      })
+
+      if (response.status === 409) {
+        notify.error(t('settings.deviceNameDuplicate'))
+        return
+      }
+
+      if (!response.ok) {
+        throw new Error(`PUT /api/device failed: ${response.status}`)
+      }
+
+      setDeviceName(trimmedName)
+      setDeviceDisplayName(trimmedName)
+      setEditDeviceNameOpen(false)
+      notify.success(t('settings.deviceNameUpdated'))
+    } catch {
+      notify.error(t('settings.deviceNameDuplicate'))
+    } finally {
+      setDeviceNameLoading(false)
+    }
+  }, [deviceNameInput, t])
+
   // ── Quick Action Handlers ─────────────────────────────────────────────
 
   const handleClearCache = useCallback(async () => {
     try {
       const keys = await caches.keys()
-      await Promise.all(keys.map(k => caches.delete(k)))
+      await Promise.all(keys.map((k) => caches.delete(k)))
       notify.success(t('settings.cacheCleared'))
     } catch {
       // Caches API not available
@@ -213,11 +279,17 @@ export function SystemInfo() {
             <div className="flex w-full justify-between text-muted-foreground">
               <div>
                 <div>{t('settings.storageUsed')}</div>
-                <div>{cloudLoading ? '...' : formatBytes(cloudUsageBytes, 2)}</div>
+                <div>
+                  {cloudLoading ? '...' : formatBytes(cloudUsageBytes, 2)}
+                </div>
               </div>
               <div className="text-right">
                 <div>{t('settings.storageRemaining')}</div>
-                <div>{cloudLoading ? '...' : formatBytes(R2_FREE_QUOTA_BYTES - cloudUsageBytes, 2)}</div>
+                <div>
+                  {cloudLoading
+                    ? '...'
+                    : formatBytes(R2_FREE_QUOTA_BYTES - cloudUsageBytes, 2)}
+                </div>
               </div>
             </div>
           </CardContent>
@@ -243,6 +315,29 @@ export function SystemInfo() {
                 {t('settings.environment')}
               </span>
               <span>{getEnvironment()}</span>
+            </div>
+            <div>
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">
+                  {t('settings.deviceName')}
+                </span>
+                {isAdmin && (
+                  <RippleButton
+                    data-testid="edit-device-name-btn"
+                    aria-label={t('settings.editDeviceName')}
+                    className="flex size-7 items-center justify-center rounded-full border-none bg-transparent text-muted-foreground hover:text-foreground"
+                    onClick={handleOpenEditDeviceName}
+                  >
+                    <Pencil size={14} />
+                  </RippleButton>
+                )}
+              </div>
+              <div
+                data-testid="device-name-display"
+                className="text-right break-all"
+              >
+                {deviceDisplayName}
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -296,6 +391,28 @@ export function SystemInfo() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Device Name Edit Modal */}
+      <ConfirmModal
+        open={editDeviceNameOpen}
+        title={t('settings.editDeviceName')}
+        variant="blue"
+        confirmText={t('common.confirm')}
+        cancelText={t('common.cancel')}
+        loading={deviceNameLoading}
+        onConfirm={handleConfirmDeviceName}
+        onCancel={() => setEditDeviceNameOpen(false)}
+      >
+        <input
+          data-testid="device-name-input"
+          type="text"
+          value={deviceNameInput}
+          onChange={(e) => setDeviceNameInput(e.target.value)}
+          placeholder={t('settings.deviceNamePlaceholder')}
+          className="w-full rounded-md border border-gray-300 px-3 py-2 text-md outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400"
+          style={{ background: 'rgba(255, 255, 255, 0.8)' }}
+        />
+      </ConfirmModal>
 
       {/* Section 3: Quick Actions (admin only) */}
       {isAdmin && (
@@ -354,7 +471,7 @@ export function SystemInfo() {
                     </tr>
                   </thead>
                   <tbody>
-                    {logs.map(log => (
+                    {logs.map((log) => (
                       <tr key={log.id} className="border-b">
                         <td className="px-2 py-1 whitespace-nowrap">
                           {dayjs(log.createdAt).format('YYYY/MM/DD HH:mm:ss')}

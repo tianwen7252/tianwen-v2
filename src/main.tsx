@@ -23,7 +23,7 @@ import {
 } from '@/lib/worker-database'
 import { initRepositories } from '@/lib/repositories'
 import { installGlobalErrorLogger } from '@/lib/error-logger'
-import { DatabaseLockedScreen } from '@/components/database-locked'
+import { useInitStore } from '@/stores/init-store'
 
 // Initialize i18n before rendering (side-effect import)
 import './lib/i18n'
@@ -32,24 +32,6 @@ import './lib/i18n'
 document.addEventListener('gesturestart', e => e.preventDefault())
 document.addEventListener('gesturechange', e => e.preventDefault())
 document.addEventListener('gestureend', e => e.preventDefault())
-
-// Prevent double-tap zoom
-// comment this out since it prevents the button from being clicked repeatedly.
-// document.addEventListener(
-//   'touchend',
-//   (e) => {
-//     if (e.touches.length > 0) return
-//     const now = Date.now()
-//     const DOUBLE_TAP_THRESHOLD = 300
-//     const lastTouch = (document as unknown as Record<string, number>)
-//       .__lastTouchEnd ?? 0
-//     if (now - lastTouch < DOUBLE_TAP_THRESHOLD) {
-//       e.preventDefault()
-//     }
-//     ;(document as unknown as Record<string, number>).__lastTouchEnd = now
-//   },
-//   { passive: false },
-// )
 
 import './styles/globals.css'
 import { router } from './routes/router'
@@ -82,17 +64,42 @@ if (import.meta.env.DEV) {
   logStorageEstimate()
 }
 
-const rootElement = document.getElementById('root')!
+// ─── Timing constants ─────────────────────────────────────────────────────
 
-// ─── Dev-mode DB reset ──────────────────────────────────────────────────────
+/** Wait this long before showing init UI (ms) */
+const SHOW_DELAY = 1000
+/** Once shown, display init UI for at least this long (ms) */
+const MIN_DISPLAY = 5000
 
+// ─── DB initialization flag ─────────────────────────────────────────────────
+
+const DB_INITIALIZED_KEY = 'DB_INITIALIZED'
 const FORCE_RESET_KEY = 'FORCE_RESET_DB'
 
-// ─── Initialize SQLite WASM database via Web Worker, then render the app ───
+/** True if the DB has been successfully initialized at least once before */
+const hasInitializedBefore = localStorage.getItem(DB_INITIALIZED_KEY) === '1'
 
-async function bootstrap() {
+// ─── Render immediately — before DB initialization ──────────────────────────
+
+const rootElement = document.getElementById('root')!
+
+createRoot(rootElement).render(
+  <StrictMode>
+    <QueryProvider>
+      <RouterProvider router={router} />
+      <Toaster />
+    </QueryProvider>
+  </StrictMode>,
+)
+
+// ─── Bootstrap database asynchronously after render ─────────────────────────
+
+async function bootstrapDatabase(): Promise<void> {
   const forceReset = localStorage.getItem(FORCE_RESET_KEY) === '1'
-  if (forceReset) localStorage.removeItem(FORCE_RESET_KEY)
+  if (forceReset) {
+    localStorage.removeItem(FORCE_RESET_KEY)
+    localStorage.removeItem(DB_INITIALIZED_KEY)
+  }
 
   const worker = new Worker(new URL('./lib/db-worker.ts', import.meta.url), {
     type: 'module',
@@ -100,8 +107,7 @@ async function bootstrap() {
 
   // Terminate the worker on page hide so iPad Safari releases OPFS
   // access handles before the next page context (e.g. reload, PWA update)
-  // tries to acquire them. Without this, the next init races against stale
-  // handles and throws InvalidStateError.
+  // tries to acquire them.
   const handlePageHide = () => worker.terminate()
   window.addEventListener('pagehide', handlePageHide)
 
@@ -120,57 +126,47 @@ async function bootstrap() {
   initRepositories(db)
   installGlobalErrorLogger()
 
+  // Mark DB as initialized for future loads
+  try { localStorage.setItem(DB_INITIALIZED_KEY, '1') } catch { /* ignore */ }
+
   // Hydrate backup schedule from DB (async, non-blocking)
   import('@/stores/backup-store').then(m => void m.hydrateBackupScheduleFromDb())
-
-  createRoot(rootElement).render(
-    <StrictMode>
-      <QueryProvider>
-        <RouterProvider router={router} />
-        <Toaster />
-      </QueryProvider>
-    </StrictMode>,
-  )
 }
 
-bootstrap().catch(err => {
-  const msg = err instanceof Error ? err.message : String(err)
+// ─── Init UI timing logic ───────────────────────────────────────────────────
+// 1. If DB was initialized before → skip init UI entirely (no timer)
+// 2. Otherwise: start 1s timer; if bootstrap finishes < 1s → never show
+// 3. If 1s elapses and not done → show init UI for at least 5s
 
-  // OPFS exclusive-lock error: another tab already holds the database,
-  // or iPad Safari has not yet released handles from a previous context.
-  const isOpfsLocked =
-    msg.includes('Access Handles cannot be created') ||
-    msg.includes('NoModificationAllowedError') ||
-    msg.includes('InvalidStateError')
+const showTimer = hasInitializedBefore
+  ? undefined
+  : setTimeout(() => {
+      if (!useInitStore.getState().bootstrapDone) {
+        useInitStore.getState().setShowInitUI(true)
+      }
+    }, SHOW_DELAY)
 
-  if (isOpfsLocked) {
-    createRoot(rootElement).render(
-      <StrictMode>
-        <DatabaseLockedScreen />
-      </StrictMode>,
-    )
-    return
-  }
+bootstrapDatabase()
+  .then(() => {
+    if (showTimer !== undefined) clearTimeout(showTimer)
+    const { showInitUI, shownAt } = useInitStore.getState()
 
-  const container = document.createElement('div')
-  container.style.cssText =
-    'padding:2rem;font-family:monospace;display:flex;flex-direction:column;gap:1rem;'
-
-  const p = document.createElement('p')
-  p.textContent = `Failed to initialize database: ${msg}`
-  container.appendChild(p)
-
-  if (import.meta.env.DEV) {
-    const btn = document.createElement('button')
-    btn.textContent = '重置資料庫'
-    btn.style.cssText =
-      'padding:0.5rem 1rem;background:#ef4444;color:#fff;border:none;border-radius:0.375rem;font-size:1rem;cursor:pointer;width:fit-content;'
-    btn.addEventListener('click', () => {
-      localStorage.setItem(FORCE_RESET_KEY, '1')
-      location.reload()
-    })
-    container.appendChild(btn)
-  }
-
-  rootElement.replaceChildren(container)
-})
+    if (showInitUI && shownAt !== null) {
+      // Init UI is visible — keep it for at least MIN_DISPLAY ms
+      const elapsed = Date.now() - shownAt
+      const remaining = Math.max(0, MIN_DISPLAY - elapsed)
+      setTimeout(() => {
+        useInitStore.getState().setShowInitUI(false)
+        useInitStore.getState().setBootstrapDone()
+      }, remaining)
+    } else {
+      // Fast path — init UI was never shown
+      useInitStore.getState().setBootstrapDone()
+    }
+  })
+  .catch((err: unknown) => {
+    if (showTimer !== undefined) clearTimeout(showTimer)
+    const msg = err instanceof Error ? err.message : String(err)
+    useInitStore.getState().setShowInitUI(false)
+    useInitStore.getState().setError(msg)
+  })

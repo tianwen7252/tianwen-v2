@@ -41,10 +41,10 @@ describe('ClockIn — Toast Integration', () => {
 
     // Wait for data to load
     const cards = await screen.findAllByTestId('employee-card')
-    expect(cards).toHaveLength(10)
+    expect(cards).toHaveLength(8)
 
-    // Click employee card with no record (emp-004 - Grace)
-    const emp4Card = cards.find(card => within(card).queryByText('Grace'))
+    // Click employee card with no record (emp-004 - 豬)
+    const emp4Card = cards.find(card => within(card).queryByText('豬'))
     await user.click(emp4Card!)
 
     // Confirm clock-in
@@ -79,10 +79,10 @@ describe('ClockIn — Toast Integration', () => {
 
     // Wait for data to load
     const allCards = await screen.findAllByTestId('employee-card')
-    expect(allCards).toHaveLength(10)
+    expect(allCards).toHaveLength(8)
 
-    // Click 申請休假 button for emp-004 (Grace)
-    const graceCard = allCards.find(card => within(card).queryByText('Grace'))!
+    // Click 申請休假 button for emp-004 (豬)
+    const graceCard = allCards.find(card => within(card).queryByText('豬'))!
     await user.click(within(graceCard).getByText('休假'))
 
     // Confirm vacation

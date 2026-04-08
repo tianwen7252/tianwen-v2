@@ -141,6 +141,11 @@
     "loginViaHeader": "Please click the login button in the header",
     "sessionExpired": "Session expired, please sign in again"
   },
+  "init": {
+    "loading": "Initializing database system",
+    "error": "Initialization failed",
+    "retryHint": "Please refresh the page"
+  },
   "error": {
     "title": "Error Occurred",
     "unknown": "Unknown error",
@@ -254,6 +259,11 @@
     "appInfo": "Application",
     "deployMode": "Deploy Mode",
     "environment": "Environment",
+    "deviceName": "Device Name",
+    "deviceNamePlaceholder": "Enter device name",
+    "deviceNameDuplicate": "Device name already in use",
+    "deviceNameUpdated": "Device name updated",
+    "editDeviceName": "Edit Device Name",
     "database": "Database",
     "dbStatus": "DB Status",
     "dbNormal": "Normal",
@@ -558,6 +568,7 @@
     "historyType": "Type",
     "historyStatus": "Status",
     "historyFilename": "Filename",
+    "historySource": "Source",
     "historySize": "Size",
     "historyDuration": "Duration",
     "typeManual": "Manual",
@@ -593,7 +604,19 @@
     "v1Table_commodity_types": "Product Categories",
     "v1Table_commodities": "Products",
     "v1Table_orders": "Orders",
-    "v1Table_order_items": "Order Items"
+    "v1Table_order_items": "Order Items",
+    "importBackup": "Import",
+    "importConfirmTitle": "Import Backup",
+    "importConfirmDescription": "Are you sure you want to import this backup? Current data will be replaced.",
+    "importingDatabase": "Updating database...",
+    "importSuccess": "Database updated",
+    "importError": "Import failed",
+    "restorePrev": "Restore Previous",
+    "restoreConfirmTitle": "Restore Database",
+    "restoreConfirmDescription": "Are you sure you want to restore the previous database?",
+    "restoringDatabase": "Restoring database...",
+    "restoreError": "Restore failed",
+    "noPrevDatabase": "No previous database available"
   },
   "announcement": {
     "adminName": "Boss Eric",

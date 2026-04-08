@@ -5,7 +5,7 @@
 
 import dayjs from 'dayjs'
 import { nanoid } from 'nanoid'
-import { COMMODITY_SEEDS, EMPLOYEE_SEEDS } from '@/constants/seed-data'
+import { COMMODITY_SEEDS, EMPLOYEE_SEEDS } from '@/constants/default-data'
 
 // ─── Types ─────────────────────────────────────────────────────────────────
 

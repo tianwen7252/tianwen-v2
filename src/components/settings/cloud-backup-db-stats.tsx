@@ -3,11 +3,13 @@
  * and cloud backup summary + actions (right).
  */
 
-import { useCallback } from 'react'
+import { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { DatabaseBackup, Download } from 'lucide-react'
+import { DatabaseBackup, Download, LoaderCircle, RotateCcw } from 'lucide-react'
+import { useQuery } from '@tanstack/react-query'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { RippleButton } from '@/components/ui/ripple-button'
+import { ConfirmModal } from '@/components/modal/modal'
 import { notify } from '@/components/ui/sonner'
 import { useDbStats } from '@/hooks/use-db-stats'
 import { useCloudBackups } from '@/hooks/use-cloud-backups'
@@ -22,6 +24,9 @@ import { formatBytes } from '@/lib/format-bytes'
 const MAX_BACKUP_COUNT = 30
 // Cloudflare R2 free tier storage limit
 const R2_FREE_QUOTA_BYTES = 10 * 1024 * 1024 * 1024 // 10 GB
+// Minimum time (ms) to show the overlay so the animation plays.
+// Skipped in test environment to avoid flaky timing issues.
+const MIN_RESTORE_OVERLAY_MS = import.meta.env.VITEST ? 0 : 5000
 
 const SCHEDULE_OPTIONS: readonly {
   readonly type: ScheduleType
@@ -39,6 +44,16 @@ export function CloudBackupDbStats() {
   const { tables, totalRows } = useDbStats()
   const { backupCount, totalSize, latestBackup, isLoading, error } =
     useCloudBackups()
+
+  // Restore state
+  const [restoreConfirmOpen, setRestoreConfirmOpen] = useState(false)
+  const [overlayMessage, setOverlayMessage] = useState<string | null>(null)
+
+  // Check if a previous DB snapshot exists
+  const { data: hasPrev = false } = useQuery({
+    queryKey: ['has-prev-db'],
+    queryFn: () => getDatabase().hasPreviousDatabase(),
+  })
 
   // Backup store state
   const isBackingUp = useBackupStore(s => s.isBackingUp)
@@ -78,6 +93,23 @@ export function CloudBackupDbStats() {
       const message =
         error instanceof Error ? error.message : 'Unknown export error'
       notify.error(`${t('backup.exportFailed')}: ${message}`)
+    }
+  }, [t])
+
+  const handleRestoreConfirm = useCallback(async () => {
+    setRestoreConfirmOpen(false)
+    setOverlayMessage(t('backup.restoringDatabase'))
+
+    // Ensure overlay is visible for at least MIN_RESTORE_OVERLAY_MS so the animation plays
+    const minDelay = new Promise(resolve => setTimeout(resolve, MIN_RESTORE_OVERLAY_MS))
+
+    try {
+      await Promise.all([getDatabase().restorePreviousDatabase(), minDelay])
+      window.location.reload()
+    } catch (err: unknown) {
+      setOverlayMessage(null)
+      const message = err instanceof Error ? err.message : String(err)
+      notify.error(`${t('backup.restoreError')}: ${message}`)
     }
   }, [t])
 
@@ -180,7 +212,12 @@ export function CloudBackupDbStats() {
 
           {/* Schedule type selector — pinned to bottom with buttons */}
           <div className="mt-4">
-            <p className="mb-2 text-muted-foreground">{t('backup.schedule')}</p>
+            <p className="mb-2 text-muted-foreground">
+              {t('backup.schedule')}
+              {import.meta.env.DEV && (
+                <span className="ml-2 text-sm text-(--color-red)">(DEV模式不啟用)</span>
+              )}
+            </p>
             <div className="flex gap-2">
               {SCHEDULE_OPTIONS.map(option => (
                 <RippleButton
@@ -198,6 +235,19 @@ export function CloudBackupDbStats() {
               ))}
             </div>
           </div>
+
+          {/* Restore previous database button — only shown when a snapshot exists */}
+          {hasPrev && (
+            <div className="mt-3">
+              <RippleButton
+                className="flex w-full items-center justify-center gap-2 rounded-md border-none bg-(--color-gold) px-4 py-2 text-white hover:opacity-80"
+                onClick={() => setRestoreConfirmOpen(true)}
+              >
+                <RotateCcw size={16} />
+                {t('backup.restorePrev')}
+              </RippleButton>
+            </div>
+          )}
 
           {/* Divider */}
           <hr className="my-3 border-border" />
@@ -222,6 +272,27 @@ export function CloudBackupDbStats() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Restore previous database confirmation modal */}
+      <ConfirmModal
+        open={restoreConfirmOpen}
+        title={t('backup.restoreConfirmTitle')}
+        variant="gold"
+        onConfirm={() => void handleRestoreConfirm()}
+        onCancel={() => setRestoreConfirmOpen(false)}
+      >
+        <p className="text-center">{t('backup.restoreConfirmDescription')}</p>
+      </ConfirmModal>
+
+      {/* Full-screen blocking overlay during restore */}
+      {overlayMessage && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-background/80 backdrop-blur-sm">
+          <div className="flex flex-col items-center gap-4">
+            <LoaderCircle className="size-10 animate-spin text-primary" />
+            <p className="text-lg">{overlayMessage}</p>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
