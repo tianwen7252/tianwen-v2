@@ -346,7 +346,7 @@ self.onmessage = async (e: MessageEvent<WorkerRequest>) => {
         fileNames.includes('tianwen-prev.db') ||
         fileNames.includes('/tianwen-prev.db')
       post({ type: 'has-prev-db-result', id: msg.id, hasPrev })
-    } catch (err) {
+    } catch {
       // On unexpected error fall back to false
       post({ type: 'has-prev-db-result', id: msg.id, hasPrev: false })
     }
