@@ -1,6 +1,6 @@
 {
   "name": "tianwen-v2",
-  "version": "2.6.0",
+  "version": "2.7.0",
   "description": "Tianwen App",
   "main": "src/index.tsx",
   "repository": {
