@@ -44,7 +44,7 @@ interface WavePoint {
 const FALL_SPEED = 1.0
 const COLUMN_DENSITY = 0.7
 const FONT_SIZE_BASE = 16
-const WATER_SURFACE_RATIO = 0.78
+const WATER_SURFACE_RATIO = 0.92
 const MAX_RIPPLES = 40
 const WAVE_RESOLUTION = 4
 

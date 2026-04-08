@@ -9,6 +9,13 @@ vi.mock('./init-canvas', () => ({
   ),
 }))
 
+// Mock Spinner
+vi.mock('@/components/ui/spinner', () => ({
+  Spinner: (props: Record<string, unknown>) => (
+    <svg data-testid={props['data-testid'] as string} />
+  ),
+}))
+
 // Mock react-i18next
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
