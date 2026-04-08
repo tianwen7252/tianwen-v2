@@ -19,7 +19,7 @@ export const DELETE_DEFAULT_DATA = false
  * Increment this number to trigger an automatic reset of default data on next launch.
  * The value is stored in localStorage to detect version changes across sessions.
  */
-export const UPDATE_DEFAULT_DATA_NUMBER = 3
+export const UPDATE_DEFAULT_DATA_NUMBER = 4
 
 /**
  * When true, deletes ALL data from all tables on startup.
@@ -215,6 +215,14 @@ export const COMMODITY_TYPE_SEEDS: readonly CommodityTypeSeed[] = [
     label: '水餃',
     color: 'indigo',
     priority: 4,
+  },
+  {
+    id: 'ct-005',
+    typeId: 'stall',
+    type: 'stall',
+    label: '攤位',
+    color: 'red',
+    priority: 5,
   },
 ] as const
 
@@ -643,5 +651,141 @@ export const COMMODITY_SEEDS: readonly CommoditySeed[] = [
     price: 240,
     priority: 5,
     imageKey: 'corn-dumpling',
+  },
+
+  // ── 攤位 (stall) ──
+  {
+    id: 'com-401',
+    typeId: 'stall',
+    name: '京醬肉絲飯',
+    price: 110,
+    priority: 1,
+    includesSoup: true,
+  },
+  {
+    id: 'com-402',
+    typeId: 'stall',
+    name: '糖醋雞丁飯',
+    price: 110,
+    priority: 2,
+    includesSoup: true,
+  },
+  {
+    id: 'com-403',
+    typeId: 'stall',
+    name: '舒肥雞胸飯',
+    price: 120,
+    priority: 3,
+    includesSoup: true,
+  },
+  {
+    id: 'com-404',
+    typeId: 'stall',
+    name: '無骨雞排飯',
+    price: 110,
+    priority: 4,
+    includesSoup: true,
+  },
+  {
+    id: 'com-405',
+    typeId: 'stall',
+    name: '巴薩米克醋豬飯',
+    price: 135,
+    priority: 5,
+    includesSoup: true,
+  },
+  {
+    id: 'com-406',
+    typeId: 'stall',
+    name: '醬燒梅花豬飯',
+    price: 135,
+    priority: 6,
+    includesSoup: true,
+  },
+  {
+    id: 'com-407',
+    typeId: 'stall',
+    name: '滷雞腿飯',
+    price: 130,
+    priority: 7,
+    includesSoup: true,
+  },
+  {
+    id: 'com-408',
+    typeId: 'stall',
+    name: '炸雞腿飯',
+    price: 130,
+    priority: 8,
+    includesSoup: true,
+  },
+  {
+    id: 'com-409',
+    typeId: 'stall',
+    name: '油淋雞腿飯',
+    price: 140,
+    priority: 9,
+    includesSoup: true,
+  },
+  {
+    id: 'com-410',
+    typeId: 'stall',
+    name: '紅燒肉飯',
+    price: 120,
+    priority: 10,
+    includesSoup: true,
+  },
+  {
+    id: 'com-411',
+    typeId: 'stall',
+    name: '鹽酥雞飯',
+    price: 110,
+    priority: 11,
+    includesSoup: true,
+  },
+  {
+    id: 'com-412',
+    typeId: 'stall',
+    name: '魚排飯',
+    price: 110,
+    priority: 12,
+    includesSoup: true,
+  },
+  {
+    id: 'com-413',
+    typeId: 'stall',
+    name: '排骨飯',
+    price: 115,
+    priority: 13,
+    includesSoup: true,
+  },
+  {
+    id: 'com-414',
+    typeId: 'stall',
+    name: '蒜泥白肉飯',
+    price: 115,
+    priority: 14,
+    includesSoup: true,
+  },
+  {
+    id: 'com-415',
+    typeId: 'stall',
+    name: '蔬菜飯',
+    price: 100,
+    priority: 15,
+    includesSoup: true,
+  },
+  {
+    id: 'com-416',
+    typeId: 'stall',
+    name: '加菜',
+    price: 20,
+    priority: 16,
+  },
+  {
+    id: 'com-417',
+    typeId: 'stall',
+    name: '低醣',
+    price: 15,
+    priority: 17,
   },
 ] as const

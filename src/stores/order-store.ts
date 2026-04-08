@@ -3,6 +3,10 @@ import { nanoid } from 'nanoid'
 import { getOrderRepo } from '@/lib/repositories/provider'
 import type { Order } from '@/lib/schemas'
 
+/** typeId for stall items — orders containing these auto-get "攤位" memo tag */
+const STALL_TYPE_ID = 'stall'
+const STALL_MEMO_TAG = '攤位'
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export interface CartItem {
@@ -255,7 +259,13 @@ export const useOrderStore = create<OrderState & OrderActions>((set, get) => ({
 
     // Collect non-empty notes, prepended by memoTags
     const itemNotes = items.map(item => item.note).filter(note => note !== '')
-    const memo = [...(memoTags ?? []), ...itemNotes]
+    const tags = [...(memoTags ?? []), ...itemNotes]
+
+    // Auto-add "攤位" tag when any stall item is in the order
+    const hasStallItem = items.some(item => item.typeId === STALL_TYPE_ID)
+    const memo = hasStallItem && !tags.includes(STALL_MEMO_TAG)
+      ? [STALL_MEMO_TAG, ...tags]
+      : tags
 
     const orderData = {
       number: editingOrderNumber ?? (await repo.getNextOrderNumber()),
