@@ -737,9 +737,9 @@ describe('getActiveEmployeeIds', () => {
   it('includes known active employees', () => {
     const ids = getActiveEmployeeIds()
 
-    // Alex (emp-001) is active
+    // Eric (emp-001) is active
     expect(ids).toContain('emp-001')
-    // Mia (emp-002) is active
+    // 妞妞 (emp-002) is active
     expect(ids).toContain('emp-002')
   })
 

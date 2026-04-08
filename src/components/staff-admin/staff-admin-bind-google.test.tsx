@@ -156,7 +156,7 @@ describe('StaffAdmin — Google account linking', () => {
       setupAdminStore()
       render(<StaffAdmin />)
 
-      await screen.findByText('Alex')
+      await screen.findByText('Eric')
 
       const linkButtons = screen.getAllByText('連結Google')
       expect(linkButtons.length).toBeGreaterThan(0)
@@ -166,7 +166,7 @@ describe('StaffAdmin — Google account linking', () => {
       setupNonAdminStore()
       render(<StaffAdmin />)
 
-      await screen.findByText('Alex')
+      await screen.findByText('Eric')
 
       expect(screen.queryByText('連結Google')).toBeNull()
     })
@@ -178,7 +178,7 @@ describe('StaffAdmin — Google account linking', () => {
       const user = userEvent.setup()
 
       render(<StaffAdmin />)
-      await screen.findByText('Alex')
+      await screen.findByText('Eric')
 
       const linkButtons = screen.getAllByText('連結Google')
       await user.click(linkButtons[0]!)
@@ -191,7 +191,7 @@ describe('StaffAdmin — Google account linking', () => {
 
       // Should show both employee name and Google account name
       expect(
-        within(modal).getByText(/Alex/, { exact: false }),
+        within(modal).getByText(/Eric/, { exact: false }),
       ).toBeTruthy()
       expect(
         within(modal).getByText(/Admin User/, { exact: false }),
@@ -206,7 +206,7 @@ describe('StaffAdmin — Google account linking', () => {
       const bindSpy = vi.spyOn(repo, 'bindGoogleAccount')
 
       render(<StaffAdmin />)
-      await screen.findByText('Alex')
+      await screen.findByText('Eric')
 
       const linkButtons = screen.getAllByText('連結Google')
       await user.click(linkButtons[0]!)
@@ -231,7 +231,7 @@ describe('StaffAdmin — Google account linking', () => {
       const user = userEvent.setup()
 
       render(<StaffAdmin />)
-      await screen.findByText('Alex')
+      await screen.findByText('Eric')
 
       const linkButtons = screen.getAllByText('連結Google')
       await user.click(linkButtons[0]!)
@@ -254,7 +254,7 @@ describe('StaffAdmin — Google account linking', () => {
       const bindSpy = vi.spyOn(repo, 'bindGoogleAccount')
 
       render(<StaffAdmin />)
-      await screen.findByText('Alex')
+      await screen.findByText('Eric')
 
       const linkButtons = screen.getAllByText('連結Google')
       await user.click(linkButtons[0]!)
@@ -272,10 +272,10 @@ describe('StaffAdmin — Google account linking', () => {
       setupAdminStore()
       const user = userEvent.setup()
 
-      // Pre-link Alex with the same Google sub as MOCK_GOOGLE_USER
+      // Pre-link Eric with the same Google sub as MOCK_GOOGLE_USER
       const repo = getEmployeeRepo()
       const employees = await repo.findAll()
-      const alex = employees.find((e) => e.name === 'Alex')!
+      const alex = employees.find((e) => e.name === 'Eric')!
       await repo.bindGoogleAccount(
         alex.id,
         MOCK_GOOGLE_USER.sub,
@@ -290,14 +290,14 @@ describe('StaffAdmin — Google account linking', () => {
 
       // If no other admin exists, update one to be admin
       if (!otherAdmin) {
-        const mia = allEmployees.find((e) => e.name === 'Mia')!
+        const mia = allEmployees.find((e) => e.name === '妞妞')!
         await repo.update(mia.id, { isAdmin: true })
       }
 
       render(<StaffAdmin />)
-      await screen.findByText('Alex')
+      await screen.findByText('Eric')
 
-      // Find the link button for the other admin employee (not Alex who is already linked)
+      // Find the link button for the other admin employee (not Eric who is already linked)
       const linkButtons = screen.queryAllByText('連結Google')
       if (linkButtons.length > 0) {
         await user.click(linkButtons[0]!)
@@ -309,7 +309,7 @@ describe('StaffAdmin — Google account linking', () => {
 
         await waitFor(() => {
           expect(mockNotify.warning).toHaveBeenCalledWith(
-            expect.stringContaining('Alex'),
+            expect.stringContaining('Eric'),
           )
         })
       }
@@ -330,7 +330,7 @@ describe('StaffAdmin — Google account linking', () => {
       )
 
       render(<StaffAdmin />)
-      await screen.findByText('Alex')
+      await screen.findByText('Eric')
 
       expect(screen.getByText('取消連結')).toBeTruthy()
     })
@@ -348,14 +348,14 @@ describe('StaffAdmin — Google account linking', () => {
       )
 
       render(<StaffAdmin />)
-      await screen.findByText('Alex')
+      await screen.findByText('Eric')
 
       await user.click(screen.getByText('取消連結'))
 
       const modal = screen.getByRole('dialog', { name: '確認取消連結' })
       expect(modal).toBeTruthy()
       expect(
-        within(modal).getByText(/Alex/, { exact: false }),
+        within(modal).getByText(/Eric/, { exact: false }),
       ).toBeTruthy()
     })
 
@@ -373,7 +373,7 @@ describe('StaffAdmin — Google account linking', () => {
       const unbindSpy = vi.spyOn(repo, 'unbindGoogleAccount')
 
       render(<StaffAdmin />)
-      await screen.findByText('Alex')
+      await screen.findByText('Eric')
 
       await user.click(screen.getByText('取消連結'))
 
@@ -398,7 +398,7 @@ describe('StaffAdmin — Google account linking', () => {
       )
 
       render(<StaffAdmin />)
-      await screen.findByText('Alex')
+      await screen.findByText('Eric')
 
       await user.click(screen.getByText('取消連結'))
 

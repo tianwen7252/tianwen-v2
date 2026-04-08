@@ -116,9 +116,9 @@ describe('StaffAdmin — Toast Integration', () => {
     await user.click(editButtons[0]!)
 
     const dialog = screen.getByRole('dialog', { name: '編輯員工' })
-    const nameInput = within(dialog).getByDisplayValue('Alex')
+    const nameInput = within(dialog).getByDisplayValue('Eric')
     await user.clear(nameInput)
-    await user.type(nameInput, 'Alexander')
+    await user.type(nameInput, 'Ericander')
 
     await user.click(screen.getByRole('button', { name: '確認' }))
 

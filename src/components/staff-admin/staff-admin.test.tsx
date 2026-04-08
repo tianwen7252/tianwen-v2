@@ -92,21 +92,15 @@ describe('StaffAdmin', () => {
 
     it('should render employees from mock data', async () => {
       render(<StaffAdmin />)
-      await screen.findByText('Alex')
-      expect(screen.getByText('Mia')).toBeTruthy()
-      expect(screen.getByText('David')).toBeTruthy()
+      await screen.findByText('Eric')
+      expect(screen.getByText('妞妞')).toBeTruthy()
+      expect(screen.getByText('阿吉')).toBeTruthy()
     })
 
     it('should show admin tag for admin employees', async () => {
       render(<StaffAdmin />)
-      // Alex is admin
+      // Eric is admin
       await screen.findByText('管理員')
-    })
-
-    it('should show resigned tag for inactive employees', async () => {
-      render(<StaffAdmin />)
-      // Mark is inactive (resigned)
-      await screen.findByText('已離職')
     })
 
     it('should show shift type labels', async () => {
@@ -158,7 +152,7 @@ describe('StaffAdmin', () => {
       render(<StaffAdmin />)
 
       // Wait for initial data
-      await screen.findByText('Alex')
+      await screen.findByText('Eric')
       const initialCount = (await getEmployeeRepo().findAll()).length
 
       await user.click(screen.getByRole('button', { name: /新增員工/ }))
@@ -194,7 +188,7 @@ describe('StaffAdmin', () => {
       expect(dialog).toBeTruthy()
 
       // Name should be pre-filled
-      const nameInput = within(dialog).getByDisplayValue('Alex')
+      const nameInput = within(dialog).getByDisplayValue('Eric')
       expect(nameInput).toBeTruthy()
     })
 
@@ -222,7 +216,7 @@ describe('StaffAdmin', () => {
       await user.click(editButtons[0]!)
 
       const dialog = screen.getByRole('dialog', { name: '編輯員工' })
-      const nameInput = within(dialog).getByDisplayValue('Alex')
+      const nameInput = within(dialog).getByDisplayValue('Eric')
 
       // Clear and type new name
       await user.clear(nameInput)
@@ -239,7 +233,7 @@ describe('StaffAdmin', () => {
       // Updated name should appear
       await waitFor(() => {
         expect(screen.getByText('Alexander')).toBeTruthy()
-        expect(screen.queryByText('Alex')).toBeNull()
+        expect(screen.queryByText('Eric')).toBeNull()
       })
     })
 
@@ -252,7 +246,7 @@ describe('StaffAdmin', () => {
       await user.click(editButtons[0]!)
 
       const dialog = screen.getByRole('dialog', { name: '編輯員工' })
-      const nameInput = within(dialog).getByDisplayValue('Alex')
+      const nameInput = within(dialog).getByDisplayValue('Eric')
       await user.clear(nameInput)
 
       await user.click(screen.getByRole('button', { name: '確認' }))

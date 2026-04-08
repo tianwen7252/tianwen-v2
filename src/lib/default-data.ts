@@ -42,13 +42,10 @@ const EMPLOYEE_TIMESTAMPS: Record<
   'emp-002': { createdAt: BASE_TS, updatedAt: daysAgo(15) },
   'emp-003': { createdAt: daysAgo(200), updatedAt: daysAgo(5) },
   'emp-004': { createdAt: daysAgo(60), updatedAt: daysAgo(2) },
-  'emp-005': { createdAt: daysAgo(500), updatedAt: daysAgo(80) },
-  'emp-006': { createdAt: BASE_TS, updatedAt: daysAgo(1) },
-  'emp-007': { createdAt: daysAgo(50), updatedAt: daysAgo(3) },
-  'emp-008': { createdAt: daysAgo(40), updatedAt: daysAgo(2) },
-  'emp-009': { createdAt: daysAgo(25), updatedAt: daysAgo(1) },
-  'emp-010': { createdAt: daysAgo(15), updatedAt: daysAgo(1) },
-  'emp-011': { createdAt: daysAgo(10), updatedAt: daysAgo(1) },
+  'emp-005': { createdAt: daysAgo(50), updatedAt: daysAgo(3) },
+  'emp-006': { createdAt: daysAgo(40), updatedAt: daysAgo(2) },
+  'emp-007': { createdAt: daysAgo(25), updatedAt: daysAgo(1) },
+  'emp-008': { createdAt: daysAgo(15), updatedAt: daysAgo(1) },
 }
 
 export const DEFAULT_EMPLOYEES: readonly Employee[] = EMPLOYEE_SEEDS.map(
