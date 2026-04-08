@@ -16,6 +16,7 @@ import { ScrollToTop } from '@/components/ui/scroll-to-top'
 import { HeaderUserMenu } from '@/components/header/header-user-menu'
 import { RippleButton } from '@/components/ui/ripple-button'
 import { cn } from '@/lib/cn'
+import { useAutoBackup } from '@/hooks/use-auto-backup'
 
 // Lazy-loaded pages — each becomes a separate chunk
 const NotFoundPage = lazy(() =>
@@ -65,6 +66,9 @@ function RootLayout() {
   const { t } = useTranslation()
   // Use pathname as key to trigger re-mount animation on route changes
   const pathname = useRouterState({ select: (s) => s.location.pathname })
+
+  // Auto backup — disabled in DEV mode
+  useAutoBackup({ enabled: !import.meta.env.DEV })
 
   // Detect scroll for glassmorphism header
   const [scrolled, setScrolled] = useState(false)
