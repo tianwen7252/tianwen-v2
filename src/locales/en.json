@@ -142,7 +142,7 @@
     "sessionExpired": "Session expired, please sign in again"
   },
   "init": {
-    "loading": "Initializing POS system…",
+    "loading": "Initializing database system",
     "error": "Initialization failed",
     "retryHint": "Please refresh the page"
   },

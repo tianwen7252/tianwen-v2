@@ -142,7 +142,7 @@
     "sessionExpired": "登入已過期，請重新登入"
   },
   "init": {
-    "loading": "點餐系統初始化中…",
+    "loading": "資料庫初始化中",
     "error": "初始化失敗",
     "retryHint": "請重新整理頁面"
   },

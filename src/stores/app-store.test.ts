@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 import { useAppStore, isSessionValid } from './app-store'
 
 const MOCK_USER = {
-  sub: '112232479673923380065',
+  sub: '104772046405393920960',
   name: 'Test User',
   email: 'test@example.com',
   picture: 'https://example.com/photo.jpg',

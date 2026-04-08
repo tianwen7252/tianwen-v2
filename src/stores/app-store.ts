@@ -114,7 +114,8 @@ function clearPersistedUser(): void {
 // ─── Admin whitelist (V1 compatible) ────────────────────────────────────────
 
 export const ADMIN_SUBS = [
-  '112232479673923380065', // Tianwen
+  '104772046405393920960', // rove4155,
+  '112232479673923380065', // Tianwen7252
   '108824661831026509560', // dev
 ] as const
 
@@ -129,7 +130,7 @@ export function isAdminUser(sub: string): boolean {
 
 const persisted = loadPersistedUser()
 
-export const useAppStore = create<AppState & AppActions>(set => ({
+export const useAppStore = create<AppState & AppActions>((set) => ({
   googleUser: persisted.user,
   accessToken: persisted.token,
   isAdmin: persisted.user ? isAdminUser(persisted.user.sub) : false,

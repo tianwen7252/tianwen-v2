@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import { render, cleanup } from '@testing-library/react'
+import { render, cleanup, fireEvent } from '@testing-library/react'
 import { InitOverlay } from './init-overlay'
 
 // Mock InitCanvas to avoid canvas rendering in tests
@@ -38,9 +38,14 @@ describe('InitOverlay', () => {
     expect(getByTestId('init-canvas')).toBeTruthy()
   })
 
-  it('should display loading text', () => {
+  it('should display default loading text', () => {
     const { getByText } = render(<InitOverlay />)
     expect(getByText('點餐系統初始化中…')).toBeTruthy()
+  })
+
+  it('should display custom message when provided', () => {
+    const { getByText } = render(<InitOverlay message="同步資料中…" />)
+    expect(getByText('同步資料中…')).toBeTruthy()
   })
 
   it('should render a loading spinner', () => {
@@ -49,9 +54,30 @@ describe('InitOverlay', () => {
     expect(spinner).toBeTruthy()
   })
 
-  it('should have overflow hidden to prevent scrolling', () => {
+  it('should render as fixed full-screen overlay', () => {
     const { container } = render(<InitOverlay />)
     const wrapper = container.firstElementChild as HTMLElement
-    expect(wrapper.style.overflow === 'hidden' || wrapper.classList.contains('overflow-hidden')).toBe(true)
+    expect(wrapper.classList.contains('fixed')).toBe(true)
+    expect(wrapper.classList.contains('inset-0')).toBe(true)
+  })
+
+  it('should not show back button when onClose is not provided', () => {
+    const { container } = render(<InitOverlay />)
+    expect(container.querySelector('[aria-label="Back"]')).toBeNull()
+  })
+
+  it('should show back button when onClose is provided', () => {
+    const onClose = vi.fn()
+    const { container } = render(<InitOverlay onClose={onClose} />)
+    const backBtn = container.querySelector('[aria-label="Back"]')
+    expect(backBtn).toBeTruthy()
+  })
+
+  it('should call onClose when back button is clicked', () => {
+    const onClose = vi.fn()
+    const { container } = render(<InitOverlay onClose={onClose} />)
+    const backBtn = container.querySelector('[aria-label="Back"]')!
+    fireEvent.click(backBtn)
+    expect(onClose).toHaveBeenCalledOnce()
   })
 })

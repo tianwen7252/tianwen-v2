@@ -78,6 +78,8 @@ function RootLayout() {
   const forceInitUI = useInitStore(s => s.forceInitUI)
 
   const shouldShowOverlay = showInitUI || forceInitUI
+  // Header stays clickable in dev forceInitUI mode
+  const headerDisabled = !bootstrapDone && !initError
   const isReady = bootstrapDone && !shouldShowOverlay && !initError
 
   // Auto backup — disabled in DEV mode, gated on ready
@@ -112,23 +114,27 @@ function RootLayout() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      {/* Navigation header — disable interactions when not ready */}
-      <div className={!isReady ? 'pointer-events-none' : undefined}>
+      {/* Navigation header — disable interactions during real init, transparent when overlay shows */}
+      <div className={headerDisabled ? 'pointer-events-none' : undefined}>
         <header
         className={cn(
-          'sticky top-0 z-30 px-5 py-2 transition-all duration-300',
-          scrolled
-            ? 'border-b border-transparent'
-            : 'shadow-[0_1px_0_0_rgba(0,0,0,0.08)]', // to replace "border-b border-border" for ipad
+          'sticky top-0 z-50 px-5 py-2 transition-all duration-300',
+          shouldShowOverlay
+            ? ''
+            : scrolled
+              ? 'border-b border-transparent'
+              : 'shadow-[0_1px_0_0_rgba(0,0,0,0.08)]', // to replace "border-b border-border" for ipad
         )}
         style={{
-          backgroundColor: scrolled
-            ? 'color-mix(in srgb, var(--header-bg) 70%, transparent)'
-            : 'var(--header-bg)',
-          ...(scrolled ? GLASSMORPHISM_STYLE : {}),
+          backgroundColor: shouldShowOverlay
+            ? 'transparent'
+            : scrolled
+              ? 'color-mix(in srgb, var(--header-bg) 70%, transparent)'
+              : 'var(--header-bg)',
+          ...(scrolled && !shouldShowOverlay ? GLASSMORPHISM_STYLE : {}),
         }}
       >
-        <nav className="flex items-center gap-4">
+        <nav className={cn('flex items-center gap-4', shouldShowOverlay && '[&_*]:text-white/80')}>
           {/* Left: app title + nav links */}
           <a
             href="/"
@@ -168,7 +174,9 @@ function RootLayout() {
         {initError ? (
           <DatabaseLockedScreen />
         ) : shouldShowOverlay ? (
-          <InitOverlay />
+          <InitOverlay
+            onClose={forceInitUI ? () => useInitStore.getState().setForceInitUI(false) : undefined}
+          />
         ) : isReady ? (
           <AppErrorBoundary title={t('error.appError')}>
             <Suspense>
