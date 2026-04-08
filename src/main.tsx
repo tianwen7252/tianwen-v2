@@ -71,9 +71,13 @@ const SHOW_DELAY = 1000
 /** Once shown, display init UI for at least this long (ms) */
 const MIN_DISPLAY = 5000
 
-// ─── Dev-mode DB reset ──────────────────────────────────────────────────────
+// ─── DB initialization flag ─────────────────────────────────────────────────
 
+const DB_INITIALIZED_KEY = 'DB_INITIALIZED'
 const FORCE_RESET_KEY = 'FORCE_RESET_DB'
+
+/** True if the DB has been successfully initialized at least once before */
+const hasInitializedBefore = localStorage.getItem(DB_INITIALIZED_KEY) === '1'
 
 // ─── Render immediately — before DB initialization ──────────────────────────
 
@@ -92,7 +96,10 @@ createRoot(rootElement).render(
 
 async function bootstrapDatabase(): Promise<void> {
   const forceReset = localStorage.getItem(FORCE_RESET_KEY) === '1'
-  if (forceReset) localStorage.removeItem(FORCE_RESET_KEY)
+  if (forceReset) {
+    localStorage.removeItem(FORCE_RESET_KEY)
+    localStorage.removeItem(DB_INITIALIZED_KEY)
+  }
 
   const worker = new Worker(new URL('./lib/db-worker.ts', import.meta.url), {
     type: 'module',
@@ -119,25 +126,29 @@ async function bootstrapDatabase(): Promise<void> {
   initRepositories(db)
   installGlobalErrorLogger()
 
+  // Mark DB as initialized for future loads
+  try { localStorage.setItem(DB_INITIALIZED_KEY, '1') } catch { /* ignore */ }
+
   // Hydrate backup schedule from DB (async, non-blocking)
   import('@/stores/backup-store').then(m => void m.hydrateBackupScheduleFromDb())
 }
 
 // ─── Init UI timing logic ───────────────────────────────────────────────────
-// 1. Start bootstrap + 1s timer in parallel
-// 2. If bootstrap finishes < 1s → never show init UI
-// 3. If 1s elapses and not done → show init UI
-// 4. When bootstrap finishes AND init UI is showing → wait until 5s minimum, then hide
+// 1. If DB was initialized before → skip init UI entirely (no timer)
+// 2. Otherwise: start 1s timer; if bootstrap finishes < 1s → never show
+// 3. If 1s elapses and not done → show init UI for at least 5s
 
-const showTimer = setTimeout(() => {
-  if (!useInitStore.getState().bootstrapDone) {
-    useInitStore.getState().setShowInitUI(true)
-  }
-}, SHOW_DELAY)
+const showTimer = hasInitializedBefore
+  ? undefined
+  : setTimeout(() => {
+      if (!useInitStore.getState().bootstrapDone) {
+        useInitStore.getState().setShowInitUI(true)
+      }
+    }, SHOW_DELAY)
 
 bootstrapDatabase()
   .then(() => {
-    clearTimeout(showTimer)
+    if (showTimer !== undefined) clearTimeout(showTimer)
     const { showInitUI, shownAt } = useInitStore.getState()
 
     if (showInitUI && shownAt !== null) {
@@ -154,7 +165,7 @@ bootstrapDatabase()
     }
   })
   .catch((err: unknown) => {
-    clearTimeout(showTimer)
+    if (showTimer !== undefined) clearTimeout(showTimer)
     const msg = err instanceof Error ? err.message : String(err)
     useInitStore.getState().setShowInitUI(false)
     useInitStore.getState().setError(msg)
