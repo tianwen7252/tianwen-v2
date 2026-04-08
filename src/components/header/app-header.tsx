@@ -113,10 +113,10 @@ export function AppHeader({ disabled, overlayActive }: AppHeaderProps) {
   }, [pathname])
 
   return (
-    <div className={disabled ? 'pointer-events-none' : undefined}>
-      <header
+    <header
         className={cn(
           'sticky top-0 z-50 px-5 py-2 transition-all duration-300',
+          disabled && 'pointer-events-none',
           overlayActive
             ? ''
             : scrolled
@@ -188,6 +188,5 @@ export function AppHeader({ disabled, overlayActive }: AppHeaderProps) {
           </div>
         </nav>
       </header>
-    </div>
   )
 }
