@@ -3,11 +3,13 @@
  * and cloud backup summary + actions (right).
  */
 
-import { useCallback } from 'react'
+import { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { DatabaseBackup, Download } from 'lucide-react'
+import { DatabaseBackup, Download, LoaderCircle, RotateCcw } from 'lucide-react'
+import { useQuery } from '@tanstack/react-query'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { RippleButton } from '@/components/ui/ripple-button'
+import { ConfirmModal } from '@/components/modal/modal'
 import { notify } from '@/components/ui/sonner'
 import { useDbStats } from '@/hooks/use-db-stats'
 import { useCloudBackups } from '@/hooks/use-cloud-backups'
@@ -39,6 +41,16 @@ export function CloudBackupDbStats() {
   const { tables, totalRows } = useDbStats()
   const { backupCount, totalSize, latestBackup, isLoading, error } =
     useCloudBackups()
+
+  // Restore state
+  const [restoreConfirmOpen, setRestoreConfirmOpen] = useState(false)
+  const [overlayMessage, setOverlayMessage] = useState<string | null>(null)
+
+  // Check if a previous DB snapshot exists
+  const { data: hasPrev = false } = useQuery({
+    queryKey: ['has-prev-db'],
+    queryFn: () => getDatabase().hasPreviousDatabase(),
+  })
 
   // Backup store state
   const isBackingUp = useBackupStore(s => s.isBackingUp)
@@ -78,6 +90,19 @@ export function CloudBackupDbStats() {
       const message =
         error instanceof Error ? error.message : 'Unknown export error'
       notify.error(`${t('backup.exportFailed')}: ${message}`)
+    }
+  }, [t])
+
+  const handleRestoreConfirm = useCallback(async () => {
+    setRestoreConfirmOpen(false)
+    setOverlayMessage(t('backup.restoringDatabase'))
+    try {
+      await getDatabase().restorePreviousDatabase()
+      window.location.reload()
+    } catch (err: unknown) {
+      setOverlayMessage(null)
+      const message = err instanceof Error ? err.message : String(err)
+      notify.error(`${t('backup.restoreError')}: ${message}`)
     }
   }, [t])
 
@@ -204,6 +229,19 @@ export function CloudBackupDbStats() {
             </div>
           </div>
 
+          {/* Restore previous database button — only shown when a snapshot exists */}
+          {hasPrev && (
+            <div className="mt-3">
+              <RippleButton
+                className="flex w-full items-center justify-center gap-2 rounded-md border-none bg-(--color-gold) px-4 py-2 text-white hover:opacity-80"
+                onClick={() => setRestoreConfirmOpen(true)}
+              >
+                <RotateCcw size={16} />
+                {t('backup.restorePrev')}
+              </RippleButton>
+            </div>
+          )}
+
           {/* Divider */}
           <hr className="my-3 border-border" />
 
@@ -227,6 +265,27 @@ export function CloudBackupDbStats() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Restore previous database confirmation modal */}
+      <ConfirmModal
+        open={restoreConfirmOpen}
+        title={t('backup.restoreConfirmTitle')}
+        variant="gold"
+        onConfirm={() => void handleRestoreConfirm()}
+        onCancel={() => setRestoreConfirmOpen(false)}
+      >
+        <p className="text-center">{t('backup.restoreConfirmDescription')}</p>
+      </ConfirmModal>
+
+      {/* Full-screen blocking overlay during restore */}
+      {overlayMessage && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-background/80 backdrop-blur-sm">
+          <div className="flex flex-col items-center gap-4">
+            <LoaderCircle className="size-10 animate-spin text-primary" />
+            <p className="text-lg">{overlayMessage}</p>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

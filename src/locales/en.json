@@ -604,7 +604,19 @@
     "v1Table_commodity_types": "Product Categories",
     "v1Table_commodities": "Products",
     "v1Table_orders": "Orders",
-    "v1Table_order_items": "Order Items"
+    "v1Table_order_items": "Order Items",
+    "importBackup": "Import",
+    "importConfirmTitle": "Import Backup",
+    "importConfirmDescription": "Are you sure you want to import this backup? Current data will be replaced.",
+    "importingDatabase": "Updating database...",
+    "importSuccess": "Database updated",
+    "importError": "Import failed",
+    "restorePrev": "Restore Previous",
+    "restoreConfirmTitle": "Restore Database",
+    "restoreConfirmDescription": "Are you sure you want to restore the previous database?",
+    "restoringDatabase": "Restoring database...",
+    "restoreError": "Restore failed",
+    "noPrevDatabase": "No previous database available"
   },
   "announcement": {
     "adminName": "Boss Eric",

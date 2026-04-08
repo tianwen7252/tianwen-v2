@@ -23,6 +23,9 @@ export type WorkerRequest =
       readonly params?: readonly unknown[]
     }
   | { readonly type: 'export-db'; readonly id: number }
+  | { readonly type: 'import-db'; readonly id: number; readonly data: ArrayBuffer }
+  | { readonly type: 'restore-prev-db'; readonly id: number }
+  | { readonly type: 'has-prev-db'; readonly id: number }
 
 /** Worker → Main message types */
 export type WorkerResponse =
@@ -46,6 +49,11 @@ export type WorkerResponse =
       readonly id: number
       readonly error: string
     }
+  | { readonly type: 'import-db-result'; readonly id: number }
+  | { readonly type: 'import-db-error'; readonly id: number; readonly error: string }
+  | { readonly type: 'restore-prev-db-result'; readonly id: number }
+  | { readonly type: 'restore-prev-db-error'; readonly id: number; readonly error: string }
+  | { readonly type: 'has-prev-db-result'; readonly id: number; readonly hasPrev: boolean }
 
 /** Async database interface for use on the main thread */
 export interface AsyncDatabase {
@@ -54,6 +62,9 @@ export interface AsyncDatabase {
     params?: readonly unknown[],
   ): Promise<QueryResult<T>>
   exportDatabase(): Promise<Uint8Array>
+  importDatabase(data: ArrayBuffer): Promise<void>
+  restorePreviousDatabase(): Promise<void>
+  hasPreviousDatabase(): Promise<boolean>
 }
 
 // ─── Pending request tracking ───────────────────────────────────────────────
@@ -68,6 +79,16 @@ interface PendingExportRequest {
   readonly reject: (reason: Error) => void
 }
 
+interface PendingVoidRequest {
+  readonly resolve: () => void
+  readonly reject: (reason: Error) => void
+}
+
+interface PendingBoolRequest {
+  readonly resolve: (value: boolean) => void
+  readonly reject: (reason: Error) => void
+}
+
 // ─── Factory ────────────────────────────────────────────────────────────────
 
 /**
@@ -78,6 +99,9 @@ export function createWorkerDatabase(worker: Worker): AsyncDatabase {
   let nextId = 0
   const pending = new Map<number, PendingRequest>()
   const pendingExports = new Map<number, PendingExportRequest>()
+  const pendingImports = new Map<number, PendingVoidRequest>()
+  const pendingRestores = new Map<number, PendingVoidRequest>()
+  const pendingHasPrev = new Map<number, PendingBoolRequest>()
 
   worker.addEventListener('message', (e: MessageEvent<WorkerResponse>) => {
     const msg = e.data
@@ -113,6 +137,46 @@ export function createWorkerDatabase(worker: Worker): AsyncDatabase {
         p.reject(new Error(msg.error))
       }
     }
+
+    if (msg.type === 'import-db-result') {
+      const p = pendingImports.get(msg.id)
+      if (p) {
+        pendingImports.delete(msg.id)
+        p.resolve()
+      }
+    }
+
+    if (msg.type === 'import-db-error') {
+      const p = pendingImports.get(msg.id)
+      if (p) {
+        pendingImports.delete(msg.id)
+        p.reject(new Error(msg.error))
+      }
+    }
+
+    if (msg.type === 'restore-prev-db-result') {
+      const p = pendingRestores.get(msg.id)
+      if (p) {
+        pendingRestores.delete(msg.id)
+        p.resolve()
+      }
+    }
+
+    if (msg.type === 'restore-prev-db-error') {
+      const p = pendingRestores.get(msg.id)
+      if (p) {
+        pendingRestores.delete(msg.id)
+        p.reject(new Error(msg.error))
+      }
+    }
+
+    if (msg.type === 'has-prev-db-result') {
+      const p = pendingHasPrev.get(msg.id)
+      if (p) {
+        pendingHasPrev.delete(msg.id)
+        p.resolve(msg.hasPrev)
+      }
+    }
   })
 
   return {
@@ -140,6 +204,30 @@ export function createWorkerDatabase(worker: Worker): AsyncDatabase {
         const id = nextId++
         pendingExports.set(id, { resolve, reject })
         worker.postMessage({ type: 'export-db', id })
+      })
+    },
+
+    importDatabase(data: ArrayBuffer): Promise<void> {
+      return new Promise<void>((resolve, reject) => {
+        const id = nextId++
+        pendingImports.set(id, { resolve, reject })
+        worker.postMessage({ type: 'import-db', id, data })
+      })
+    },
+
+    restorePreviousDatabase(): Promise<void> {
+      return new Promise<void>((resolve, reject) => {
+        const id = nextId++
+        pendingRestores.set(id, { resolve, reject })
+        worker.postMessage({ type: 'restore-prev-db', id })
+      })
+    },
+
+    hasPreviousDatabase(): Promise<boolean> {
+      return new Promise<boolean>((resolve, reject) => {
+        const id = nextId++
+        pendingHasPrev.set(id, { resolve, reject })
+        worker.postMessage({ type: 'has-prev-db', id })
       })
     },
   }

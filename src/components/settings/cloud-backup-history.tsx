@@ -1,12 +1,19 @@
 /**
- * Cloud Backup History — displays backup files from R2.
+ * Cloud Backup History — displays backup files from R2 with import action.
  * Data comes directly from the cloud backup list, not local backup_logs.
  */
 
+import { useState, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import dayjs from 'dayjs'
+import { LoaderCircle, Upload } from 'lucide-react'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
+import { RippleButton } from '@/components/ui/ripple-button'
+import { ConfirmModal } from '@/components/modal/modal'
+import { notify } from '@/components/ui/sonner'
 import { useCloudBackups } from '@/hooks/use-cloud-backups'
+import { createBackupService, decompress } from '@/lib/backup'
+import { getDatabase } from '@/lib/repositories/provider'
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -40,45 +47,109 @@ export function CloudBackupHistory() {
   const { t } = useTranslation()
   const { backups, isLoading } = useCloudBackups()
 
+  // Import confirmation modal state
+  const [confirmFilename, setConfirmFilename] = useState<string | null>(null)
+  // Full-screen blocking overlay message
+  const [overlayMessage, setOverlayMessage] = useState<string | null>(null)
+
+  const handleImportClick = useCallback((filename: string) => {
+    setConfirmFilename(filename)
+  }, [])
+
+  const handleImportCancel = useCallback(() => {
+    setConfirmFilename(null)
+  }, [])
+
+  const handleImportConfirm = useCallback(async () => {
+    if (!confirmFilename) return
+    const filename = confirmFilename
+    setConfirmFilename(null)
+    setOverlayMessage(t('backup.importingDatabase'))
+
+    try {
+      const compressedData = await createBackupService().download(filename)
+      const rawBytes = await decompress(compressedData)
+      await getDatabase().importDatabase(rawBytes.buffer as ArrayBuffer)
+      window.location.reload()
+    } catch (err: unknown) {
+      setOverlayMessage(null)
+      const message = err instanceof Error ? err.message : String(err)
+      notify.error(`${t('backup.importError')}: ${message}`)
+    }
+  }, [confirmFilename, t])
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{t('backup.history')}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        {isLoading ? (
-          <p className="text-muted-foreground">...</p>
-        ) : backups.length === 0 ? (
-          <p className="text-muted-foreground">{t('backup.noBackupHistory')}</p>
-        ) : (
-          <div className="overflow-auto">
-            <table className="w-full text-left">
-              <thead>
-                <tr className="border-b text-muted-foreground">
-                  <th className="px-2 py-1">{t('backup.historyFilename')}</th>
-                  <th className="px-2 py-1">{t('backup.historyTime')}</th>
-                  <th className="px-2 py-1">{t('backup.historySource')}</th>
-                  <th className="px-2 py-1 text-right">{t('backup.historySize')}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {backups.map(backup => (
-                  <tr key={backup.filename} className="border-b">
-                    <td className="px-2 py-1 break-all">{backup.filename}</td>
-                    <td className="px-2 py-1 whitespace-nowrap">
-                      {dayjs(backup.createdAt).format('YYYY/MM/DD HH:mm:ss')}
-                    </td>
-                    <td className="px-2 py-1">{parseDeviceName(backup.filename)}</td>
-                    <td className="px-2 py-1 text-right whitespace-nowrap">
-                      {formatSize(backup.size)}
-                    </td>
+    <>
+      <Card>
+        <CardHeader>
+          <CardTitle>{t('backup.history')}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <p className="text-muted-foreground">...</p>
+          ) : backups.length === 0 ? (
+            <p className="text-muted-foreground">{t('backup.noBackupHistory')}</p>
+          ) : (
+            <div className="overflow-auto">
+              <table className="w-full text-left">
+                <thead>
+                  <tr className="border-b text-muted-foreground">
+                    <th className="px-2 py-1">{t('backup.historyFilename')}</th>
+                    <th className="px-2 py-1">{t('backup.historyTime')}</th>
+                    <th className="px-2 py-1">{t('backup.historySource')}</th>
+                    <th className="px-2 py-1 text-right">{t('backup.historySize')}</th>
+                    <th className="px-2 py-1 text-center">{t('staff.actions')}</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {backups.map(backup => (
+                    <tr key={backup.filename} className="border-b">
+                      <td className="px-2 py-1 break-all">{backup.filename}</td>
+                      <td className="px-2 py-1 whitespace-nowrap">
+                        {dayjs(backup.createdAt).format('YYYY/MM/DD HH:mm:ss')}
+                      </td>
+                      <td className="px-2 py-1">{parseDeviceName(backup.filename)}</td>
+                      <td className="px-2 py-1 text-right whitespace-nowrap">
+                        {formatSize(backup.size)}
+                      </td>
+                      <td className="px-2 py-1 text-center">
+                        <RippleButton
+                          className="flex items-center gap-1 rounded-md border-none bg-(--color-blue) px-3 py-1 text-white hover:opacity-80"
+                          onClick={() => handleImportClick(backup.filename)}
+                        >
+                          <Upload size={14} />
+                          {t('backup.importBackup')}
+                        </RippleButton>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Import confirmation modal */}
+      <ConfirmModal
+        open={confirmFilename !== null}
+        title={t('backup.importConfirmTitle')}
+        variant="blue"
+        onConfirm={() => void handleImportConfirm()}
+        onCancel={handleImportCancel}
+      >
+        <p className="text-center">{t('backup.importConfirmDescription')}</p>
+      </ConfirmModal>
+
+      {/* Full-screen blocking overlay during import */}
+      {overlayMessage && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-background/80 backdrop-blur-sm">
+          <div className="flex flex-col items-center gap-4">
+            <LoaderCircle className="size-10 animate-spin text-primary" />
+            <p className="text-lg">{overlayMessage}</p>
           </div>
-        )}
-      </CardContent>
-    </Card>
+        </div>
+      )}
+    </>
   )
 }

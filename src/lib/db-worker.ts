@@ -23,6 +23,13 @@ let db: Database | null = null
 let rawDbHandle: unknown = null
 /** SQLite3 module reference, needed for capi.sqlite3_js_db_export */
 let sqlite3Ref: Awaited<ReturnType<typeof sqlite3InitModule>> | null = null
+/**
+ * SAHPool utility, needed for importDb / exportFile / unlink / getFileNames.
+ * Typed as unknown because the sqlite3-wasm type definitions don't export
+ * the SAHPool utility type directly.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let sahPoolUtilRef: any = null
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -96,6 +103,7 @@ self.onmessage = async (e: MessageEvent<WorkerRequest>) => {
         }
       }
       if (!sahPoolUtil) throw lastErr ?? new Error('SAHPool init failed')
+      sahPoolUtilRef = sahPoolUtil
       const rawDb = new sahPoolUtil.OpfsSAHPoolDb('tianwen.db')
       rawDbHandle = rawDb
       sqlite3Ref = sqlite3
@@ -194,6 +202,153 @@ self.onmessage = async (e: MessageEvent<WorkerRequest>) => {
       )
     } catch (err) {
       post({ type: 'export-db-error', id: msg.id, error: String(err) })
+    }
+  }
+
+  if (msg.type === 'import-db') {
+    if (!sahPoolUtilRef) {
+      post({
+        type: 'import-db-error',
+        id: msg.id,
+        error: 'Database not initialized',
+      })
+      return
+    }
+
+    try {
+      const pool = sahPoolUtilRef
+
+      // 1. Write the import data into a temporary OPFS slot for validation
+      await pool.importDb('tianwen-import.db', msg.data)
+
+      // 2. Open a temporary connection and run integrity check
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const tempDb = new (pool as any).OpfsSAHPoolDb('tianwen-import.db')
+      let integrityResult: string
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const rows = (tempDb as any).exec('PRAGMA integrity_check', {
+          returnValue: 'resultRows',
+          rowMode: 'array',
+        }) as string[][]
+        integrityResult = rows[0]?.[0] ?? 'error'
+      } finally {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ;(tempDb as any).close()
+      }
+
+      if (integrityResult !== 'ok') {
+        pool.unlink('tianwen-import.db')
+        post({
+          type: 'import-db-error',
+          id: msg.id,
+          error: `Integrity check failed: ${integrityResult}`,
+        })
+        return
+      }
+
+      // 3. Close the current active DB connection
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ;(rawDbHandle as any).close()
+      db = null
+      rawDbHandle = null
+
+      // 4. Back up the current DB to tianwen-prev.db (replace if exists)
+      try {
+        pool.unlink('tianwen-prev.db')
+      } catch {
+        // tianwen-prev.db may not exist — ignore
+      }
+      const currentBytes = await pool.exportFile('tianwen.db')
+      await pool.importDb('tianwen-prev.db', currentBytes)
+
+      // 5. Replace tianwen.db with the import candidate
+      pool.unlink('tianwen.db')
+      const importBytes = await pool.exportFile('tianwen-import.db')
+      await pool.importDb('tianwen.db', importBytes)
+      pool.unlink('tianwen-import.db')
+
+      // 6. Reopen the active connection on the new DB
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const newRawDb = new (pool as any).OpfsSAHPoolDb('tianwen.db')
+      rawDbHandle = newRawDb
+      db = wrapSahPoolDb(newRawDb)
+      initSchema((sql: string) => db!.exec(sql))
+
+      post({ type: 'import-db-result', id: msg.id })
+    } catch (err) {
+      post({ type: 'import-db-error', id: msg.id, error: String(err) })
+    }
+  }
+
+  if (msg.type === 'restore-prev-db') {
+    if (!sahPoolUtilRef) {
+      post({
+        type: 'restore-prev-db-error',
+        id: msg.id,
+        error: 'Database not initialized',
+      })
+      return
+    }
+
+    try {
+      const pool = sahPoolUtilRef
+      const fileNames = pool.getFileNames()
+
+      // SAHPool filenames may have a leading slash — check both forms
+      const hasPrev =
+        fileNames.includes('tianwen-prev.db') ||
+        fileNames.includes('/tianwen-prev.db')
+
+      if (!hasPrev) {
+        post({
+          type: 'restore-prev-db-error',
+          id: msg.id,
+          error: 'No previous database',
+        })
+        return
+      }
+
+      // Close the active connection
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ;(rawDbHandle as any).close()
+      db = null
+      rawDbHandle = null
+
+      // Copy tianwen-prev.db over tianwen.db
+      const prevBytes = await pool.exportFile('tianwen-prev.db')
+      pool.unlink('tianwen.db')
+      await pool.importDb('tianwen.db', prevBytes)
+
+      // Reopen the active connection
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const newRawDb = new (pool as any).OpfsSAHPoolDb('tianwen.db')
+      rawDbHandle = newRawDb
+      db = wrapSahPoolDb(newRawDb)
+      initSchema((sql: string) => db!.exec(sql))
+
+      post({ type: 'restore-prev-db-result', id: msg.id })
+    } catch (err) {
+      post({ type: 'restore-prev-db-error', id: msg.id, error: String(err) })
+    }
+  }
+
+  if (msg.type === 'has-prev-db') {
+    if (!sahPoolUtilRef) {
+      // No pool yet — report false rather than error
+      post({ type: 'has-prev-db-result', id: msg.id, hasPrev: false })
+      return
+    }
+
+    try {
+      const fileNames = sahPoolUtilRef.getFileNames()
+      const hasPrev =
+        fileNames.includes('tianwen-prev.db') ||
+        fileNames.includes('/tianwen-prev.db')
+      post({ type: 'has-prev-db-result', id: msg.id, hasPrev })
+    } catch (err) {
+      // On unexpected error fall back to false
+      post({ type: 'has-prev-db-result', id: msg.id, hasPrev: false })
     }
   }
 }

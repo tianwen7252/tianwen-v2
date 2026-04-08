@@ -11,6 +11,9 @@ function createMockAsyncDb(): AsyncDatabase {
   return {
     exec: vi.fn(async () => ({ rows: [], changes: 0 })),
     exportDatabase: vi.fn(async () => new Uint8Array()),
+    importDatabase: vi.fn(async () => undefined),
+    restorePreviousDatabase: vi.fn(async () => undefined),
+    hasPreviousDatabase: vi.fn(async () => false),
   }
 }
 

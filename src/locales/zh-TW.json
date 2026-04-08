@@ -604,7 +604,19 @@
     "v1Table_commodity_types": "商品分類",
     "v1Table_commodities": "商品",
     "v1Table_orders": "訂單",
-    "v1Table_order_items": "訂單品項"
+    "v1Table_order_items": "訂單品項",
+    "importBackup": "匯入",
+    "importConfirmTitle": "匯入備份",
+    "importConfirmDescription": "確定要匯入此備份？現有資料將被取代",
+    "importingDatabase": "更新資料庫中...",
+    "importSuccess": "資料庫已更新",
+    "importError": "匯入失敗",
+    "restorePrev": "還原上一版本",
+    "restoreConfirmTitle": "還原資料庫",
+    "restoreConfirmDescription": "確定要還原上一版本資料庫？",
+    "restoringDatabase": "還原資料庫中...",
+    "restoreError": "還原失敗",
+    "noPrevDatabase": "沒有上一版本資料庫"
   },
   "announcement": {
     "adminName": "天文老闆Eric",

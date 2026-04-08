@@ -4,7 +4,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
 // ── Mocks ───────────────────────────────────────────────────────────────────
@@ -52,6 +52,33 @@ vi.mock('@/lib/backup', () => ({
   }),
 }))
 
+const mockHasPreviousDatabase = vi.hoisted(() => vi.fn().mockResolvedValue(false))
+const mockRestorePreviousDatabase = vi.hoisted(() => vi.fn().mockResolvedValue(undefined))
+
+vi.mock('@/lib/repositories/provider', () => ({
+  getDatabase: () => ({
+    hasPreviousDatabase: mockHasPreviousDatabase,
+    restorePreviousDatabase: mockRestorePreviousDatabase,
+  }),
+}))
+
+const mockNotify = vi.hoisted(() => ({
+  success: vi.fn(),
+  error: vi.fn(),
+  info: vi.fn(),
+}))
+
+vi.mock('@/components/ui/sonner', () => ({
+  notify: mockNotify,
+}))
+
+// Mock window.location.reload
+const mockReload = vi.fn()
+Object.defineProperty(window, 'location', {
+  value: { reload: mockReload },
+  writable: true,
+})
+
 import { CloudBackupDbStats } from './cloud-backup-db-stats'
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
@@ -98,6 +125,8 @@ describe('CloudBackupDbStats', () => {
         createdAt: '2026-04-01T10:00:00Z',
       },
     ])
+    mockHasPreviousDatabase.mockResolvedValue(false)
+    mockRestorePreviousDatabase.mockResolvedValue(undefined)
   })
 
   // ── Local DB stats (unchanged) ────────────────────────────────────────
@@ -202,6 +231,149 @@ describe('CloudBackupDbStats', () => {
 
       await waitFor(() => {
         expect(screen.getByText('尚無備份')).toBeTruthy()
+      })
+    })
+  })
+
+  // ── Restore Previous Database button ──────────────────────────────────────
+
+  describe('Restore Previous Database button', () => {
+    it('does not render restore button when hasPreviousDatabase returns false', async () => {
+      mockHasPreviousDatabase.mockResolvedValue(false)
+
+      renderWithProviders(<CloudBackupDbStats />)
+
+      await waitFor(() => {
+        expect(screen.queryByText('還原上一版本')).toBeNull()
+      })
+    })
+
+    it('renders restore button when hasPreviousDatabase returns true', async () => {
+      mockHasPreviousDatabase.mockResolvedValue(true)
+
+      renderWithProviders(<CloudBackupDbStats />)
+
+      await waitFor(() => {
+        expect(screen.getByText('還原上一版本')).toBeTruthy()
+      })
+    })
+
+    it('opens confirm modal when restore button is clicked', async () => {
+      mockHasPreviousDatabase.mockResolvedValue(true)
+
+      renderWithProviders(<CloudBackupDbStats />)
+
+      await waitFor(() => {
+        expect(screen.getByText('還原上一版本')).toBeTruthy()
+      })
+
+      const restoreButton = screen.getByText('還原上一版本')
+      fireEvent.click(restoreButton)
+
+      // Modal title appears in both sr-only h2 and visible div — use getAllByText
+      expect(screen.getAllByText('還原資料庫').length).toBeGreaterThanOrEqual(1)
+      expect(screen.getByText('確定要還原上一版本資料庫？')).toBeTruthy()
+    })
+
+    it('calls restorePreviousDatabase and reloads on confirm', async () => {
+      mockHasPreviousDatabase.mockResolvedValue(true)
+
+      renderWithProviders(<CloudBackupDbStats />)
+
+      await waitFor(() => {
+        expect(screen.getByText('還原上一版本')).toBeTruthy()
+      })
+
+      fireEvent.click(screen.getByText('還原上一版本'))
+
+      await waitFor(() => {
+        expect(screen.getByText('確認')).toBeTruthy()
+      })
+
+      fireEvent.click(screen.getByText('確認'))
+
+      await waitFor(() => {
+        expect(mockRestorePreviousDatabase).toHaveBeenCalledOnce()
+        expect(mockReload).toHaveBeenCalledOnce()
+      })
+    })
+
+    it('shows error toast and does not reload when restore fails', async () => {
+      mockHasPreviousDatabase.mockResolvedValue(true)
+      mockRestorePreviousDatabase.mockRejectedValueOnce(new Error('No prev db'))
+
+      renderWithProviders(<CloudBackupDbStats />)
+
+      await waitFor(() => {
+        expect(screen.getByText('還原上一版本')).toBeTruthy()
+      })
+
+      fireEvent.click(screen.getByText('還原上一版本'))
+
+      await waitFor(() => {
+        expect(screen.getByText('確認')).toBeTruthy()
+      })
+
+      fireEvent.click(screen.getByText('確認'))
+
+      await waitFor(() => {
+        expect(mockNotify.error).toHaveBeenCalled()
+      })
+
+      expect(mockReload).not.toHaveBeenCalled()
+    })
+
+    it('shows overlay with restore message during restore', async () => {
+      mockHasPreviousDatabase.mockResolvedValue(true)
+
+      let resolveRestore!: () => void
+      mockRestorePreviousDatabase.mockReturnValue(
+        new Promise<void>(resolve => {
+          resolveRestore = resolve
+        }),
+      )
+
+      renderWithProviders(<CloudBackupDbStats />)
+
+      await waitFor(() => {
+        expect(screen.getByText('還原上一版本')).toBeTruthy()
+      })
+
+      fireEvent.click(screen.getByText('還原上一版本'))
+
+      await waitFor(() => {
+        expect(screen.getByText('確認')).toBeTruthy()
+      })
+
+      fireEvent.click(screen.getByText('確認'))
+
+      await waitFor(() => {
+        expect(screen.getByText('還原資料庫中...')).toBeTruthy()
+      })
+
+      resolveRestore()
+    })
+
+    it('closes modal when cancel is clicked', async () => {
+      mockHasPreviousDatabase.mockResolvedValue(true)
+
+      renderWithProviders(<CloudBackupDbStats />)
+
+      await waitFor(() => {
+        expect(screen.getByText('還原上一版本')).toBeTruthy()
+      })
+
+      fireEvent.click(screen.getByText('還原上一版本'))
+
+      await waitFor(() => {
+        expect(screen.getByText('確定要還原上一版本資料庫？')).toBeTruthy()
+      })
+
+      fireEvent.click(screen.getByText('取消'))
+
+      await waitFor(() => {
+        // After close, the confirmation description should be gone
+        expect(screen.queryByText('確定要還原上一版本資料庫？')).toBeNull()
       })
     })
   })
