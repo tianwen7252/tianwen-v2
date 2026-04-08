@@ -12,7 +12,7 @@
 
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 
-const VALID_FILENAME_RE = /^backup-\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}\.sqlite\.gz$/
+const VALID_FILENAME_RE = /^tianwen-.+-\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}\.sqlite\.gz$/
 
 export default async function handler(
   req: VercelRequest,
@@ -34,10 +34,8 @@ export default async function handler(
       await import('@aws-sdk/client-s3')
 
     const accountId = process.env.R2_ACCOUNT_ID ?? ''
-    const userId = process.env.ALLOWED_USER_ID ?? ''
-    const prefix = userId.length > 0 ? `${userId}/` : ''
     const bucket = process.env.R2_BUCKET_NAME ?? ''
-    const key = `${prefix}${filename}`
+    const key = filename
 
     const client = new S3Client({
       region: 'auto',

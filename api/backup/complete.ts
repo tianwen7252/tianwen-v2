@@ -16,7 +16,7 @@
 
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 
-const VALID_FILENAME_RE = /^backup-\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}\.sqlite\.gz$/
+const VALID_FILENAME_RE = /^tianwen-.+-\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}\.sqlite\.gz$/
 const MAX_BACKUPS = 30
 
 export default async function handler(
@@ -44,10 +44,8 @@ export default async function handler(
     } = await import('@aws-sdk/client-s3')
 
     const accountId = process.env.R2_ACCOUNT_ID ?? ''
-    const userId = process.env.ALLOWED_USER_ID ?? ''
-    const prefix = userId.length > 0 ? `${userId}/` : ''
     const bucket = process.env.R2_BUCKET_NAME ?? ''
-    const key = `${prefix}${filename}`
+    const key = filename
 
     const client = new S3Client({
       region: 'auto',
@@ -70,7 +68,7 @@ export default async function handler(
     let deleted = 0
     try {
       const listResult = await client.send(
-        new ListObjectsV2Command({ Bucket: bucket, Prefix: prefix }),
+        new ListObjectsV2Command({ Bucket: bucket, Prefix: '' }),
       )
       const backups = (listResult.Contents ?? [])
         .filter(obj => (obj.Key ?? '').endsWith('.sqlite.gz'))

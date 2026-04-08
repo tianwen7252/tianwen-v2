@@ -6,6 +6,14 @@ import {
   createBackupService,
 } from './backup'
 
+// ─── Module Mocks ──────────────────────────────────────────────────────────
+
+let mockDeviceName: string | null = null
+
+vi.mock('@/lib/device', () => ({
+  getDeviceName: () => mockDeviceName,
+}))
+
 // ─── Tests ──────────────────────────────────────────────────────────────────
 
 describe('backup utilities', () => {
@@ -37,7 +45,18 @@ describe('backup utilities', () => {
   })
 
   describe('generateBackupFilename', () => {
-    it('should generate a filename with date timestamp', () => {
+    it('should generate a filename with device name as label when set', () => {
+      mockDeviceName = 'dining-room'
+      const filename = generateBackupFilename()
+
+      // Format: tianwen-<label>-YYYY-MM-DD_HH-mm-ss.sqlite.gz
+      expect(filename).toMatch(
+        /^tianwen-dining-room-\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}\.sqlite\.gz$/,
+      )
+    })
+
+    it('should use "backup" as default label when no device name is set', () => {
+      mockDeviceName = null
       const filename = generateBackupFilename()
 
       expect(filename).toMatch(

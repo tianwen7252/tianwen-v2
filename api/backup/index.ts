@@ -23,8 +23,6 @@ export default async function handler(
 
     const accountId = process.env.R2_ACCOUNT_ID ?? ''
     const bucketName = process.env.R2_BUCKET_NAME ?? ''
-    const userId = process.env.ALLOWED_USER_ID ?? ''
-    const prefix = userId.length > 0 ? `${userId}/` : ''
 
     const client = new S3Client({
       region: 'auto',
@@ -42,7 +40,7 @@ export default async function handler(
       const result = await client.send(
         new ListObjectsV2Command({
           Bucket: bucketName,
-          Prefix: prefix,
+          Prefix: '',
           ContinuationToken: continuationToken,
           MaxKeys: 1000,
         }),
@@ -52,7 +50,7 @@ export default async function handler(
         const key = obj.Key ?? ''
         if (!key.endsWith('.sqlite.gz')) continue
         objects.push({
-          filename: key.replace(prefix, ''),
+          filename: key,
           size: obj.Size ?? 0,
           createdAt: obj.LastModified?.toISOString() ?? new Date().toISOString(),
         })
