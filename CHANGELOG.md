@@ -1,5 +1,33 @@
 # Changelog
 
+## [2.7.0](https://github.com/tianwen7252/tianwen-v2/compare/v2.6.0...v2.7.0) (2026-04-08)
+
+
+### Features
+
+* init UI 全螢幕動畫 + 共用元件化 + dev header 可點擊 (V2-207) ([54d328f](https://github.com/tianwen7252/tianwen-v2/commit/54d328f3df97bc8dcda81959a38693f4cfa475bc))
+* V2 備份匯入 + 還原上一版本資料庫 (V2-215) ([794fe87](https://github.com/tianwen7252/tianwen-v2/commit/794fe875164f1cb8825bb0b36dc1bbace5819596))
+* 初始化 UI — 先渲染後初始化，改善啟動體驗 (V2-207) ([831d59a](https://github.com/tianwen7252/tianwen-v2/commit/831d59a3cb9cfc9f56d4eb95e02e364d62c3c0d2))
+* 啟用 useAutoBackup 於 RootLayout (V2-171) ([445792b](https://github.com/tianwen7252/tianwen-v2/commit/445792bd1522157604197f1c102066d97bed40af))
+* 新增「攤位」餐點分類 + 自動備註邏輯 (V2-207) ([1681d4e](https://github.com/tianwen7252/tianwen-v2/commit/1681d4ee565df4a1ab728af82f73fb4e17b94004))
+* 裝置代號功能 — R2 devices.json + 備份檔名識別 (V2-206) ([70ab3d3](https://github.com/tianwen7252/tianwen-v2/commit/70ab3d3ee17355a48754654de8223e334a3ca938))
+
+
+### Bug Fixes
+
+* AppHeader sticky 固定失效 — 移除多餘外層 div ([8e1dbdc](https://github.com/tianwen7252/tianwen-v2/commit/8e1dbdc1c8ca960ef25d048e81e96e37d04ab255))
+* CI lint error — unused catch parameter (V2-215) ([f3382d8](https://github.com/tianwen7252/tianwen-v2/commit/f3382d84c8920f70bc2f1414d3bfd28b38ed288e))
+* flaky overlay delay test — VITEST 環境下 MIN_OVERLAY_MS=0 ([9b91639](https://github.com/tianwen7252/tianwen-v2/commit/9b9163924febecd102cba91f1b129ee920be13ca))
+* init UI 改善 — shadcn spinner、backdrop 調色、水波紋下移 (V2-207) ([9f521c1](https://github.com/tianwen7252/tianwen-v2/commit/9f521c1f71a6c4bfd37620be823bd25393f914a7))
+* InitOverlay 至少顯示 5 秒讓動畫跑完 (V2-215) ([f34b9cf](https://github.com/tianwen7252/tianwen-v2/commit/f34b9cf120748f6681222a631ec63e9ec61512fc))
+* lint error — ripples 改為 const（不再被 reassign） ([d0315f7](https://github.com/tianwen7252/tianwen-v2/commit/d0315f79a0ff26ab8a37c6b321e2fd374e6179b7))
+* 已初始化過的 DB 不再顯示 init UI (V2-207) ([465ddc0](https://github.com/tianwen7252/tianwen-v2/commit/465ddc0ae45a208b575a802508ecc03d8e7480ee))
+* 攤位餐點加上 imageKey 對應現有圖片 (V2-207) ([247a5dc](https://github.com/tianwen7252/tianwen-v2/commit/247a5dc285bbb688e4736902982c8283fb7a29c3))
+* 自動備份預設關閉 + DEV 模式提示 (V2-171) ([79a6ccd](https://github.com/tianwen7252/tianwen-v2/commit/79a6ccd6b44aabbae4a5f83be4dd710329bfb291))
+* 裝置代號含 DEVICE_ID + 白飯圖片 + UI 顯示 ID (V2-206) ([a8acb10](https://github.com/tianwen7252/tianwen-v2/commit/a8acb1027f38b2d9ec2bb10b38f83ff8907c8fc2))
+* 裝置代號換行顯示、最後備份時間從雲端取、圖片修正 (V2-206) ([469b28b](https://github.com/tianwen7252/tianwen-v2/commit/469b28bf0ec3b238af8320b1f33f298a134fdd13))
+* 近期訂單空狀態改為「本日無訂單」 ([785bf4d](https://github.com/tianwen7252/tianwen-v2/commit/785bf4df10b2c9216b16011c699e203c468a1bd8))
+
 ## [2.6.0](https://github.com/tianwen7252/tianwen-v2/compare/v2.5.0...v2.6.0) (2026-04-07)
 
 
