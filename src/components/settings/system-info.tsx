@@ -303,15 +303,11 @@ export function SystemInfo() {
               </span>
               <span>{getEnvironment()}</span>
             </div>
-            <div className="flex items-center justify-between">
-              <span className="text-muted-foreground">
-                {t('settings.deviceName')}
-              </span>
-              <div className="flex items-center gap-2">
-                <div className="text-right">
-                  <div data-testid="device-name-display">{deviceDisplayName}</div>
-                  <div className="text-sm text-muted-foreground">ID: {getDeviceId()}</div>
-                </div>
+            <div>
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">
+                  {t('settings.deviceName')}
+                </span>
                 {isAdmin && (
                   <RippleButton
                     data-testid="edit-device-name-btn"
@@ -322,6 +318,9 @@ export function SystemInfo() {
                     <Pencil size={14} />
                   </RippleButton>
                 )}
+              </div>
+              <div data-testid="device-name-display" className="text-right text-muted-foreground break-all">
+                {deviceDisplayName}
               </div>
             </div>
           </CardContent>

@@ -17,7 +17,10 @@ export function CloudBackupStatus() {
   const { t } = useTranslation()
   const lastBackupTime = useBackupStore(s => s.lastBackupTime)
   const scheduleType = useBackupStore(s => s.scheduleType) as ScheduleType
-  const { totalSize, isLoading, error } = useCloudBackups()
+  const { totalSize, latestBackup, isLoading, error } = useCloudBackups()
+
+  // Use runtime lastBackupTime if available, otherwise fall back to cloud latest
+  const effectiveLastBackup = lastBackupTime ?? latestBackup?.createdAt ?? null
 
   const cloudSizeDisplay = error
     ? '—'
@@ -48,8 +51,8 @@ export function CloudBackupStatus() {
         </CardHeader>
         <CardContent className="flex flex-col flex-1">
           <div className="text-2xl">
-            {lastBackupTime
-              ? dayjs(lastBackupTime).format('YYYY-MM-DD HH:mm')
+            {effectiveLastBackup
+              ? dayjs(effectiveLastBackup).format('YYYY-MM-DD HH:mm')
               : t('backup.noRecord')}
           </div>
         </CardContent>

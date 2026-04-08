@@ -502,7 +502,7 @@ export const COMMODITY_SEEDS: readonly CommoditySeed[] = [
     name: '加菜(大)',
     price: 30,
     priority: 12,
-    imageKey: 'vegetable',
+    imageKey: 'add-vegetable',
   },
   {
     id: 'com-113',

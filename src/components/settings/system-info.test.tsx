@@ -438,11 +438,6 @@ describe('SystemInfo', () => {
       expect(display.textContent).toBe('iPad-MAIN')
     })
 
-    it('shows device ID below the name', () => {
-      renderWithProviders(<SystemInfo />)
-      expect(screen.getByText('ID: test-device-id')).toBeTruthy()
-    })
-
     it('hides edit button when not admin', () => {
       mockIsAdmin = false
       renderWithProviders(<SystemInfo />)

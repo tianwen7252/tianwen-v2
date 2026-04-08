@@ -5,6 +5,9 @@ node_modules
 /.pnp
 .pnp.js
 
+# TypeScript incremental build cache
+*.tsbuildinfo
+
 # testing
 /coverage
 /e2e-report
