@@ -19,7 +19,7 @@ export const DELETE_DEFAULT_DATA = false
  * Increment this number to trigger an automatic reset of default data on next launch.
  * The value is stored in localStorage to detect version changes across sessions.
  */
-export const UPDATE_DEFAULT_DATA_NUMBER = 4
+export const UPDATE_DEFAULT_DATA_NUMBER = 3
 
 /**
  * When true, deletes ALL data from all tables on startup.

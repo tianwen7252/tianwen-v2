@@ -66,6 +66,10 @@ stats.html
 .claude/settings.local.json
 .claude/plans/*
 
+# graphify
+graphify-out/
+.graphify_*
+
 # MCP servers (contains tokens)
 .mcp.json
 
