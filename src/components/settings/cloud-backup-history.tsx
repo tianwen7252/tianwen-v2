@@ -17,8 +17,9 @@ import { getDatabase } from '@/lib/repositories/provider'
 
 // ── Constants ───────────────────────────────────────────────────────────────
 
-// Minimum time (ms) to show the overlay so the animation plays
-export const MIN_OVERLAY_MS = 5000
+// Minimum time (ms) to show the overlay so the animation plays.
+// Skipped in test environment to avoid flaky timing issues.
+const MIN_OVERLAY_MS = import.meta.env.VITEST ? 0 : 5000
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 

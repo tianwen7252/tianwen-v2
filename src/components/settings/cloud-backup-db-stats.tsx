@@ -24,8 +24,9 @@ import { formatBytes } from '@/lib/format-bytes'
 const MAX_BACKUP_COUNT = 30
 // Cloudflare R2 free tier storage limit
 const R2_FREE_QUOTA_BYTES = 10 * 1024 * 1024 * 1024 // 10 GB
-// Minimum time (ms) to show the overlay so the animation plays
-export const MIN_RESTORE_OVERLAY_MS = 5000
+// Minimum time (ms) to show the overlay so the animation plays.
+// Skipped in test environment to avoid flaky timing issues.
+const MIN_RESTORE_OVERLAY_MS = import.meta.env.VITEST ? 0 : 5000
 
 const SCHEDULE_OPTIONS: readonly {
   readonly type: ScheduleType

@@ -275,7 +275,7 @@ describe('CloudBackupDbStats', () => {
       expect(screen.getByText('確定要還原上一版本資料庫？')).toBeTruthy()
     })
 
-    it('calls restorePreviousDatabase and reloads on confirm', { timeout: 15000 }, async () => {
+    it('calls restorePreviousDatabase and reloads on confirm', async () => {
       mockHasPreviousDatabase.mockResolvedValue(true)
 
       renderWithProviders(<CloudBackupDbStats />)
@@ -295,10 +295,7 @@ describe('CloudBackupDbStats', () => {
       await waitFor(() => {
         expect(mockRestorePreviousDatabase).toHaveBeenCalledOnce()
         expect(mockReload).toHaveBeenCalledOnce()
-      }, { timeout: 10000 })
-
-      // Reset reload mock so it doesn't leak into subsequent tests
-      mockReload.mockClear()
+      })
     })
 
     it('shows error toast and does not reload when restore fails', async () => {
