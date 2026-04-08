@@ -17,6 +17,9 @@ import { HeaderUserMenu } from '@/components/header/header-user-menu'
 import { RippleButton } from '@/components/ui/ripple-button'
 import { cn } from '@/lib/cn'
 import { useAutoBackup } from '@/hooks/use-auto-backup'
+import { useInitStore } from '@/stores/init-store'
+import { InitOverlay } from '@/components/init-ui'
+import { DatabaseLockedScreen } from '@/components/database-locked'
 
 // Lazy-loaded pages — each becomes a separate chunk
 const NotFoundPage = lazy(() =>
@@ -46,6 +49,7 @@ const NotifyPreview = lazy(() => import('@/pages/preview').then(m => ({ default:
 const SwPreview = lazy(() => import('@/pages/preview').then(m => ({ default: m.SwPreview })))
 const TestDataPreview = lazy(() => import('@/pages/preview').then(m => ({ default: m.TestDataPreview })))
 const V1ImportPreview = lazy(() => import('@/pages/preview').then(m => ({ default: m.V1ImportPreview })))
+const InitUiPreview = lazy(() => import('@/pages/preview').then(m => ({ default: m.InitUiPreview })))
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -67,8 +71,27 @@ function RootLayout() {
   // Use pathname as key to trigger re-mount animation on route changes
   const pathname = useRouterState({ select: (s) => s.location.pathname })
 
-  // Auto backup — disabled in DEV mode
-  useAutoBackup({ enabled: !import.meta.env.DEV })
+  // Init store — gate content on bootstrap status
+  const bootstrapDone = useInitStore(s => s.bootstrapDone)
+  const showInitUI = useInitStore(s => s.showInitUI)
+  const initError = useInitStore(s => s.error)
+  const forceInitUI = useInitStore(s => s.forceInitUI)
+
+  const shouldShowOverlay = showInitUI || forceInitUI
+  const isReady = bootstrapDone && !shouldShowOverlay && !initError
+
+  // Auto backup — disabled in DEV mode, gated on ready
+  useAutoBackup({ enabled: !import.meta.env.DEV && isReady })
+
+  // Escape key dismisses forceInitUI (dev testing)
+  useEffect(() => {
+    if (!forceInitUI) return
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') useInitStore.getState().setForceInitUI(false)
+    }
+    window.addEventListener('keydown', handleKey)
+    return () => window.removeEventListener('keydown', handleKey)
+  }, [forceInitUI])
 
   // Detect scroll for glassmorphism header
   const [scrolled, setScrolled] = useState(false)
@@ -89,8 +112,9 @@ function RootLayout() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      {/* Navigation header — sticky with glassmorphism on scroll */}
-      <header
+      {/* Navigation header — disable interactions when not ready */}
+      <div className={!isReady ? 'pointer-events-none' : undefined}>
+        <header
         className={cn(
           'sticky top-0 z-30 px-5 py-2 transition-all duration-300',
           scrolled
@@ -137,26 +161,32 @@ function RootLayout() {
           </div>
         </nav>
       </header>
+      </div>
 
-      {/* Page content with global error boundary */}
+      {/* Main content — gated on init status */}
       <main>
-        <AppErrorBoundary title={t('error.appError')}>
-          <Suspense>
-            <PageTransition key={pathname.split('/').slice(0, 2).join('/')}>
-              <Outlet />
-            </PageTransition>
-          </Suspense>
-        </AppErrorBoundary>
+        {initError ? (
+          <DatabaseLockedScreen />
+        ) : shouldShowOverlay ? (
+          <InitOverlay />
+        ) : isReady ? (
+          <AppErrorBoundary title={t('error.appError')}>
+            <Suspense>
+              <PageTransition key={pathname.split('/').slice(0, 2).join('/')}>
+                <Outlet />
+              </PageTransition>
+            </Suspense>
+          </AppErrorBoundary>
+        ) : null}
       </main>
 
-      {/* Scroll to top — hidden on order page */}
-      {pathname !== '/' && <ScrollToTop />}
-
-      {/* SW update prompt */}
-      <SwUpdatePrompt />
-
-      {/* Dev tools — only in development */}
-      {/* <TanStackRouterDevtools position="bottom-right" /> */}
+      {/* Only show extras when app is ready */}
+      {isReady && (
+        <>
+          {pathname !== '/' && <ScrollToTop />}
+          <SwUpdatePrompt />
+        </>
+      )}
     </div>
   )
 }
@@ -222,6 +252,7 @@ const DEV_TABS = [
   { path: '/dev/sw', label: 'SW Update' },
   { path: '/dev/test-data', label: 'Test Data' },
   { path: '/dev/v1-import', label: 'V1 Import' },
+  { path: '/dev/init-ui', label: 'Info UI' },
 ] as const
 
 function DevLayout() {
@@ -303,6 +334,12 @@ const devV1ImportRoute = createRoute({
   getParentRoute: () => devRoute,
   path: '/v1-import',
   component: V1ImportPreview,
+})
+
+const devInitUiRoute = createRoute({
+  getParentRoute: () => devRoute,
+  path: '/init-ui',
+  component: InitUiPreview,
 })
 
 // Clock-in standalone page
@@ -406,5 +443,6 @@ export const routeTree = rootRoute.addChildren([
     devSwRoute,
     devTestDataRoute,
     devV1ImportRoute,
+    devInitUiRoute,
   ]),
 ])
