@@ -44,13 +44,14 @@ interface WavePoint {
 const FALL_SPEED = 1.0
 const COLUMN_DENSITY = 0.7
 const FONT_SIZE_BASE = 16
-const WATER_SURFACE_RATIO = 0.92
-const MAX_RIPPLES = 40
+// Water effects disabled — columns fall through the full viewport
+const WATER_SURFACE_RATIO = 1.0
+const MAX_RIPPLES = 0
 const WAVE_RESOLUTION = 4
 
 const CHARS =
   'ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789' +
-  '\u00D7\u00F7\u2206\u03A3\u03A0\u221A\u221E\u2248\u2260\u2264\u2265\u222B\u2202\u03B1\u03B2\u03B3\u03B8\u03C6\u03C8\u03C9\u2588\u2593\u25CF\u25CB'
+  '\u00D7\u00F7\u2206\u03A3\u03A0\u221A\u221E\u2248\u2260\u2264\u2265\u222B\u2202\u03B1\u03B2\u03B3\u03B8\u03C6\u03C8\u03C9\u03A9\u2593'
 
 const FONT_FAMILY = '"SF Mono", "Fira Code", "Cascadia Code", monospace'
 
@@ -60,7 +61,12 @@ function randomChar(): string {
   return CHARS[Math.floor(Math.random() * CHARS.length)]!
 }
 
-function createColumn(index: number, fontSize: number, waterSurface: number, scatter: boolean): Column {
+function createColumn(
+  index: number,
+  fontSize: number,
+  waterSurface: number,
+  scatter: boolean,
+): Column {
   const trailLen = 12 + Math.floor(Math.random() * 20)
   const maxChars = trailLen + 5
   const chars: CharData[] = []
@@ -208,7 +214,7 @@ export function InitCanvas({ className }: InitCanvasProps) {
                 opacity: 0.6 + Math.random() * 0.4,
                 hitWater: false,
                 restartDelay: 0,
-                chars: col.chars.map(c => ({ ...c, char: randomChar() })),
+                chars: col.chars.map((c) => ({ ...c, char: randomChar() })),
               }
             } else {
               columns[i] = { ...col, restartDelay: 0.3 + Math.random() * 1.5 }
@@ -223,7 +229,7 @@ export function InitCanvas({ className }: InitCanvasProps) {
         const newY = col.y + col.speed * FALL_SPEED * dt * 60
 
         // Cycle characters randomly
-        const newChars = col.chars.map(c => {
+        const newChars = col.chars.map((c) => {
           const newTimer = c.cycleTimer - dt
           if (newTimer <= 0) {
             return { ...c, char: randomChar(), cycleTimer: c.cycleRate }
@@ -249,19 +255,24 @@ export function InitCanvas({ className }: InitCanvasProps) {
             hitWater: newHitWater,
           }
         } else {
-          columns[i] = { ...col, y: newY, chars: newChars, hitWater: newHitWater }
+          columns[i] = {
+            ...col,
+            y: newY,
+            chars: newChars,
+            hitWater: newHitWater,
+          }
         }
       }
     }
 
     function updateRipples(dt: number) {
       ripples = ripples
-        .map(r => ({
+        .map((r) => ({
           ...r,
           radius: r.radius + r.speed * dt,
           life: r.life - r.decay * dt,
         }))
-        .filter(r => r.life > 0 && r.radius <= r.maxRadius)
+        .filter((r) => r.life > 0 && r.radius <= r.maxRadius)
     }
 
     function updateWaves() {
@@ -270,7 +281,7 @@ export function InitCanvas({ className }: InitCanvasProps) {
       const spread = 0.25
 
       // Apply tension + damping
-      wavePoints = wavePoints.map(p => {
+      wavePoints = wavePoints.map((p) => {
         const newVy = (p.vy + -tension * p.y) * damping
         return { y: p.y + newVy, vy: newVy }
       })
@@ -280,7 +291,8 @@ export function InitCanvas({ className }: InitCanvasProps) {
         wavePoints = wavePoints.map((p, i) => {
           let newVy = p.vy
           if (i > 0) newVy += spread * (wavePoints[i - 1]!.y - p.y)
-          if (i < wavePoints.length - 1) newVy += spread * (wavePoints[i + 1]!.y - p.y)
+          if (i < wavePoints.length - 1)
+            newVy += spread * (wavePoints[i + 1]!.y - p.y)
           return { ...p, vy: newVy }
         })
       }
@@ -315,9 +327,19 @@ export function InitCanvas({ className }: InitCanvasProps) {
           if (brightness < 0.02) continue
 
           let r: number, g: number, b: number
-          if (j === 0) { r = 255; g = 245; b = 220 }
-          else if (j < 3) { r = 240; g = 200; b = 140 }
-          else { r = 200; g = 149; b = 108 }
+          if (j === 0) {
+            r = 255
+            g = 245
+            b = 220
+          } else if (j < 3) {
+            r = 240
+            g = 200
+            b = 140
+          } else {
+            r = 200
+            g = 149
+            b = 108
+          }
 
           ctx!.fillStyle = `rgba(${r},${g},${b},${brightness})`
 
@@ -326,7 +348,11 @@ export function InitCanvas({ className }: InitCanvasProps) {
             ctx!.shadowBlur = 8
           }
 
-          ctx!.fillText(col.chars[charIndex]!.char, col.x + fontSize * 0.5, charY)
+          ctx!.fillText(
+            col.chars[charIndex]!.char,
+            col.x + fontSize * 0.5,
+            charY,
+          )
 
           if (j === 0) {
             ctx!.shadowColor = 'transparent'
@@ -350,16 +376,22 @@ export function InitCanvas({ className }: InitCanvasProps) {
         if (!col.active) continue
         for (let j = 0; j < Math.min(col.length, 8); j++) {
           const charY = col.y - j * fontSize
-          if (charY > waterSurface || charY < waterSurface - fontSize * 8) continue
+          if (charY > waterSurface || charY < waterSurface - fontSize * 8)
+            continue
 
           const charIndex = j % col.chars.length
           const reflectY = waterSurface + (waterSurface - charY)
           const depthBelow = reflectY - waterSurface
-          const reflectAlpha = Math.max(0, 0.12 * (1 - depthBelow / (height * 0.2)))
+          const reflectAlpha = Math.max(
+            0,
+            0.12 * (1 - depthBelow / (height * 0.2)),
+          )
 
           const waveIdx = Math.floor(col.x / WAVE_RESOLUTION)
           const waveOffset =
-            waveIdx >= 0 && waveIdx < wavePoints.length ? wavePoints[waveIdx]!.y * 2 : 0
+            waveIdx >= 0 && waveIdx < wavePoints.length
+              ? wavePoints[waveIdx]!.y * 2
+              : 0
 
           if (reflectAlpha < 0.01) continue
 
@@ -383,7 +415,15 @@ export function InitCanvas({ className }: InitCanvasProps) {
           const ringAlpha = alpha * (1 - ring * 0.3)
 
           ctx!.beginPath()
-          ctx!.ellipse(r.x, r.y + ring * 2, ringRadius, ringRadius * 0.3, 0, 0, Math.PI * 2)
+          ctx!.ellipse(
+            r.x,
+            r.y + ring * 2,
+            ringRadius,
+            ringRadius * 0.3,
+            0,
+            0,
+            Math.PI * 2,
+          )
           ctx!.strokeStyle = `rgba(200, 170, 130, ${ringAlpha})`
           ctx!.lineWidth = 1 - ring * 0.2
           ctx!.stroke()
@@ -417,7 +457,12 @@ export function InitCanvas({ className }: InitCanvasProps) {
       ctx!.stroke()
 
       // Surface glow
-      const surfGlow = ctx!.createLinearGradient(0, waterSurface - 10, 0, waterSurface + 20)
+      const surfGlow = ctx!.createLinearGradient(
+        0,
+        waterSurface - 10,
+        0,
+        waterSurface + 20,
+      )
       surfGlow.addColorStop(0, 'rgba(200, 149, 108, 0)')
       surfGlow.addColorStop(0.4, 'rgba(200, 149, 108, 0.06)')
       surfGlow.addColorStop(0.6, 'rgba(200, 149, 108, 0.04)')
@@ -457,7 +502,14 @@ export function InitCanvas({ className }: InitCanvasProps) {
       const cx = width / 2
       const cy = height / 2
       const maxDim = Math.max(width, height)
-      const vignette = ctx!.createRadialGradient(cx, cy, maxDim * 0.25, cx, cy, maxDim * 0.8)
+      const vignette = ctx!.createRadialGradient(
+        cx,
+        cy,
+        maxDim * 0.25,
+        cx,
+        cy,
+        maxDim * 0.8,
+      )
       vignette.addColorStop(0, 'rgba(10, 10, 10, 0)')
       vignette.addColorStop(1, 'rgba(10, 10, 10, 0.45)')
       ctx!.fillStyle = vignette
@@ -474,7 +526,8 @@ export function InitCanvas({ className }: InitCanvasProps) {
         const px = (Math.sin(i * 73.1 + time * 0.07) * 0.5 + 0.5) * width
         const py =
           waterSurface +
-          (Math.cos(i * 127.3 + time * 0.05) * 0.5 + 0.5) * (height - waterSurface)
+          (Math.cos(i * 127.3 + time * 0.05) * 0.5 + 0.5) *
+            (height - waterSurface)
         const alpha = 0.04 + 0.03 * Math.sin(time * 0.5 + i * 1.7)
 
         ctx!.fillStyle = `rgba(200, 149, 108, ${alpha})`
@@ -524,7 +577,9 @@ export function InitCanvas({ className }: InitCanvasProps) {
     // ── Animation loop ────────────────────────────────────────────────
     function render(timestamp: number) {
       if (!lastTime) lastTime = timestamp
-      const dt = prefersReduced ? 0 : Math.min((timestamp - lastTime) / 1000, 0.05)
+      const dt = prefersReduced
+        ? 0
+        : Math.min((timestamp - lastTime) / 1000, 0.05)
       lastTime = timestamp
 
       const time = timestamp / 1000
@@ -534,14 +589,8 @@ export function InitCanvas({ className }: InitCanvasProps) {
       ctx!.fillRect(0, 0, width, height)
 
       updateColumns(dt)
-      updateRipples(dt)
-      updateWaves()
 
       drawColumns()
-      drawWaterSurface(time)
-      drawReflections()
-      drawRipples()
-      drawWaterParticles(time)
       drawVignette()
 
       rafId = requestAnimationFrame(render)
@@ -564,7 +613,10 @@ export function InitCanvas({ className }: InitCanvasProps) {
   }, [])
 
   return (
-    <div className={className} style={{ width: '100%', height: '100%', position: 'relative' }}>
+    <div
+      className={className}
+      style={{ width: '100%', height: '100%', position: 'relative' }}
+    >
       <canvas
         ref={canvasRef}
         style={{ display: 'block', width: '100%', height: '100%' }}
