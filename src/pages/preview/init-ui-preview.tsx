@@ -1,9 +1,14 @@
+import { useState } from 'react'
 import { useInitStore } from '@/stores/init-store'
 import { RippleButton } from '@/components/ui/ripple-button'
+import { ErrorOverlay } from '@/components/error-ui'
+
+type ErrorPreviewType = '404' | '500' | 'error' | null
 
 export function InitUiPreview() {
   const forceInitUI = useInitStore(s => s.forceInitUI)
   const setForceInitUI = useInitStore(s => s.setForceInitUI)
+  const [errorPreview, setErrorPreview] = useState<ErrorPreviewType>(null)
 
   return (
     <div className="flex flex-col gap-4">
@@ -16,12 +21,44 @@ export function InitUiPreview() {
         onClick={() => setForceInitUI(!forceInitUI)}
         className={
           forceInitUI
-            ? 'w-fit bg-red-500 px-4 py-2 text-white hover:bg-red-600'
-            : 'w-fit bg-primary px-4 py-2 text-primary-foreground hover:bg-primary/90'
+            ? 'w-fit rounded-full bg-red-500 px-4 py-2 text-white hover:bg-red-600'
+            : 'w-fit rounded-full bg-primary px-4 py-2 text-primary-foreground hover:bg-primary/90'
         }
       >
         {forceInitUI ? '關閉初始化 UI' : '初始化 UI'}
       </RippleButton>
+
+      <h2 className="mt-4 text-lg">Error Overlay Preview</h2>
+      <p className="text-muted-foreground">
+        Preview error pages with Event Horizon animation background.
+      </p>
+      <div className="flex gap-3">
+        <RippleButton
+          onClick={() => setErrorPreview('404')}
+          className="w-fit rounded-full bg-amber-600 px-4 py-2 text-white hover:bg-amber-700"
+        >
+          404
+        </RippleButton>
+        <RippleButton
+          onClick={() => setErrorPreview('500')}
+          className="w-fit rounded-full bg-red-600 px-4 py-2 text-white hover:bg-red-700"
+        >
+          500
+        </RippleButton>
+        <RippleButton
+          onClick={() => setErrorPreview('error')}
+          className="w-fit rounded-full bg-gray-600 px-4 py-2 text-white hover:bg-gray-700"
+        >
+          Error
+        </RippleButton>
+      </div>
+
+      {errorPreview && (
+        <ErrorOverlay
+          type={errorPreview}
+          onClose={() => setErrorPreview(null)}
+        />
+      )}
     </div>
   )
 }
