@@ -1,9 +1,15 @@
 import { useState, useRef, useEffect } from 'react'
-import { ClipboardList, Trash2 } from 'lucide-react'
+import { ClipboardList, Trash2, ChevronUp } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { notify } from '@/components/ui/sonner'
 import { ScrollArea, type ScrollAreaHandle } from '@/components/ui/scroll-area'
 import { RippleButton } from '@/components/ui/ripple-button'
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+  PopoverAnchor,
+} from '@/components/ui/popover'
 import { useOrderStore } from '@/stores/order-store'
 import { logError } from '@/lib/error-logger'
 import { SwipeToDelete } from '@/components/ui/swipe-to-delete'
@@ -11,6 +17,7 @@ import { OrderItemRow } from './order-item-row'
 import { OrderSummary } from './order-summary'
 import { ConfirmOrderModal } from './confirm-order-modal'
 import { ChangePrediction } from './change-prediction'
+import { OrderNoteTags } from './order-note-tags'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -37,24 +44,26 @@ export function OrderPanel({
   swipeForegroundClassName,
   hideHeader,
 }: OrderPanelProps) {
-  const items = useOrderStore((s) => s.items)
-  const discounts = useOrderStore((s) => s.discounts)
-  const removeItem = useOrderStore((s) => s.removeItem)
-  const updateQuantity = useOrderStore((s) => s.updateQuantity)
-  const updateNote = useOrderStore((s) => s.updateNote)
-  const getTotal = useOrderStore((s) => s.getTotal)
-  const getBentoCount = useOrderStore((s) => s.getBentoCount)
-  const getSoupCount = useOrderStore((s) => s.getSoupCount)
-  const getItemCount = useOrderStore((s) => s.getItemCount)
-  const clearCart = useOrderStore((s) => s.clearCart)
-  const submitOrder = useOrderStore((s) => s.submitOrder)
-  const lastAddedItem = useOrderStore((s) => s.lastAddedItem)
+  const items = useOrderStore(s => s.items)
+  const discounts = useOrderStore(s => s.discounts)
+  const removeItem = useOrderStore(s => s.removeItem)
+  const updateQuantity = useOrderStore(s => s.updateQuantity)
+  const updateNote = useOrderStore(s => s.updateNote)
+  const getTotal = useOrderStore(s => s.getTotal)
+  const getBentoCount = useOrderStore(s => s.getBentoCount)
+  const getSoupCount = useOrderStore(s => s.getSoupCount)
+  const getItemCount = useOrderStore(s => s.getItemCount)
+  const clearCart = useOrderStore(s => s.clearCart)
+  const submitOrder = useOrderStore(s => s.submitOrder)
+  const lastAddedItem = useOrderStore(s => s.lastAddedItem)
 
-  const quickSubmit = useOrderStore((s) => s.quickSubmit)
+  const quickSubmit = useOrderStore(s => s.quickSubmit)
 
   const { t } = useTranslation()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [confirmOpen, setConfirmOpen] = useState(false)
+  const [notePopoverOpen, setNotePopoverOpen] = useState(false)
+  const [selectedTags, setSelectedTags] = useState<string[]>([])
   const scrollRef = useRef<ScrollAreaHandle>(null)
 
   // Scroll to the last added/updated item
@@ -82,24 +91,34 @@ export function OrderPanel({
       notify.success(t('order.submitSuccess'))
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err)
-      logError(msg, 'OrderPanel.handleSubmit', err instanceof Error ? err.stack : undefined)
+      logError(
+        msg,
+        'OrderPanel.handleSubmit',
+        err instanceof Error ? err.stack : undefined,
+      )
       notify.error(t('order.submitError'))
     } finally {
       setIsSubmitting(false)
     }
   }
 
-  /** Quick submit — bypass confirmation modal and submit immediately */
+  /** Quick submit — bypass confirmation modal and submit immediately with optional note tags */
   const handleQuickSubmit = async () => {
     setIsSubmitting(true)
     try {
-      await submitOrder([])
+      await submitOrder(selectedTags)
       notify.success(t('order.submitSuccess'))
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err)
-      logError(msg, 'OrderPanel.handleQuickSubmit', err instanceof Error ? err.stack : undefined)
+      logError(
+        msg,
+        'OrderPanel.handleQuickSubmit',
+        err instanceof Error ? err.stack : undefined,
+      )
       notify.error(t('order.submitError'))
     } finally {
+      setSelectedTags([])
+      setNotePopoverOpen(false)
       setIsSubmitting(false)
     }
   }
@@ -146,7 +165,7 @@ export function OrderPanel({
           </p>
         ) : (
           <div className="divide-y divide-border pr-2">
-            {items.map((item) => (
+            {items.map(item => (
               <div key={item.id} data-cart-item-id={item.id}>
                 <SwipeToDelete
                   onDelete={() => removeItem(item.id)}
@@ -173,18 +192,63 @@ export function OrderPanel({
         {isQuickMode && <ChangePrediction total={total} />}
       </OrderSummary>
 
-      {/* Submit button */}
-      <RippleButton
-        className="h-14 w-full rounded-md bg-primary px-6 text-md text-primary-foreground hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50"
-        disabled={isEmpty || isSubmitting}
-        onClick={
-          onSubmitClick ??
-          (isQuickMode ? handleQuickSubmit : () => setConfirmOpen(true))
-        }
-        style={submitColor ? { backgroundColor: submitColor } : undefined}
-      >
-        {submitLabel ?? t('order.submit')}
-      </RippleButton>
+      {/* Submit button — Button Group with note popover in quick mode */}
+      {isQuickMode ? (
+        <Popover open={notePopoverOpen} onOpenChange={setNotePopoverOpen}>
+          <PopoverAnchor asChild>
+            <div className="flex w-full gap-0">
+              <RippleButton
+                className="h-14 flex-1 rounded-l-md rounded-r-none bg-primary px-6 text-md text-primary-foreground hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50"
+                disabled={isEmpty || isSubmitting}
+                onClick={handleQuickSubmit}
+                style={
+                  submitColor ? { backgroundColor: submitColor } : undefined
+                }
+              >
+                {submitLabel ?? t('order.submit')}
+              </RippleButton>
+              <PopoverTrigger asChild>
+                <RippleButton
+                  aria-label={t('order.orderNote')}
+                  className="relative h-14 w-12 rounded-l-none rounded-r-md border-l border-primary-foreground/20 bg-primary text-primary-foreground hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50"
+                  disabled={isEmpty || isSubmitting}
+                  style={
+                    submitColor ? { backgroundColor: submitColor } : undefined
+                  }
+                >
+                  <ChevronUp className="size-5" />
+                  {selectedTags.length > 0 && (
+                    <span className="absolute -top-1.5 -right-1.5 flex size-5 items-center justify-center rounded-full bg-(--color-red) text-[0.65rem] leading-none text-white">
+                      {selectedTags.length}
+                    </span>
+                  )}
+                </RippleButton>
+              </PopoverTrigger>
+            </div>
+          </PopoverAnchor>
+          <PopoverContent
+            side="top"
+            align="start"
+            sideOffset={8}
+            className="p-4"
+            style={{ width: 'var(--radix-popper-anchor-width)' }}
+          >
+            <OrderNoteTags
+              selectedTags={selectedTags}
+              onSelectedTagsChange={setSelectedTags}
+            />
+          </PopoverContent>
+        </Popover>
+      ) : (
+        <RippleButton
+          className="h-14 w-full rounded-md bg-primary px-6 text-md text-primary-foreground hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50"
+          disabled={isEmpty || isSubmitting}
+          onClick={onSubmitClick ?? (() => setConfirmOpen(true))}
+          style={submitColor ? { backgroundColor: submitColor } : undefined}
+        >
+          {submitLabel ?? t('order.submit')}
+        </RippleButton>
+      )}
 
       {/* Confirm order modal — only rendered when using default non-quick submit behavior */}
       {!onSubmitClick && !quickSubmit && (
