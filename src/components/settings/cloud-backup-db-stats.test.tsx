@@ -52,8 +52,12 @@ vi.mock('@/lib/backup', () => ({
   }),
 }))
 
-const mockHasPreviousDatabase = vi.hoisted(() => vi.fn().mockResolvedValue(false))
-const mockRestorePreviousDatabase = vi.hoisted(() => vi.fn().mockResolvedValue(undefined))
+const mockHasPreviousDatabase = vi.hoisted(() =>
+  vi.fn().mockResolvedValue(false),
+)
+const mockRestorePreviousDatabase = vi.hoisted(() =>
+  vi.fn().mockResolvedValue(undefined),
+)
 
 vi.mock('@/lib/repositories/provider', () => ({
   getDatabase: () => ({
@@ -238,14 +242,14 @@ describe('CloudBackupDbStats', () => {
   // ── Restore Previous Database button ──────────────────────────────────────
 
   describe('Restore Previous Database button', () => {
-    it('does not render restore button when hasPreviousDatabase returns false', async () => {
+    it('disables restore button when hasPreviousDatabase returns false', async () => {
       mockHasPreviousDatabase.mockResolvedValue(false)
 
       renderWithProviders(<CloudBackupDbStats />)
 
-      await waitFor(() => {
-        expect(screen.queryByText('還原上一版本')).toBeNull()
-      })
+      // Button is always rendered but should be disabled when no previous DB exists
+      const btn = screen.getByText('還原上一版本') as HTMLButtonElement
+      expect(btn.disabled).toBe(true)
     })
 
     it('renders restore button when hasPreviousDatabase returns true', async () => {
@@ -254,7 +258,8 @@ describe('CloudBackupDbStats', () => {
       renderWithProviders(<CloudBackupDbStats />)
 
       await waitFor(() => {
-        expect(screen.getByText('還原上一版本')).toBeTruthy()
+        const btn = screen.getByText('還原上一版本') as HTMLButtonElement
+        expect(btn.disabled).toBe(false)
       })
     })
 
@@ -264,7 +269,8 @@ describe('CloudBackupDbStats', () => {
       renderWithProviders(<CloudBackupDbStats />)
 
       await waitFor(() => {
-        expect(screen.getByText('還原上一版本')).toBeTruthy()
+        const btn = screen.getByText('還原上一版本') as HTMLButtonElement
+        expect(btn.disabled).toBe(false)
       })
 
       const restoreButton = screen.getByText('還原上一版本')
@@ -281,7 +287,8 @@ describe('CloudBackupDbStats', () => {
       renderWithProviders(<CloudBackupDbStats />)
 
       await waitFor(() => {
-        expect(screen.getByText('還原上一版本')).toBeTruthy()
+        const btn = screen.getByText('還原上一版本') as HTMLButtonElement
+        expect(btn.disabled).toBe(false)
       })
 
       fireEvent.click(screen.getByText('還原上一版本'))
@@ -305,7 +312,8 @@ describe('CloudBackupDbStats', () => {
       renderWithProviders(<CloudBackupDbStats />)
 
       await waitFor(() => {
-        expect(screen.getByText('還原上一版本')).toBeTruthy()
+        const btn = screen.getByText('還原上一版本') as HTMLButtonElement
+        expect(btn.disabled).toBe(false)
       })
 
       fireEvent.click(screen.getByText('還原上一版本'))
@@ -336,7 +344,8 @@ describe('CloudBackupDbStats', () => {
       renderWithProviders(<CloudBackupDbStats />)
 
       await waitFor(() => {
-        expect(screen.getByText('還原上一版本')).toBeTruthy()
+        const btn = screen.getByText('還原上一版本') as HTMLButtonElement
+        expect(btn.disabled).toBe(false)
       })
 
       fireEvent.click(screen.getByText('還原上一版本'))
@@ -360,7 +369,8 @@ describe('CloudBackupDbStats', () => {
       renderWithProviders(<CloudBackupDbStats />)
 
       await waitFor(() => {
-        expect(screen.getByText('還原上一版本')).toBeTruthy()
+        const btn = screen.getByText('還原上一版本') as HTMLButtonElement
+        expect(btn.disabled).toBe(false)
       })
 
       fireEvent.click(screen.getByText('還原上一版本'))

@@ -95,7 +95,7 @@ export function ProductGrid({ compactCalculator = false }: ProductGridProps) {
   return (
     <div className="flex flex-col gap-3">
       {/* Header: category tabs + quick submit switch + calculator toggle */}
-      <div className="flex items-center justify-between">
+      <div className="sticky top-0 z-10 flex items-center justify-between bg-background/56 py-2">
         <CategoryTabs
           categories={categories}
           selectedTypeId={selectedTypeId}

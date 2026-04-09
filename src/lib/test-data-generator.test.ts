@@ -701,7 +701,7 @@ describe('getCommoditiesForGeneration', () => {
     expect(ids).not.toContain('com-017')
 
     // The total count should be less than the full seed count
-    expect(commodities.length).toBeLessThan(65) // 65 total seeds, minus 4 hidden
+    expect(commodities.length).toBeLessThan(82) // 82 total seeds, minus 5 hidden
   })
 
   it('includes commodities from all type categories', () => {
