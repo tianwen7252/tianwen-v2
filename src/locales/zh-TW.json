@@ -564,7 +564,7 @@
     "dailyAt": "每日 {{hour}}:00",
     "weeklyAt": "每週 {{hour}}:00",
     "history": "備份記錄",
-    "historyTime": "時間",
+    "historyTime": "建立時間",
     "historyType": "類型",
     "historyStatus": "狀態",
     "historyFilename": "檔案名稱",
