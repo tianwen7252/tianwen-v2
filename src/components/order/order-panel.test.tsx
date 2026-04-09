@@ -357,6 +357,82 @@ describe('OrderPanel', () => {
     expect(screen.getByText('不加蛋')).toBeTruthy()
   })
 
+  // ─── Quick submit note popover (V2-217) ────────────────────────────────────
+
+  describe('quick submit note popover', () => {
+    it('should show ChevronUp note button when quickSubmit is ON', async () => {
+      act(() => {
+        useOrderStore.setState({
+          items: [makeCartItem()],
+          quickSubmit: true,
+        })
+      })
+      await renderOrderPanel()
+      expect(screen.getByRole('button', { name: /訂單備註/ })).toBeTruthy()
+    })
+
+    it('should NOT show ChevronUp note button when quickSubmit is OFF', async () => {
+      act(() => {
+        useOrderStore.setState({
+          items: [makeCartItem()],
+          quickSubmit: false,
+        })
+      })
+      await renderOrderPanel()
+      expect(screen.queryByRole('button', { name: /訂單備註/ })).toBeNull()
+    })
+
+    it('should NOT show ChevronUp note button when onSubmitClick is provided', async () => {
+      act(() => {
+        useOrderStore.setState({
+          items: [makeCartItem()],
+          quickSubmit: true,
+        })
+      })
+      const { OrderPanel } = await import('./order-panel')
+      render(<OrderPanel onSubmitClick={vi.fn()} />)
+      expect(screen.queryByRole('button', { name: /訂單備註/ })).toBeNull()
+    })
+
+    it('should open popover with order note tags when ChevronUp is clicked', async () => {
+      act(() => {
+        useOrderStore.setState({
+          items: [makeCartItem()],
+          quickSubmit: true,
+        })
+      })
+      const user = userEvent.setup()
+      await renderOrderPanel()
+      await user.click(screen.getByRole('button', { name: /訂單備註/ }))
+      // OrderNoteTags renders a heading "訂單備註"
+      expect(screen.getByText('訂單備註')).toBeTruthy()
+    })
+
+    it('should pass selected tags to submitOrder during quick submit', async () => {
+      const submitSpy = vi.fn().mockResolvedValue(undefined)
+      act(() => {
+        useOrderStore.setState({
+          items: [makeCartItem()],
+          quickSubmit: true,
+          submitOrder: submitSpy,
+        })
+      })
+      const user = userEvent.setup()
+      await renderOrderPanel()
+
+      // Open popover and select a default tag
+      await user.click(screen.getByRole('button', { name: /訂單備註/ }))
+      // Click on the "攤位" tag pill (first default tag from ORDER_TYPE_SEEDS)
+      const tagEl = screen.getByText('攤位')
+      await user.click(tagEl)
+
+      // Click submit
+      await user.click(screen.getByRole('button', { name: /送出訂單/i }))
+
+      expect(submitSpy).toHaveBeenCalledWith(expect.arrayContaining(['攤位']))
+    })
+  })
+
   // ─── onSubmitClick / submitLabel / submitColor props ──────────────────────
 
   async function renderOrderPanelWithProps(

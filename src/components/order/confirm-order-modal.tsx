@@ -42,10 +42,13 @@ export function ConfirmOrderModal({
   const groups = groupCartItems(items, discounts)
   const [selectedTags, setSelectedTags] = useState<string[]>([])
 
-  // Reset selected tags when modal opens
+  // Reset selected tags when modal opens; pre-select "攤位" if stall items present
   useEffect(() => {
-    if (open) setSelectedTags([])
-  }, [open])
+    if (open) {
+      const hasStall = items.some(item => item.typeId === 'stall')
+      setSelectedTags(hasStall ? ['攤位'] : [])
+    }
+  }, [open, items])
 
   return (
     <Modal
