@@ -237,8 +237,9 @@ export function OrderPanel({
             side="top"
             align="start"
             sideOffset={8}
-            className="p-4"
+            className="p-4 shadow-xl"
             style={{ width: 'var(--radix-popper-anchor-width)' }}
+            onOpenAutoFocus={e => e.preventDefault()}
           >
             <OrderNoteTags
               selectedTags={selectedTags}
