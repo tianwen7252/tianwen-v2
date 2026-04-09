@@ -66,6 +66,18 @@ export function OrderPanel({
   const [selectedTags, setSelectedTags] = useState<string[]>([])
   const scrollRef = useRef<ScrollAreaHandle>(null)
 
+  // Auto-select "攤位" tag when stall items are in the cart
+  const hasStallItem = items.some(item => item.typeId === 'stall')
+  useEffect(() => {
+    setSelectedTags(prev =>
+      hasStallItem
+        ? prev.includes('攤位')
+          ? prev
+          : [...prev, '攤位']
+        : prev.filter(t => t !== '攤位'),
+    )
+  }, [hasStallItem])
+
   // Scroll to the last added/updated item
   useEffect(() => {
     if (!lastAddedItem) return
@@ -210,18 +222,13 @@ export function OrderPanel({
               <PopoverTrigger asChild>
                 <RippleButton
                   aria-label={t('order.orderNote')}
-                  className="relative h-14 w-12 rounded-l-none rounded-r-md border-l border-primary-foreground/20 bg-primary text-primary-foreground hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50"
+                  className="flex h-14 w-12 items-center justify-center rounded-l-none rounded-r-md border-l border-primary-foreground/20 bg-primary text-primary-foreground hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50"
                   disabled={isEmpty || isSubmitting}
                   style={
                     submitColor ? { backgroundColor: submitColor } : undefined
                   }
                 >
                   <ChevronUp className="size-5" />
-                  {selectedTags.length > 0 && (
-                    <span className="absolute -top-1.5 -right-1.5 flex size-5 items-center justify-center rounded-full bg-(--color-red) text-[0.65rem] leading-none text-white">
-                      {selectedTags.length}
-                    </span>
-                  )}
                 </RippleButton>
               </PopoverTrigger>
             </div>
