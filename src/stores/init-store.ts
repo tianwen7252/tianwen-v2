@@ -2,6 +2,8 @@ import { create } from 'zustand'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
+type ErrorOverlayType = '404' | '500' | 'error' | null
+
 interface InitState {
   /** Whether the database bootstrap has completed successfully */
   readonly bootstrapDone: boolean
@@ -13,6 +15,8 @@ interface InitState {
   readonly error: string | null
   /** Dev-only: force the init UI to display for testing */
   readonly forceInitUI: boolean
+  /** Active error overlay type (null = hidden) */
+  readonly errorOverlayType: ErrorOverlayType
 }
 
 interface InitActions {
@@ -20,6 +24,7 @@ interface InitActions {
   setError: (msg: string) => void
   setShowInitUI: (show: boolean) => void
   setForceInitUI: (flag: boolean) => void
+  setErrorOverlayType: (type: ErrorOverlayType) => void
 }
 
 // ─── Store ───────────────────────────────────────────────────────────────────
@@ -30,12 +35,13 @@ export const useInitStore = create<InitState & InitActions>((set, get) => ({
   shownAt: null,
   error: null,
   forceInitUI: false,
+  errorOverlayType: null,
 
   setBootstrapDone: () => set({ bootstrapDone: true }),
 
-  setError: (msg) => set({ error: msg }),
+  setError: msg => set({ error: msg }),
 
-  setShowInitUI: (show) => {
+  setShowInitUI: show => {
     const { shownAt } = get()
     if (show && shownAt === null) {
       // First time showing — record timestamp
@@ -46,5 +52,7 @@ export const useInitStore = create<InitState & InitActions>((set, get) => ({
     }
   },
 
-  setForceInitUI: (flag) => set({ forceInitUI: flag }),
+  setForceInitUI: flag => set({ forceInitUI: flag }),
+
+  setErrorOverlayType: type => set({ errorOverlayType: type }),
 }))

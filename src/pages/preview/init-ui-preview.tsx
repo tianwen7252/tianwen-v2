@@ -1,21 +1,17 @@
-import { useState } from 'react'
 import { useInitStore } from '@/stores/init-store'
 import { RippleButton } from '@/components/ui/ripple-button'
-import { ErrorOverlay } from '@/components/error-ui'
-
-type ErrorPreviewType = '404' | '500' | 'error' | null
 
 export function InitUiPreview() {
   const forceInitUI = useInitStore(s => s.forceInitUI)
   const setForceInitUI = useInitStore(s => s.setForceInitUI)
-  const [errorPreview, setErrorPreview] = useState<ErrorPreviewType>(null)
+  const setErrorOverlayType = useInitStore(s => s.setErrorOverlayType)
 
   return (
     <div className="flex flex-col gap-4">
       <h2 className="text-lg">Init UI Preview</h2>
       <p className="text-muted-foreground">
-        Toggle the initialization overlay. Press Escape or click the button
-        again to close.
+        Toggle the initialization overlay. Press Escape or click the back button
+        to close.
       </p>
       <RippleButton
         onClick={() => setForceInitUI(!forceInitUI)}
@@ -30,35 +26,29 @@ export function InitUiPreview() {
 
       <h2 className="mt-4 text-lg">Error Overlay Preview</h2>
       <p className="text-muted-foreground">
-        Preview error pages with Event Horizon animation background.
+        Preview error pages with Event Horizon animation. Press Escape or click
+        the back button to close.
       </p>
       <div className="flex gap-3">
         <RippleButton
-          onClick={() => setErrorPreview('404')}
+          onClick={() => setErrorOverlayType('404')}
           className="w-fit rounded-full bg-amber-600 px-4 py-2 text-white hover:bg-amber-700"
         >
           404
         </RippleButton>
         <RippleButton
-          onClick={() => setErrorPreview('500')}
+          onClick={() => setErrorOverlayType('500')}
           className="w-fit rounded-full bg-red-600 px-4 py-2 text-white hover:bg-red-700"
         >
           500
         </RippleButton>
         <RippleButton
-          onClick={() => setErrorPreview('error')}
+          onClick={() => setErrorOverlayType('error')}
           className="w-fit rounded-full bg-gray-600 px-4 py-2 text-white hover:bg-gray-700"
         >
           Error
         </RippleButton>
       </div>
-
-      {errorPreview && (
-        <ErrorOverlay
-          type={errorPreview}
-          onClose={() => setErrorPreview(null)}
-        />
-      )}
     </div>
   )
 }

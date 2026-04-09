@@ -17,23 +17,24 @@ import { cn } from '@/lib/cn'
 import { useAutoBackup } from '@/hooks/use-auto-backup'
 import { useInitStore } from '@/stores/init-store'
 import { InitOverlay } from '@/components/init-ui'
+import { ErrorOverlay } from '@/components/error-ui'
 import { DatabaseLockedScreen } from '@/components/database-locked'
 
 // Lazy-loaded pages — each becomes a separate chunk
 const NotFoundPage = lazy(() =>
-  import('@/pages/not-found').then((m) => ({ default: m.NotFoundPage })),
+  import('@/pages/not-found').then(m => ({ default: m.NotFoundPage })),
 )
 const ClockInPage = lazy(() =>
-  import('@/pages/clock-in').then((m) => ({ default: m.ClockInPage })),
+  import('@/pages/clock-in').then(m => ({ default: m.ClockInPage })),
 )
 const SettingsPage = lazy(() =>
-  import('@/pages/settings').then((m) => ({ default: m.SettingsPage })),
+  import('@/pages/settings').then(m => ({ default: m.SettingsPage })),
 )
 const OrdersPage = lazy(() =>
-  import('@/pages/orders').then((m) => ({ default: m.OrdersPage })),
+  import('@/pages/orders').then(m => ({ default: m.OrdersPage })),
 )
 const AnalyticsPage = lazy(() =>
-  import('@/pages/analytics').then((m) => ({ default: m.AnalyticsPage })),
+  import('@/pages/analytics').then(m => ({ default: m.AnalyticsPage })),
 )
 // Settings sub-pages — eagerly imported (users tab through all of them, avoids Suspense flash)
 import { SystemInfo } from '@/components/settings/system-info'
@@ -43,22 +44,22 @@ import { StaffAdmin } from '@/components/staff-admin'
 import { ProductManagement } from '@/components/settings/product-management'
 // Dev preview pages — lazy-loaded (dev-only, no flash since PageTransition key uses top-level route)
 const ModalPreview = lazy(() =>
-  import('@/pages/preview').then((m) => ({ default: m.ModalPreview })),
+  import('@/pages/preview').then(m => ({ default: m.ModalPreview })),
 )
 const NotifyPreview = lazy(() =>
-  import('@/pages/preview').then((m) => ({ default: m.NotifyPreview })),
+  import('@/pages/preview').then(m => ({ default: m.NotifyPreview })),
 )
 const SwPreview = lazy(() =>
-  import('@/pages/preview').then((m) => ({ default: m.SwPreview })),
+  import('@/pages/preview').then(m => ({ default: m.SwPreview })),
 )
 const TestDataPreview = lazy(() =>
-  import('@/pages/preview').then((m) => ({ default: m.TestDataPreview })),
+  import('@/pages/preview').then(m => ({ default: m.TestDataPreview })),
 )
 const V1ImportPreview = lazy(() =>
-  import('@/pages/preview').then((m) => ({ default: m.V1ImportPreview })),
+  import('@/pages/preview').then(m => ({ default: m.V1ImportPreview })),
 )
 const InitUiPreview = lazy(() =>
-  import('@/pages/preview').then((m) => ({ default: m.InitUiPreview })),
+  import('@/pages/preview').then(m => ({ default: m.InitUiPreview })),
 )
 
 // Root layout with navigation
@@ -70,35 +71,45 @@ const rootRoute = createRootRoute({
 function RootLayout() {
   const { t } = useTranslation()
   // Use pathname as key to trigger re-mount animation on route changes
-  const pathname = useRouterState({ select: (s) => s.location.pathname })
+  const pathname = useRouterState({ select: s => s.location.pathname })
 
   // Init store — gate content on bootstrap status
-  const bootstrapDone = useInitStore((s) => s.bootstrapDone)
-  const showInitUI = useInitStore((s) => s.showInitUI)
-  const initError = useInitStore((s) => s.error)
-  const forceInitUI = useInitStore((s) => s.forceInitUI)
+  const bootstrapDone = useInitStore(s => s.bootstrapDone)
+  const showInitUI = useInitStore(s => s.showInitUI)
+  const initError = useInitStore(s => s.error)
+  const forceInitUI = useInitStore(s => s.forceInitUI)
+
+  const errorOverlayType = useInitStore(s => s.errorOverlayType)
 
   const shouldShowOverlay = showInitUI || forceInitUI
-  // Header stays clickable in dev forceInitUI mode
+  const shouldShowErrorOverlay = errorOverlayType !== null
+  // Header stays clickable in dev forceInitUI/errorOverlay mode
   const headerDisabled = !bootstrapDone && !initError
   const isReady = bootstrapDone && !shouldShowOverlay && !initError
 
   // Auto backup — disabled in DEV mode, gated on ready
   useAutoBackup({ enabled: !import.meta.env.DEV && isReady })
 
-  // Escape key dismisses forceInitUI (dev testing)
+  // Escape key dismisses forceInitUI or errorOverlay (dev testing)
   useEffect(() => {
-    if (!forceInitUI) return
+    if (!forceInitUI && !shouldShowErrorOverlay) return
     const handleKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') useInitStore.getState().setForceInitUI(false)
+      if (e.key === 'Escape') {
+        if (forceInitUI) useInitStore.getState().setForceInitUI(false)
+        if (shouldShowErrorOverlay)
+          useInitStore.getState().setErrorOverlayType(null)
+      }
     }
     window.addEventListener('keydown', handleKey)
     return () => window.removeEventListener('keydown', handleKey)
-  }, [forceInitUI])
+  }, [forceInitUI, shouldShowErrorOverlay])
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <AppHeader disabled={headerDisabled} overlayActive={shouldShowOverlay} />
+      <AppHeader
+        disabled={headerDisabled}
+        overlayActive={shouldShowOverlay || shouldShowErrorOverlay}
+      />
 
       {/* Main content — gated on init status */}
       <main>
@@ -122,6 +133,14 @@ function RootLayout() {
           </AppErrorBoundary>
         ) : null}
       </main>
+
+      {/* Error overlay — renders on top of everything when active */}
+      {shouldShowErrorOverlay && (
+        <ErrorOverlay
+          type={errorOverlayType!}
+          onClose={() => useInitStore.getState().setErrorOverlayType(null)}
+        />
+      )}
 
       {/* Only show extras when app is ready */}
       {isReady && (
@@ -158,7 +177,7 @@ const DEV_TABS = [
 ] as const
 
 function DevLayout() {
-  const pathname = useRouterState({ select: (s) => s.location.pathname })
+  const pathname = useRouterState({ select: s => s.location.pathname })
 
   // Redirect /dev to /dev/modal (default tab)
   useEffect(() => {
@@ -172,7 +191,7 @@ function DevLayout() {
       {/* Tab navigation */}
       <div className="border-b border-border bg-card px-6">
         <div className="flex gap-1">
-          {DEV_TABS.map((tab) => {
+          {DEV_TABS.map(tab => {
             const isActive =
               pathname === tab.path || pathname.startsWith(`${tab.path}/`)
             return (
