@@ -31,22 +31,6 @@ function formatSize(bytes: number): string {
   return `${value.toFixed(1)} ${units[i]}`
 }
 
-/**
- * Parse the device name from a backup filename.
- * Format: tianwen-{deviceName}-YYYY-MM-DD_HH-mm-ss.sqlite.gz
- * Falls back to the full filename if parsing fails.
- */
-function parseDeviceName(filename: string): string {
-  // Remove tianwen- prefix and -YYYY-MM-DD_HH-mm-ss.sqlite.gz suffix
-  const match = filename.match(/^tianwen-(.+)-\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}\.sqlite\.gz$/)
-  if (match?.[1]) return match[1]
-
-  // Legacy format: backup-YYYY-MM-DD_HH-mm-ss.sqlite.gz
-  if (filename.startsWith('backup-')) return '—'
-
-  return filename
-}
-
 // ── Component ───────────────────────────────────────────────────────────────
 
 export function CloudBackupHistory() {
@@ -73,7 +57,9 @@ export function CloudBackupHistory() {
     setOverlayMessage(t('backup.importingDatabase'))
 
     // Ensure overlay is visible for at least MIN_OVERLAY_MS so the animation plays
-    const minDelay = new Promise(resolve => setTimeout(resolve, MIN_OVERLAY_MS))
+    const minDelay = new Promise((resolve) =>
+      setTimeout(resolve, MIN_OVERLAY_MS),
+    )
 
     try {
       const work = (async () => {
@@ -100,33 +86,35 @@ export function CloudBackupHistory() {
           {isLoading ? (
             <p className="text-muted-foreground">...</p>
           ) : backups.length === 0 ? (
-            <p className="text-muted-foreground">{t('backup.noBackupHistory')}</p>
+            <p className="text-muted-foreground">
+              {t('backup.noBackupHistory')}
+            </p>
           ) : (
             <div className="overflow-auto">
               <table className="w-full text-left">
                 <thead>
                   <tr className="border-b text-muted-foreground">
-                    <th className="px-2 py-1">{t('backup.historyFilename')}</th>
+                    <th className="px-2 py-1 w-110">
+                      {t('backup.historyFilename')}
+                    </th>
+                    <th className="px-2 py-1">{t('backup.historySize')}</th>
                     <th className="px-2 py-1">{t('backup.historyTime')}</th>
-                    <th className="px-2 py-1">{t('backup.historySource')}</th>
-                    <th className="px-2 py-1 text-right">{t('backup.historySize')}</th>
-                    <th className="px-2 py-1 text-center">{t('staff.actions')}</th>
+                    <th className="px-2 py-1 w-20">{t('staff.actions')}</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {backups.map(backup => (
+                  {backups.map((backup) => (
                     <tr key={backup.filename} className="border-b">
                       <td className="px-2 py-1 break-all">{backup.filename}</td>
                       <td className="px-2 py-1 whitespace-nowrap">
-                        {dayjs(backup.createdAt).format('YYYY/MM/DD HH:mm:ss')}
-                      </td>
-                      <td className="px-2 py-1">{parseDeviceName(backup.filename)}</td>
-                      <td className="px-2 py-1 text-right whitespace-nowrap">
                         {formatSize(backup.size)}
                       </td>
-                      <td className="px-2 py-1 text-center">
+                      <td className="px-2 py-1 whitespace-nowrap">
+                        {dayjs(backup.createdAt).format('YYYY/MM/DD HH:mm:ss')}
+                      </td>
+                      <td className="px-2 py-1">
                         <RippleButton
-                          className="rounded-md border-none bg-(--color-blue) px-3 py-1 text-white hover:opacity-80"
+                          className="rounded-md border-none bg-(--color-purple) px-3 py-1 text-white hover:opacity-80"
                           onClick={() => handleImportClick(backup.filename)}
                         >
                           {t('backup.importBackup')}

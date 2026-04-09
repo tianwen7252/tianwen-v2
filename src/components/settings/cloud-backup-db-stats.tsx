@@ -5,7 +5,7 @@
 
 import { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { DatabaseBackup, Download, LoaderCircle, RotateCcw } from 'lucide-react'
+import { LoaderCircle } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { RippleButton } from '@/components/ui/ripple-button'
@@ -56,12 +56,12 @@ export function CloudBackupDbStats() {
   })
 
   // Backup store state
-  const isBackingUp = useBackupStore(s => s.isBackingUp)
-  const scheduleType = useBackupStore(s => s.scheduleType)
-  const setSchedule = useBackupStore(s => s.setSchedule)
-  const startBackup = useBackupStore(s => s.startBackup)
-  const finishBackup = useBackupStore(s => s.finishBackup)
-  const setLastBackupTime = useBackupStore(s => s.setLastBackupTime)
+  const isBackingUp = useBackupStore((s) => s.isBackingUp)
+  const scheduleType = useBackupStore((s) => s.scheduleType)
+  const setSchedule = useBackupStore((s) => s.setSchedule)
+  const startBackup = useBackupStore((s) => s.startBackup)
+  const finishBackup = useBackupStore((s) => s.finishBackup)
+  const setLastBackupTime = useBackupStore((s) => s.setLastBackupTime)
 
   const handleBackupNow = useCallback(async () => {
     startBackup()
@@ -81,7 +81,9 @@ export function CloudBackupDbStats() {
   const handleExportDb = useCallback(async () => {
     try {
       const rawBytes = await getDatabase().exportDatabase()
-      const blob = new Blob([rawBytes as BlobPart], { type: 'application/x-sqlite3' })
+      const blob = new Blob([rawBytes as BlobPart], {
+        type: 'application/x-sqlite3',
+      })
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
@@ -101,7 +103,9 @@ export function CloudBackupDbStats() {
     setOverlayMessage(t('backup.restoringDatabase'))
 
     // Ensure overlay is visible for at least MIN_RESTORE_OVERLAY_MS so the animation plays
-    const minDelay = new Promise(resolve => setTimeout(resolve, MIN_RESTORE_OVERLAY_MS))
+    const minDelay = new Promise((resolve) =>
+      setTimeout(resolve, MIN_RESTORE_OVERLAY_MS),
+    )
 
     try {
       await Promise.all([getDatabase().restorePreviousDatabase(), minDelay])
@@ -132,7 +136,7 @@ export function CloudBackupDbStats() {
                 </tr>
               </thead>
               <tbody>
-                {tables.map(table => (
+                {tables.map((table) => (
                   <tr key={table.tableName} className="border-b">
                     <td className="px-2 py-1">{table.tableName}</td>
                     <td className="px-2 py-1 text-right">
@@ -191,7 +195,8 @@ export function CloudBackupDbStats() {
                       {t('backup.totalCloudSize')}
                     </td>
                     <td className="px-2 py-1 text-right">
-                      {formatBytes(totalSize)} / {formatBytes(R2_FREE_QUOTA_BYTES)}
+                      {formatBytes(totalSize)} /{' '}
+                      {formatBytes(R2_FREE_QUOTA_BYTES)}
                     </td>
                   </tr>
                   <tr className="border-b">
@@ -215,14 +220,18 @@ export function CloudBackupDbStats() {
             <p className="mb-2 text-muted-foreground">
               {t('backup.schedule')}
               {import.meta.env.DEV && (
-                <span className="ml-2 text-sm text-(--color-red)">(DEV模式不啟用)</span>
+                <span className="ml-2 text-sm text-(--color-red)">
+                  (DEV模式不啟用)
+                </span>
               )}
             </p>
             <div className="flex gap-2">
-              {SCHEDULE_OPTIONS.map(option => (
+              {SCHEDULE_OPTIONS.map((option) => (
                 <RippleButton
                   key={option.type}
-                  data-active={scheduleType === option.type ? 'true' : undefined}
+                  data-active={
+                    scheduleType === option.type ? 'true' : undefined
+                  }
                   className={`rounded-md px-4 py-2 ${
                     scheduleType === option.type
                       ? 'bg-primary text-primary-foreground'
@@ -236,38 +245,31 @@ export function CloudBackupDbStats() {
             </div>
           </div>
 
-          {/* Restore previous database button — only shown when a snapshot exists */}
-          {hasPrev && (
-            <div className="mt-3">
-              <RippleButton
-                className="flex w-full items-center justify-center gap-2 rounded-md border-none bg-(--color-gold) px-4 py-2 text-white hover:opacity-80"
-                onClick={() => setRestoreConfirmOpen(true)}
-              >
-                <RotateCcw size={16} />
-                {t('backup.restorePrev')}
-              </RippleButton>
-            </div>
-          )}
-
           {/* Divider */}
           <hr className="my-3 border-border" />
 
           {/* Action buttons at bottom */}
           <div className="flex gap-3">
             <RippleButton
-              className="flex flex-1 items-center justify-center gap-2 rounded-md border-none bg-(--color-green) px-4 py-2 text-white hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex flex-1 items-center justify-center gap-2 rounded-md border-none bg-(--color-purple) px-4 py-2 text-white hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50"
               onClick={() => void handleBackupNow()}
               disabled={isBackingUp}
             >
-              <DatabaseBackup size={16} />
               {isBackingUp ? t('backup.backingUp') : t('backup.backupNow')}
             </RippleButton>
             <RippleButton
               className="flex flex-1 items-center justify-center gap-2 rounded-md border-none bg-(--color-blue) px-4 py-2 text-white hover:opacity-80"
               onClick={() => void handleExportDb()}
             >
-              <Download size={16} />
               {t('settings.exportDb')}
+            </RippleButton>
+            {/* Restore previous database button — only shown when a snapshot exists */}
+            <RippleButton
+              disabled={!hasPrev}
+              className="flex items-center justify-center gap-2 rounded-md border-none bg-(--color-gold) px-4 py-2 text-white hover:opacity-80"
+              onClick={() => setRestoreConfirmOpen(true)}
+            >
+              {t('backup.restorePrev')}
             </RippleButton>
           </div>
         </CardContent>

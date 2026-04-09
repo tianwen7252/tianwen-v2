@@ -54,8 +54,10 @@
 - When designing UI, check shadcn/ui for available components first, then custom-build if needed
 - All buttons must use `RippleButton`
 - Do not use `sm` or smaller font sizes
-- Use theme colors: `--color-gold`, `--color-yellow`, `--color-red`, `--color-blue`, `--color-green`
-- `ScrollArea` component enables visible scrollbars on iPad PWA — always use `ScrollArea` when scrollbar UI is needed
+- Use theme colors: `--color-gold`, `--color-yellow`, `--color-red`, `--color-blue`, `--color-green`, and so on, please refer to global.css
+- Before submitting a commit, if you have not run the full pnpm test suite, you must run the tests to ensure everything passes before committing
+- After every code change, you must run oxfmt to update the formatting
+- All error messages must be logged using logError in addition to using notify.error
 - Even in **--dangerously-skip-permissions** mode, never delete any files or git branches without user confirmation
 
 ---
@@ -91,6 +93,7 @@ Co-Authored-By: Claude noreply@anthropic.com
 This project has a graphify knowledge graph at graphify-out/.
 
 Rules:
+
 - Before answering architecture or codebase questions, read graphify-out/GRAPH_REPORT.md for god nodes and community structure
 - If graphify-out/wiki/index.md exists, navigate it instead of reading raw files
 - After modifying code files in this session, run `python3 -c "from graphify.watch import _rebuild_code; from pathlib import Path; _rebuild_code(Path('.'))"` to keep the graph current

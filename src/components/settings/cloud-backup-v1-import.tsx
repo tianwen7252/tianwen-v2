@@ -60,7 +60,7 @@ function formatDate(isoDate: string): string {
 
 export function CloudBackupV1Import() {
   const { t } = useTranslation()
-  const accessToken = useAppStore(s => s.accessToken)
+  const accessToken = useAppStore((s) => s.accessToken)
   const { login, isLoggedIn, refreshToken, handleAuthError } = useGoogleAuth()
 
   const [files, setFiles] = useState<readonly DriveFile[]>([])
@@ -71,8 +71,9 @@ export function CloudBackupV1Import() {
   // V1 import modal state — importing derived from modal visibility
   const [showImportModal, setShowImportModal] = useState(false)
   const importing = showImportModal
-  const [importProgress, setImportProgress] =
-    useState<V1ImportProgress | null>(null)
+  const [importProgress, setImportProgress] = useState<V1ImportProgress | null>(
+    null,
+  )
   const [importResult, setImportResult] = useState<V1ImportResult | null>(null)
 
   // Fetch file list when user is logged in
@@ -85,7 +86,7 @@ export function CloudBackupV1Import() {
       setLoading(true)
       try {
         const result = await withTokenRefresh(
-          token => listDriveBackupFiles(token),
+          (token) => listDriveBackupFiles(token),
           accessToken!,
           refreshToken,
         )
@@ -143,7 +144,7 @@ export function CloudBackupV1Import() {
         tableName: 'downloading',
       })
       const buffer = await withTokenRefresh(
-        token => downloadDriveFile(token, selectedFile.id),
+        (token) => downloadDriveFile(token, selectedFile.id),
         accessToken,
         refreshToken,
       )
@@ -161,7 +162,7 @@ export function CloudBackupV1Import() {
 
       // Phase 3: Import into SQLite with per-table progress
       const db = getDatabase()
-      const result = await importV1Data(db, transformed, progress => {
+      const result = await importV1Data(db, transformed, (progress) => {
         setImportProgress(progress)
       })
 
@@ -245,18 +246,18 @@ export function CloudBackupV1Import() {
                     </tr>
                   </thead>
                   <tbody>
-                    {files.map(file => (
+                    {files.map((file) => (
                       <tr key={file.id} className="border-b last:border-0">
                         <td className="py-3 pr-4">{file.name}</td>
-                        <td className="py-3 pr-4 text-muted-foreground">
+                        <td className="py-3 pr-4">
                           {formatFileSize(file.size)}
                         </td>
-                        <td className="py-3 pr-4 text-muted-foreground">
+                        <td className="py-3 pr-4">
                           {formatDate(file.createdTime)}
                         </td>
                         <td className="py-3">
                           <RippleButton
-                            className="rounded-md border-none bg-(--color-green) px-3 py-1 text-white hover:opacity-80"
+                            className="rounded-md border-none bg-(--color-purple) px-3 py-1 text-white hover:opacity-80"
                             onClick={() => handleImportClick(file)}
                             disabled={importing}
                           >
