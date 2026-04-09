@@ -54,7 +54,7 @@ export function OrderNoteTags({
   // Map order types to tag items
   const allTags: readonly TagItem[] = useMemo(
     () =>
-      orderTypes.map(ot => ({
+      orderTypes.map((ot) => ({
         id: ot.id,
         name: ot.name,
         isDefault: ot.id.startsWith('ot-'),
@@ -63,14 +63,14 @@ export function OrderNoteTags({
   )
 
   const refresh = useCallback(() => {
-    setRefreshKey(k => k + 1)
+    setRefreshKey((k) => k + 1)
   }, [])
 
   const handleToggleTag = useCallback(
     (tag: string) => {
       const isSelected = selectedTags.includes(tag)
       const nextTags = isSelected
-        ? selectedTags.filter(t => t !== tag)
+        ? selectedTags.filter((t) => t !== tag)
         : [...selectedTags, tag]
       onSelectedTagsChange(nextTags)
     },
@@ -84,7 +84,7 @@ export function OrderNoteTags({
       if (!trimmed) return
 
       // Reject duplicates
-      if (allTags.some(tag => tag.name === trimmed)) {
+      if (allTags.some((tag) => tag.name === trimmed)) {
         setInputValue('')
         return
       }
@@ -118,7 +118,7 @@ export function OrderNoteTags({
         await getOrderTypeRepo().remove(tag.id)
         // Only update selected tags if removal succeeded
         if (selectedTags.includes(tag.name)) {
-          onSelectedTagsChange(selectedTags.filter(t => t !== tag.name))
+          onSelectedTagsChange(selectedTags.filter((t) => t !== tag.name))
         }
         refresh()
       } catch {
@@ -130,13 +130,13 @@ export function OrderNoteTags({
 
   return (
     <div className="space-y-2.5">
-      <h4 className="text-md tracking-wide text-gray-500">
+      <h4 className="text-md tracking-wide text-gray-500 mb-5">
         {t('order.orderNote')}
       </h4>
 
       {/* Tag pills */}
       <div className="flex flex-wrap gap-2">
-        {allTags.map(tag => {
+        {allTags.map((tag) => {
           const isSelected = selectedTags.includes(tag.name)
 
           return (
@@ -152,7 +152,7 @@ export function OrderNoteTags({
               onClick={() => handleToggleTag(tag.name)}
               role="button"
               tabIndex={0}
-              onKeyDown={e => {
+              onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ')
                   handleToggleTag(tag.name)
               }}
@@ -166,14 +166,14 @@ export function OrderNoteTags({
               {!tag.isDefault && (
                 <Popover
                   open={pendingDeleteTag === tag.name}
-                  onOpenChange={open => !open && setPendingDeleteTag(null)}
+                  onOpenChange={(open) => !open && setPendingDeleteTag(null)}
                 >
                   <PopoverTrigger asChild>
                     <RippleButton
                       data-tag-delete={tag.name}
                       rippleColor="rgba(0,0,0,0.1)"
                       className="ml-0.5 inline-flex items-center rounded-full p-0.5 hover:bg-destructive/20"
-                      onClick={e => {
+                      onClick={(e) => {
                         e.stopPropagation()
                         setPendingDeleteTag(tag.name)
                       }}
@@ -190,7 +190,7 @@ export function OrderNoteTags({
                     {/* stopPropagation prevents React Portal click bubbling to the tag span */}
                     <div
                       className="space-y-2.5"
-                      onClick={e => e.stopPropagation()}
+                      onClick={(e) => e.stopPropagation()}
                     >
                       <p className="text-base text-gray-600">
                         {t('order.deleteTagConfirm', { tag: tag.name })}
@@ -227,7 +227,7 @@ export function OrderNoteTags({
       <Input
         placeholder={t('order.addTag')}
         value={inputValue}
-        onChange={e => setInputValue(e.target.value)}
+        onChange={(e) => setInputValue(e.target.value)}
         onKeyDown={handleAddTag}
         className="h-8 w-[calc(100%-6px)] rounded-lg border-gray-200 bg-white/60 text-sm placeholder:text-gray-400"
       />

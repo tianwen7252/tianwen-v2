@@ -44,20 +44,20 @@ export function OrderPanel({
   swipeForegroundClassName,
   hideHeader,
 }: OrderPanelProps) {
-  const items = useOrderStore(s => s.items)
-  const discounts = useOrderStore(s => s.discounts)
-  const removeItem = useOrderStore(s => s.removeItem)
-  const updateQuantity = useOrderStore(s => s.updateQuantity)
-  const updateNote = useOrderStore(s => s.updateNote)
-  const getTotal = useOrderStore(s => s.getTotal)
-  const getBentoCount = useOrderStore(s => s.getBentoCount)
-  const getSoupCount = useOrderStore(s => s.getSoupCount)
-  const getItemCount = useOrderStore(s => s.getItemCount)
-  const clearCart = useOrderStore(s => s.clearCart)
-  const submitOrder = useOrderStore(s => s.submitOrder)
-  const lastAddedItem = useOrderStore(s => s.lastAddedItem)
+  const items = useOrderStore((s) => s.items)
+  const discounts = useOrderStore((s) => s.discounts)
+  const removeItem = useOrderStore((s) => s.removeItem)
+  const updateQuantity = useOrderStore((s) => s.updateQuantity)
+  const updateNote = useOrderStore((s) => s.updateNote)
+  const getTotal = useOrderStore((s) => s.getTotal)
+  const getBentoCount = useOrderStore((s) => s.getBentoCount)
+  const getSoupCount = useOrderStore((s) => s.getSoupCount)
+  const getItemCount = useOrderStore((s) => s.getItemCount)
+  const clearCart = useOrderStore((s) => s.clearCart)
+  const submitOrder = useOrderStore((s) => s.submitOrder)
+  const lastAddedItem = useOrderStore((s) => s.lastAddedItem)
 
-  const quickSubmit = useOrderStore(s => s.quickSubmit)
+  const quickSubmit = useOrderStore((s) => s.quickSubmit)
 
   const { t } = useTranslation()
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -67,14 +67,14 @@ export function OrderPanel({
   const scrollRef = useRef<ScrollAreaHandle>(null)
 
   // Auto-select "攤位" tag when stall items are in the cart
-  const hasStallItem = items.some(item => item.typeId === 'stall')
+  const hasStallItem = items.some((item) => item.typeId === 'stall')
   useEffect(() => {
-    setSelectedTags(prev =>
+    setSelectedTags((prev) =>
       hasStallItem
         ? prev.includes('攤位')
           ? prev
           : [...prev, '攤位']
-        : prev.filter(t => t !== '攤位'),
+        : prev.filter((t) => t !== '攤位'),
     )
   }, [hasStallItem])
 
@@ -177,7 +177,7 @@ export function OrderPanel({
           </p>
         ) : (
           <div className="divide-y divide-border pr-2">
-            {items.map(item => (
+            {items.map((item) => (
               <div key={item.id} data-cart-item-id={item.id}>
                 <SwipeToDelete
                   onDelete={() => removeItem(item.id)}
@@ -210,7 +210,7 @@ export function OrderPanel({
           <PopoverAnchor asChild>
             <div className="flex w-full gap-0">
               <RippleButton
-                className="h-14 flex-1 rounded-l-md rounded-r-none bg-primary px-6 text-md text-primary-foreground hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50"
+                className="h-15 flex-1 rounded-l-md rounded-r-none bg-primary px-6 text-lg text-primary-foreground hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50"
                 disabled={isEmpty || isSubmitting}
                 onClick={handleQuickSubmit}
                 style={
@@ -222,7 +222,7 @@ export function OrderPanel({
               <PopoverTrigger asChild>
                 <RippleButton
                   aria-label={t('order.orderNote')}
-                  className="flex h-14 w-12 items-center justify-center rounded-l-none rounded-r-md border-l border-primary-foreground/20 bg-primary text-primary-foreground hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50"
+                  className="flex h-15 w-12 items-center justify-center rounded-l-none rounded-r-md border-l border-primary-foreground/20 bg-primary text-primary-foreground hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50"
                   disabled={isEmpty || isSubmitting}
                   style={
                     submitColor ? { backgroundColor: submitColor } : undefined
@@ -239,7 +239,7 @@ export function OrderPanel({
             sideOffset={8}
             className="p-4 shadow-xl"
             style={{ width: 'var(--radix-popper-anchor-width)' }}
-            onOpenAutoFocus={e => e.preventDefault()}
+            onOpenAutoFocus={(e) => e.preventDefault()}
           >
             <OrderNoteTags
               selectedTags={selectedTags}
@@ -249,7 +249,7 @@ export function OrderPanel({
         </Popover>
       ) : (
         <RippleButton
-          className="h-14 w-full rounded-md bg-primary px-6 text-md text-primary-foreground hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50"
+          className="h-15 w-full rounded-md bg-primary px-6 text-lg text-primary-foreground hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50"
           disabled={isEmpty || isSubmitting}
           onClick={onSubmitClick ?? (() => setConfirmOpen(true))}
           style={submitColor ? { backgroundColor: submitColor } : undefined}
