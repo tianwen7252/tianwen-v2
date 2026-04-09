@@ -1,4 +1,5 @@
 import { useRef, useEffect } from 'react'
+import { logError } from '@/lib/error-logger'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -8,12 +9,22 @@ interface ErrorCanvasProps {
 
 // ─── Shader Sources ─────────────────────────────────────────────────────────
 
-const VERT_SRC = `attribute vec2 a_pos;
-void main() { gl_Position = vec4(a_pos, 0.0, 1.0); }`
+const VERT_SRC = [
+  'attribute vec2 a_pos;',
+  'void main() { gl_Position = vec4(a_pos, 0.0, 1.0); }',
+].join('\n')
 
 const FRAG_SRC = `precision highp float;
 uniform float u_time;
 uniform vec2 u_res;
+uniform float u_rotationSpeed;
+uniform float u_diskIntensity;
+uniform float u_starsOnly;
+uniform float u_tilt;
+uniform float u_rotate;
+uniform vec2 u_bhCenter;
+uniform float u_bhScale;
+uniform float u_chromatic;
 
 const float PI = 3.14159265359;
 const float TAU = 6.28318530718;
@@ -99,7 +110,6 @@ vec4 shadeDisk(vec3 hit, vec3 vel, float time) {
   float tProfile = pow(ISCO / r, 0.75) * pow(max(0.001, 1.0 - sqrt(xr)), 0.25);
   float gRedshift = sqrt(max(0.01, 1.0 - RS / r));
   tProfile *= gRedshift;
-  float phi = atan(hit.z, hit.x);
   float lr = log2(max(r, 0.1));
   float keplerOmega = sqrt(0.5 * RS / (r * r * r));
   float baseOmega = 0.04;
@@ -129,17 +139,31 @@ vec4 shadeDisk(vec3 hit, vec3 vel, float time) {
   I *= innerFade * iscoFade * outerFade;
   float colorTemp = tProfile * pow(dopplerFactor, 1.8) * 1.2;
   vec3 col = bbColor(colorTemp) * I * dopplerBoost;
+  float spectralR = (r - DISK_IN) / (DISK_OUT - DISK_IN);
+  float ringP = ringPhase1;
+  float hue = spectralR * 0.8 + ringP * 0.4;
+  vec3 spectrum;
+  spectrum.r = (1.0 - smoothstep(0.0, 0.35, hue))
+             + smoothstep(0.25, 0.45, hue) * (1.0 - smoothstep(0.55, 0.7, hue)) * 0.7
+             + smoothstep(0.85, 1.1, hue) * 0.4;
+  spectrum.g = smoothstep(0.15, 0.4, hue) * (1.0 - smoothstep(0.7, 0.95, hue));
+  spectrum.b = smoothstep(0.5, 0.8, hue) + smoothstep(0.85, 1.1, hue) * 0.3;
+  spectrum = max(spectrum, 0.05);
+  float luma = dot(col, vec3(0.3, 0.5, 0.2));
+  vec3 chromaCol = spectrum * luma * 2.0;
+  col = mix(col, chromaCol, u_chromatic * 0.75);
   float alpha = clamp(I * 1.3, 0.0, 0.96);
   return vec4(col, alpha);
 }
 
 void main() {
   vec2 fc = gl_FragCoord.xy;
-  vec2 ctr = vec2(0.5) * u_res;
-  vec2 uv = (fc - ctr) / u_res.x;
+  vec2 ctr = (u_bhScale > 0.0 ? u_bhCenter : vec2(0.5)) * u_res;
+  float sc = u_bhScale > 0.0 ? u_bhScale : 1.0;
+  vec2 uv = (fc - ctr) * sc / u_res.x;
   float camR = 28.0;
-  float orbit = u_time * 0.055 * 0.1;
-  float tilt = 0.25;
+  float orbit = u_time * 0.055 * u_rotationSpeed;
+  float tilt = 0.25 + u_tilt;
   vec3 eye = vec3(
     camR * cos(orbit) * cos(tilt),
     camR * sin(tilt),
@@ -148,7 +172,15 @@ void main() {
   vec3 fwd = normalize(-eye);
   vec3 rt = normalize(cross(fwd, vec3(0.0, 1.0, 0.0)));
   vec3 up = cross(rt, fwd);
-  vec3 rd = normalize(fwd + uv.x * rt + uv.y * up);
+  float cr = cos(u_rotate), sr = sin(u_rotate);
+  vec3 rr = cr * rt + sr * up;
+  vec3 ru = -sr * rt + cr * up;
+  vec3 rd = normalize(fwd + uv.x * rr + uv.y * ru);
+  if (u_starsOnly > 0.5) {
+    vec3 s = starField(rd);
+    gl_FragColor = vec4(pow(s, vec3(0.45)), 1.0);
+    return;
+  }
   vec3 pos = eye;
   vec3 vel = rd;
   vec3 Lvec = cross(pos, vel);
@@ -175,7 +207,8 @@ void main() {
     if (pos.y * p1.y < 0.0 && diskAccum.a < 0.97) {
       float t = pos.y / (pos.y - p1.y);
       vec3 hit = mix(pos, p1, t);
-      vec4 dc = shadeDisk(hit, vel, u_time * 0.1);
+      vec4 dc = shadeDisk(hit, vel, u_time * u_rotationSpeed);
+      dc.rgb *= u_diskIntensity;
       if (diskCrossings >= 2) { dc.rgb *= 0.15; dc.a *= 0.15; }
       diskAccum.rgb += dc.rgb * dc.a * (1.0 - diskAccum.a);
       diskAccum.a += dc.a * (1.0 - diskAccum.a);
@@ -200,10 +233,14 @@ void main() {
   if (!absorbed) { col = starField(normalize(vel)); }
   col = col * (1.0 - diskAccum.a) + diskAccum.rgb;
   float ringDist = abs(minR - 1.5 * RS);
-  float rRing = exp(-(ringDist + 0.08) * (ringDist + 0.08) * 20.0);
-  float bRing = exp(-(ringDist - 0.08) * (ringDist - 0.08) * 20.0);
-  col.r += rRing * 0.03;
-  col.b += bRing * 0.035;
+  float chromo = u_chromatic;
+  float baseChroma = 0.1 + 0.5 * chromo;
+  float spread = 0.08 + 0.18 * chromo;
+  float falloff = 20.0 + 15.0 * (1.0 - chromo);
+  float rRing = exp(-(ringDist + spread) * (ringDist + spread) * falloff);
+  float bRing = exp(-(ringDist - spread) * (ringDist - spread) * falloff);
+  col.r += rRing * 0.3 * baseChroma;
+  col.b += bRing * 0.35 * baseChroma;
   col += glow;
   col *= 1.4;
   vec3 a = col * (col + 0.0245786) - 0.000090537;
@@ -216,7 +253,7 @@ void main() {
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
-function compileShader(
+function compile(
   gl: WebGLRenderingContext,
   type: number,
   src: string,
@@ -225,6 +262,13 @@ function compileShader(
   if (!s) return null
   gl.shaderSource(s, src)
   gl.compileShader(s)
+  if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) {
+    logError(
+      `Shader compile error: ${gl.getShaderInfoLog(s)}`,
+      'ErrorCanvas.compile',
+    )
+    return null
+  }
   return s
 }
 
@@ -249,9 +293,8 @@ export function ErrorCanvas({ className }: ErrorCanvasProps) {
     })
     if (!gl) return
 
-    // Compile shaders and link program
-    const vs = compileShader(gl, gl.VERTEX_SHADER, VERT_SRC)
-    const fs = compileShader(gl, gl.FRAGMENT_SHADER, FRAG_SRC)
+    const vs = compile(gl, gl.VERTEX_SHADER, VERT_SRC)
+    const fs = compile(gl, gl.FRAGMENT_SHADER, FRAG_SRC)
     if (!vs || !fs) return
 
     const prog = gl.createProgram()
@@ -259,6 +302,13 @@ export function ErrorCanvas({ className }: ErrorCanvasProps) {
     gl.attachShader(prog, vs)
     gl.attachShader(prog, fs)
     gl.linkProgram(prog)
+    if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) {
+      logError(
+        `Program link error: ${gl.getProgramInfoLog(prog)}`,
+        'ErrorCanvas.link',
+      )
+      return
+    }
     gl.useProgram(prog)
 
     // Full-screen triangle
@@ -273,8 +323,27 @@ export function ErrorCanvas({ className }: ErrorCanvasProps) {
     gl.enableVertexAttribArray(aPos)
     gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0)
 
+    // Uniforms — same as original error.html
     const uTime = gl.getUniformLocation(prog, 'u_time')
     const uRes = gl.getUniformLocation(prog, 'u_res')
+    const uRotationSpeed = gl.getUniformLocation(prog, 'u_rotationSpeed')
+    const uDiskIntensity = gl.getUniformLocation(prog, 'u_diskIntensity')
+    const uStarsOnly = gl.getUniformLocation(prog, 'u_starsOnly')
+    const uTilt = gl.getUniformLocation(prog, 'u_tilt')
+    const uRotate = gl.getUniformLocation(prog, 'u_rotate')
+    const uBhCenter = gl.getUniformLocation(prog, 'u_bhCenter')
+    const uBhScale = gl.getUniformLocation(prog, 'u_bhScale')
+    const uChromatic = gl.getUniformLocation(prog, 'u_chromatic')
+
+    // Default uniform values
+    gl.uniform1f(uRotationSpeed, 0.1)
+    gl.uniform1f(uDiskIntensity, 1.0)
+    gl.uniform1f(uStarsOnly, 0.0)
+    gl.uniform1f(uTilt, 0.0)
+    gl.uniform1f(uRotate, 0.0)
+    gl.uniform2f(uBhCenter, 0.0, 0.0)
+    gl.uniform1f(uBhScale, 0.0)
+    gl.uniform1f(uChromatic, 0.0)
 
     let rafId = 0
     let running = true
