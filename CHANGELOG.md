@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.8.0](https://github.com/tianwen7252/tianwen-v2/compare/v2.7.0...v2.8.0) (2026-04-09)
+
+
+### Features
+
+* add menu items, low-carb variants, sticky category tabs & fix restore tests ([490410b](https://github.com/tianwen7252/tianwen-v2/commit/490410b4b025da9927eb11059fb157e81e3fff6f))
+* V2-216 快速送單訂單備註 Popover ([#31](https://github.com/tianwen7252/tianwen-v2/issues/31)) ([f052b83](https://github.com/tianwen7252/tianwen-v2/commit/f052b8383c7542b8fc6302dda3c688caa6e3664e))
+
 ## [2.7.0](https://github.com/tianwen7252/tianwen-v2/compare/v2.6.0...v2.7.0) (2026-04-08)
 
 
