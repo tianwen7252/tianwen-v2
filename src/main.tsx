@@ -133,10 +133,11 @@ async function bootstrapDatabase(): Promise<void> {
     /* ignore */
   }
 
-  // Hydrate backup schedule from DB (async, non-blocking)
-  import('@/stores/backup-store').then(
-    m => void m.hydrateBackupScheduleFromDb(),
-  )
+  // Hydrate backup schedule + lastBackupTime from DB.
+  // MUST await before resolving bootstrap — otherwise useAutoBackup sees
+  // lastBackupTime=null on every cold start and triggers an unwanted backup.
+  const { hydrateBackupScheduleFromDb } = await import('@/stores/backup-store')
+  await hydrateBackupScheduleFromDb()
 }
 
 // ─── Init UI timing logic ───────────────────────────────────────────────────

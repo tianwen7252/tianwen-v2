@@ -17,6 +17,12 @@ export interface BackupLogRepository {
     options?: CreateBackupLogOptions,
   ): Promise<BackupLog>
   findPaginated(page: number, pageSize: number): Promise<BackupLog[]>
+  /**
+   * Get the `created_at` timestamp (ms) of the most recent successful backup,
+   * or `null` if none exists. Used on app bootstrap to hydrate
+   * `lastBackupTime` so that auto-backup scheduling survives PWA reloads.
+   */
+  findLatestSuccessfulTimestamp(): Promise<number | null>
   count(): Promise<number>
   clearAll(): Promise<void>
 }
@@ -90,6 +96,20 @@ export function createBackupLogRepository(
         [pageSize, offset],
       )
       return result.rows.map(toBackupLog)
+    },
+
+    async findLatestSuccessfulTimestamp() {
+      const result = await db.exec<Record<string, unknown>>(
+        `SELECT created_at FROM backup_logs
+         WHERE status = 'success'
+         ORDER BY created_at DESC
+         LIMIT 1`,
+      )
+      const row = result.rows[0]
+      if (!row || row['created_at'] == null) {
+        return null
+      }
+      return Number(row['created_at'])
     },
 
     async clearAll() {

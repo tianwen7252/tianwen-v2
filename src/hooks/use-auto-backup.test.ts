@@ -161,4 +161,17 @@ describe('useAutoBackup', () => {
     expect(mockStartBackup).toHaveBeenCalled()
     expect(mockFinishBackup).toHaveBeenCalledWith('Upload failed')
   })
+
+  it('skips backup when another backup is already in progress', async () => {
+    vi.useFakeTimers()
+    mockIsConfigured.value = true
+    mockIsOverdue.mockReturnValue(true)
+    mockStoreState.isBackingUp = true
+
+    renderHook(() => useAutoBackup({ enabled: true }))
+    await vi.advanceTimersByTimeAsync(100)
+
+    expect(mockStartBackup).not.toHaveBeenCalled()
+    expect(mockPerformBackup).not.toHaveBeenCalled()
+  })
 })
