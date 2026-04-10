@@ -614,14 +614,22 @@
     "importConfirmTitle": "匯入備份",
     "importConfirmDescription": "確定要匯入此備份？現有資料將被取代",
     "importingDatabase": "更新資料庫中...",
+    "importingCloudDb": "匯入雲端資料庫中",
     "importSuccess": "資料庫已更新",
     "importError": "匯入失敗",
     "restorePrev": "還原上一版本",
     "restoreConfirmTitle": "還原資料庫",
     "restoreConfirmDescription": "確定要還原上一版本資料庫？",
     "restoringDatabase": "還原資料庫中...",
+    "restoringPrevDb": "還原上一版本資料庫中",
     "restoreError": "還原失敗",
-    "noPrevDatabase": "沒有上一版本資料庫"
+    "noPrevDatabase": "沒有上一版本資料庫",
+    "prevDbSize": "上一版本資料庫大小",
+    "deletePrev": "刪除上一版本",
+    "deletePrevConfirmTitle": "刪除上一版本",
+    "deletePrevConfirmDescription": "刪除後將無法還原，確定要刪除上一版本資料庫？",
+    "deletePrevSuccess": "已刪除上一版本資料庫",
+    "deletePrevError": "刪除上一版本失敗"
   },
   "announcement": {
     "adminName": "天文老闆Eric",

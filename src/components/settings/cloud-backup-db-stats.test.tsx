@@ -58,11 +58,27 @@ const mockHasPreviousDatabase = vi.hoisted(() =>
 const mockRestorePreviousDatabase = vi.hoisted(() =>
   vi.fn().mockResolvedValue(undefined),
 )
+const mockGetPreviousDatabaseSize = vi.hoisted(() =>
+  vi.fn().mockResolvedValue(0),
+)
+const mockDeletePreviousDatabase = vi.hoisted(() =>
+  vi.fn().mockResolvedValue(undefined),
+)
+const mockExportDatabase = vi.hoisted(() =>
+  vi.fn().mockResolvedValue(new Uint8Array([1, 2, 3])),
+)
+const mockErrorLogCreate = vi.hoisted(() => vi.fn().mockResolvedValue({}))
 
 vi.mock('@/lib/repositories/provider', () => ({
   getDatabase: () => ({
     hasPreviousDatabase: mockHasPreviousDatabase,
     restorePreviousDatabase: mockRestorePreviousDatabase,
+    getPreviousDatabaseSize: mockGetPreviousDatabaseSize,
+    deletePreviousDatabase: mockDeletePreviousDatabase,
+    exportDatabase: mockExportDatabase,
+  }),
+  getErrorLogRepo: () => ({
+    create: mockErrorLogCreate,
   }),
 }))
 
@@ -84,6 +100,7 @@ Object.defineProperty(window, 'location', {
 })
 
 import { CloudBackupDbStats } from './cloud-backup-db-stats'
+import { clearLogBuffer } from '@/lib/log-buffer'
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -101,6 +118,7 @@ function renderWithProviders(ui: React.ReactNode) {
 describe('CloudBackupDbStats', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    clearLogBuffer()
     mockDbStats = {
       tables: [
         { tableName: 'commodities', rowCount: 25 },
@@ -357,7 +375,7 @@ describe('CloudBackupDbStats', () => {
       fireEvent.click(screen.getByText('確認'))
 
       await waitFor(() => {
-        expect(screen.getByText('還原資料庫中...')).toBeTruthy()
+        expect(screen.getByText('還原上一版本資料庫中')).toBeTruthy()
       })
 
       resolveRestore()

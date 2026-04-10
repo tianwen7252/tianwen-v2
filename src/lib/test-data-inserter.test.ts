@@ -38,6 +38,12 @@ function createMockDatabase(): AsyncDatabase & {
     async hasPreviousDatabase(): Promise<boolean> {
       return false
     },
+    async getPreviousDatabaseSize(): Promise<number> {
+      return 0
+    },
+    async deletePreviousDatabase(): Promise<void> {
+      // no-op for test
+    },
   }
 }
 
@@ -339,6 +345,12 @@ describe('insertTestData', () => {
       },
       async hasPreviousDatabase(): Promise<boolean> {
         return false
+      },
+      async getPreviousDatabaseSize(): Promise<number> {
+        return 0
+      },
+      async deletePreviousDatabase(): Promise<void> {
+        // no-op for test
       },
     }
 

@@ -23,9 +23,15 @@ export type WorkerRequest =
       readonly params?: readonly unknown[]
     }
   | { readonly type: 'export-db'; readonly id: number }
-  | { readonly type: 'import-db'; readonly id: number; readonly data: ArrayBuffer }
+  | {
+      readonly type: 'import-db'
+      readonly id: number
+      readonly data: ArrayBuffer
+    }
   | { readonly type: 'restore-prev-db'; readonly id: number }
   | { readonly type: 'has-prev-db'; readonly id: number }
+  | { readonly type: 'get-prev-db-size'; readonly id: number }
+  | { readonly type: 'delete-prev-db'; readonly id: number }
 
 /** Worker → Main message types */
 export type WorkerResponse =
@@ -50,10 +56,38 @@ export type WorkerResponse =
       readonly error: string
     }
   | { readonly type: 'import-db-result'; readonly id: number }
-  | { readonly type: 'import-db-error'; readonly id: number; readonly error: string }
+  | {
+      readonly type: 'import-db-error'
+      readonly id: number
+      readonly error: string
+    }
   | { readonly type: 'restore-prev-db-result'; readonly id: number }
-  | { readonly type: 'restore-prev-db-error'; readonly id: number; readonly error: string }
-  | { readonly type: 'has-prev-db-result'; readonly id: number; readonly hasPrev: boolean }
+  | {
+      readonly type: 'restore-prev-db-error'
+      readonly id: number
+      readonly error: string
+    }
+  | {
+      readonly type: 'has-prev-db-result'
+      readonly id: number
+      readonly hasPrev: boolean
+    }
+  | {
+      readonly type: 'get-prev-db-size-result'
+      readonly id: number
+      readonly size: number
+    }
+  | {
+      readonly type: 'get-prev-db-size-error'
+      readonly id: number
+      readonly error: string
+    }
+  | { readonly type: 'delete-prev-db-result'; readonly id: number }
+  | {
+      readonly type: 'delete-prev-db-error'
+      readonly id: number
+      readonly error: string
+    }
 
 /** Async database interface for use on the main thread */
 export interface AsyncDatabase {
@@ -65,6 +99,15 @@ export interface AsyncDatabase {
   importDatabase(data: ArrayBuffer): Promise<void>
   restorePreviousDatabase(): Promise<void>
   hasPreviousDatabase(): Promise<boolean>
+  /**
+   * Bytes occupied by the previous database snapshot (`/tianwen-prev.db`).
+   * Returns 0 if no snapshot exists.
+   */
+  getPreviousDatabaseSize(): Promise<number>
+  /**
+   * Delete the previous database snapshot. No-op if it does not exist.
+   */
+  deletePreviousDatabase(): Promise<void>
 }
 
 // ─── Pending request tracking ───────────────────────────────────────────────
@@ -89,6 +132,11 @@ interface PendingBoolRequest {
   readonly reject: (reason: Error) => void
 }
 
+interface PendingNumberRequest {
+  readonly resolve: (value: number) => void
+  readonly reject: (reason: Error) => void
+}
+
 // ─── Factory ────────────────────────────────────────────────────────────────
 
 /**
@@ -102,6 +150,8 @@ export function createWorkerDatabase(worker: Worker): AsyncDatabase {
   const pendingImports = new Map<number, PendingVoidRequest>()
   const pendingRestores = new Map<number, PendingVoidRequest>()
   const pendingHasPrev = new Map<number, PendingBoolRequest>()
+  const pendingPrevSize = new Map<number, PendingNumberRequest>()
+  const pendingDeletePrev = new Map<number, PendingVoidRequest>()
 
   worker.addEventListener('message', (e: MessageEvent<WorkerResponse>) => {
     const msg = e.data
@@ -177,6 +227,38 @@ export function createWorkerDatabase(worker: Worker): AsyncDatabase {
         p.resolve(msg.hasPrev)
       }
     }
+
+    if (msg.type === 'get-prev-db-size-result') {
+      const p = pendingPrevSize.get(msg.id)
+      if (p) {
+        pendingPrevSize.delete(msg.id)
+        p.resolve(msg.size)
+      }
+    }
+
+    if (msg.type === 'get-prev-db-size-error') {
+      const p = pendingPrevSize.get(msg.id)
+      if (p) {
+        pendingPrevSize.delete(msg.id)
+        p.reject(new Error(msg.error))
+      }
+    }
+
+    if (msg.type === 'delete-prev-db-result') {
+      const p = pendingDeletePrev.get(msg.id)
+      if (p) {
+        pendingDeletePrev.delete(msg.id)
+        p.resolve()
+      }
+    }
+
+    if (msg.type === 'delete-prev-db-error') {
+      const p = pendingDeletePrev.get(msg.id)
+      if (p) {
+        pendingDeletePrev.delete(msg.id)
+        p.reject(new Error(msg.error))
+      }
+    }
   })
 
   return {
@@ -228,6 +310,22 @@ export function createWorkerDatabase(worker: Worker): AsyncDatabase {
         const id = nextId++
         pendingHasPrev.set(id, { resolve, reject })
         worker.postMessage({ type: 'has-prev-db', id })
+      })
+    },
+
+    getPreviousDatabaseSize(): Promise<number> {
+      return new Promise<number>((resolve, reject) => {
+        const id = nextId++
+        pendingPrevSize.set(id, { resolve, reject })
+        worker.postMessage({ type: 'get-prev-db-size', id })
+      })
+    },
+
+    deletePreviousDatabase(): Promise<void> {
+      return new Promise<void>((resolve, reject) => {
+        const id = nextId++
+        pendingDeletePrev.set(id, { resolve, reject })
+        worker.postMessage({ type: 'delete-prev-db', id })
       })
     },
   }

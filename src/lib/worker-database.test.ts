@@ -309,4 +309,118 @@ describe('createWorkerDatabase', () => {
       expect(id1).not.toBe(id2)
     })
   })
+
+  // ── getPreviousDatabaseSize ───────────────────────────────────────────────
+
+  describe('getPreviousDatabaseSize()', () => {
+    it('should send get-prev-db-size message to worker', () => {
+      const db = createWorkerDatabase(mockWorker.worker)
+
+      db.getPreviousDatabaseSize()
+
+      expect(mockWorker.worker.postMessage).toHaveBeenCalledWith({
+        type: 'get-prev-db-size',
+        id: expect.any(Number),
+      })
+    })
+
+    it('should resolve with the byte count on success', async () => {
+      const db = createWorkerDatabase(mockWorker.worker)
+
+      const promise = db.getPreviousDatabaseSize()
+
+      const sentMessage = (
+        mockWorker.worker.postMessage as ReturnType<typeof vi.fn>
+      ).mock.calls[0]?.[0] as { id: number }
+      mockWorker.respond({
+        type: 'get-prev-db-size-result',
+        id: sentMessage.id,
+        size: 12345678,
+      })
+
+      await expect(promise).resolves.toBe(12345678)
+    })
+
+    it('should resolve with 0 when no previous database exists', async () => {
+      const db = createWorkerDatabase(mockWorker.worker)
+
+      const promise = db.getPreviousDatabaseSize()
+
+      const sentMessage = (
+        mockWorker.worker.postMessage as ReturnType<typeof vi.fn>
+      ).mock.calls[0]?.[0] as { id: number }
+      mockWorker.respond({
+        type: 'get-prev-db-size-result',
+        id: sentMessage.id,
+        size: 0,
+      })
+
+      await expect(promise).resolves.toBe(0)
+    })
+
+    it('should reject with error message on get-prev-db-size-error', async () => {
+      const db = createWorkerDatabase(mockWorker.worker)
+
+      const promise = db.getPreviousDatabaseSize()
+
+      const sentMessage = (
+        mockWorker.worker.postMessage as ReturnType<typeof vi.fn>
+      ).mock.calls[0]?.[0] as { id: number }
+      mockWorker.respond({
+        type: 'get-prev-db-size-error',
+        id: sentMessage.id,
+        error: 'SAH pool unavailable',
+      })
+
+      await expect(promise).rejects.toThrow('SAH pool unavailable')
+    })
+  })
+
+  // ── deletePreviousDatabase ────────────────────────────────────────────────
+
+  describe('deletePreviousDatabase()', () => {
+    it('should send delete-prev-db message to worker', () => {
+      const db = createWorkerDatabase(mockWorker.worker)
+
+      db.deletePreviousDatabase()
+
+      expect(mockWorker.worker.postMessage).toHaveBeenCalledWith({
+        type: 'delete-prev-db',
+        id: expect.any(Number),
+      })
+    })
+
+    it('should resolve with undefined on delete-prev-db-result', async () => {
+      const db = createWorkerDatabase(mockWorker.worker)
+
+      const promise = db.deletePreviousDatabase()
+
+      const sentMessage = (
+        mockWorker.worker.postMessage as ReturnType<typeof vi.fn>
+      ).mock.calls[0]?.[0] as { id: number }
+      mockWorker.respond({
+        type: 'delete-prev-db-result',
+        id: sentMessage.id,
+      })
+
+      await expect(promise).resolves.toBeUndefined()
+    })
+
+    it('should reject with error message on delete-prev-db-error', async () => {
+      const db = createWorkerDatabase(mockWorker.worker)
+
+      const promise = db.deletePreviousDatabase()
+
+      const sentMessage = (
+        mockWorker.worker.postMessage as ReturnType<typeof vi.fn>
+      ).mock.calls[0]?.[0] as { id: number }
+      mockWorker.respond({
+        type: 'delete-prev-db-error',
+        id: sentMessage.id,
+        error: 'Delete failed',
+      })
+
+      await expect(promise).rejects.toThrow('Delete failed')
+    })
+  })
 })

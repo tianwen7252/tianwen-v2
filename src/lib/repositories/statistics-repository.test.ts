@@ -18,6 +18,8 @@ function createMockDb(): AsyncDatabase {
     importDatabase: vi.fn(async () => undefined),
     restorePreviousDatabase: vi.fn(async () => undefined),
     hasPreviousDatabase: vi.fn(async () => false),
+    getPreviousDatabaseSize: vi.fn(async () => 0),
+    deletePreviousDatabase: vi.fn(async () => undefined),
   }
 }
 

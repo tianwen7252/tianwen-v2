@@ -5,12 +5,13 @@
 
 import { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { LoaderCircle } from 'lucide-react'
-import { useQuery } from '@tanstack/react-query'
+import { Trash2 } from 'lucide-react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { RippleButton } from '@/components/ui/ripple-button'
 import { ConfirmModal } from '@/components/modal/modal'
 import { notify } from '@/components/ui/sonner'
+import { InitOverlay } from '@/components/init-ui'
 import { useDbStats } from '@/hooks/use-db-stats'
 import { useCloudBackups } from '@/hooks/use-cloud-backups'
 import { useBackupStore, type ScheduleType } from '@/stores/backup-store'
@@ -18,6 +19,7 @@ import { performBackup } from '@/lib/perform-backup'
 import { generateExportFilename } from '@/lib/backup'
 import { getDatabase } from '@/lib/repositories/provider'
 import { formatBytes } from '@/lib/format-bytes'
+import { bufferLog, flushLogBuffer } from '@/lib/log-buffer'
 
 // ── Constants ──────────────────────────────────────────────────────────────
 
@@ -47,7 +49,10 @@ export function CloudBackupDbStats() {
 
   // Restore state
   const [restoreConfirmOpen, setRestoreConfirmOpen] = useState(false)
+  const [deletePrevConfirmOpen, setDeletePrevConfirmOpen] = useState(false)
   const [overlayMessage, setOverlayMessage] = useState<string | null>(null)
+
+  const queryClient = useQueryClient()
 
   // Check if a previous DB snapshot exists
   const { data: hasPrev = false } = useQuery({
@@ -55,13 +60,22 @@ export function CloudBackupDbStats() {
     queryFn: () => getDatabase().hasPreviousDatabase(),
   })
 
+  // Fetch the byte size of the previous DB snapshot (0 when none).
+  // Kept separate from `has-prev-db` so the two mutations invalidate
+  // independently.
+  const { data: prevDbSize = 0 } = useQuery({
+    queryKey: ['prev-db-size'],
+    queryFn: () => getDatabase().getPreviousDatabaseSize(),
+    enabled: hasPrev,
+  })
+
   // Backup store state
-  const isBackingUp = useBackupStore((s) => s.isBackingUp)
-  const scheduleType = useBackupStore((s) => s.scheduleType)
-  const setSchedule = useBackupStore((s) => s.setSchedule)
-  const startBackup = useBackupStore((s) => s.startBackup)
-  const finishBackup = useBackupStore((s) => s.finishBackup)
-  const setLastBackupTime = useBackupStore((s) => s.setLastBackupTime)
+  const isBackingUp = useBackupStore(s => s.isBackingUp)
+  const scheduleType = useBackupStore(s => s.scheduleType)
+  const setSchedule = useBackupStore(s => s.setSchedule)
+  const startBackup = useBackupStore(s => s.startBackup)
+  const finishBackup = useBackupStore(s => s.finishBackup)
+  const setLastBackupTime = useBackupStore(s => s.setLastBackupTime)
 
   const handleBackupNow = useCallback(async () => {
     startBackup()
@@ -73,7 +87,17 @@ export function CloudBackupDbStats() {
     } catch (error: unknown) {
       const message =
         error instanceof Error ? error.message : 'Unknown backup error'
+      const stack = error instanceof Error ? error.stack : undefined
       finishBackup(message)
+      // Manual backup does not replace the DB, so we can log directly —
+      // but going through the buffer keeps the pipeline consistent with
+      // restore/import and guarantees a retry on transient DB errors.
+      bufferLog(`Manual backup failed: ${message}`, 'manual-backup', stack)
+      try {
+        await flushLogBuffer()
+      } catch {
+        /* buffered for later */
+      }
       notify.error(t('backup.backupFailed'))
     }
   }, [startBackup, finishBackup, setLastBackupTime, t])
@@ -94,28 +118,80 @@ export function CloudBackupDbStats() {
     } catch (error: unknown) {
       const message =
         error instanceof Error ? error.message : 'Unknown export error'
+      const stack = error instanceof Error ? error.stack : undefined
+      bufferLog(`Local DB export failed: ${message}`, 'db-export', stack)
+      try {
+        await flushLogBuffer()
+      } catch {
+        /* buffered for later */
+      }
       notify.error(`${t('backup.exportFailed')}: ${message}`)
     }
   }, [t])
 
   const handleRestoreConfirm = useCallback(async () => {
     setRestoreConfirmOpen(false)
-    setOverlayMessage(t('backup.restoringDatabase'))
+    setOverlayMessage(t('backup.restoringPrevDb'))
 
     // Ensure overlay is visible for at least MIN_RESTORE_OVERLAY_MS so the animation plays
-    const minDelay = new Promise((resolve) =>
+    const minDelay = new Promise(resolve =>
       setTimeout(resolve, MIN_RESTORE_OVERLAY_MS),
     )
 
     try {
       await Promise.all([getDatabase().restorePreviousDatabase(), minDelay])
+      // Previous DB is now active — flush any pre-existing buffered errors
+      // into the restored DB so they persist across the reload. A flush
+      // failure must never block the reload.
+      try {
+        await flushLogBuffer()
+      } catch {
+        /* ignore — retry on next flush */
+      }
       window.location.reload()
     } catch (err: unknown) {
       setOverlayMessage(null)
       const message = err instanceof Error ? err.message : String(err)
+      const stack = err instanceof Error ? err.stack : undefined
+      bufferLog(
+        `Restore previous database failed: ${message}`,
+        'restore-prev-db',
+        stack,
+      )
+      try {
+        await flushLogBuffer()
+      } catch {
+        /* buffered for later */
+      }
       notify.error(`${t('backup.restoreError')}: ${message}`)
     }
   }, [t])
+
+  const handleDeletePrevConfirm = useCallback(async () => {
+    setDeletePrevConfirmOpen(false)
+    try {
+      await getDatabase().deletePreviousDatabase()
+      // Invalidate both queries so the row disappears and the restore
+      // button becomes disabled.
+      await queryClient.invalidateQueries({ queryKey: ['has-prev-db'] })
+      await queryClient.invalidateQueries({ queryKey: ['prev-db-size'] })
+      notify.success(t('backup.deletePrevSuccess'))
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err)
+      const stack = err instanceof Error ? err.stack : undefined
+      bufferLog(
+        `Delete previous database failed: ${message}`,
+        'delete-prev-db',
+        stack,
+      )
+      try {
+        await flushLogBuffer()
+      } catch {
+        /* buffered for later */
+      }
+      notify.error(`${t('backup.deletePrevError')}: ${message}`)
+    }
+  }, [queryClient, t])
 
   return (
     <div className="grid grid-cols-2 gap-4">
@@ -136,7 +212,7 @@ export function CloudBackupDbStats() {
                 </tr>
               </thead>
               <tbody>
-                {tables.map((table) => (
+                {tables.map(table => (
                   <tr key={table.tableName} className="border-b">
                     <td className="px-2 py-1">{table.tableName}</td>
                     <td className="px-2 py-1 text-right">
@@ -207,6 +283,28 @@ export function CloudBackupDbStats() {
                       {latestBackup?.filename}
                     </td>
                   </tr>
+                  {/* Previous DB snapshot size — only shown when a snapshot
+                      exists. Clicking the trash icon purges it after
+                      confirmation. */}
+                  {hasPrev && (
+                    <tr className="border-b">
+                      <td className="px-2 py-1 text-muted-foreground">
+                        {t('backup.prevDbSize')}
+                      </td>
+                      <td className="px-2 py-1">
+                        <div className="flex items-center justify-end gap-2">
+                          <span>{formatBytes(prevDbSize)}</span>
+                          <RippleButton
+                            onClick={() => setDeletePrevConfirmOpen(true)}
+                            aria-label={t('backup.deletePrev')}
+                            className="flex size-8 items-center justify-center rounded-md border-none bg-transparent text-(--color-red) hover:bg-(--color-red)/10"
+                          >
+                            <Trash2 size={18} />
+                          </RippleButton>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             )}
@@ -226,7 +324,7 @@ export function CloudBackupDbStats() {
               )}
             </p>
             <div className="flex gap-2">
-              {SCHEDULE_OPTIONS.map((option) => (
+              {SCHEDULE_OPTIONS.map(option => (
                 <RippleButton
                   key={option.type}
                   data-active={
@@ -286,15 +384,23 @@ export function CloudBackupDbStats() {
         <p className="text-center">{t('backup.restoreConfirmDescription')}</p>
       </ConfirmModal>
 
-      {/* Full-screen blocking overlay during restore */}
-      {overlayMessage && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-background/80 backdrop-blur-sm">
-          <div className="flex flex-col items-center gap-4">
-            <LoaderCircle className="size-10 animate-spin text-primary" />
-            <p className="text-lg">{overlayMessage}</p>
-          </div>
-        </div>
-      )}
+      {/* Delete previous database confirmation modal */}
+      <ConfirmModal
+        open={deletePrevConfirmOpen}
+        title={t('backup.deletePrevConfirmTitle')}
+        variant="red"
+        onConfirm={() => void handleDeletePrevConfirm()}
+        onCancel={() => setDeletePrevConfirmOpen(false)}
+      >
+        <p className="text-center">
+          {t('backup.deletePrevConfirmDescription')}
+        </p>
+      </ConfirmModal>
+
+      {/* Init UI overlay during restore — matches the import flow UX.
+          MIN_RESTORE_OVERLAY_MS enforces ≥5s display via the Promise.all
+          inside handleRestoreConfirm above. */}
+      {overlayMessage && <InitOverlay message={overlayMessage} />}
     </div>
   )
 }
