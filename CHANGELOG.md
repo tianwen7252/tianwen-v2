@@ -1,5 +1,21 @@
 # Changelog
 
+## [2.9.0](https://github.com/tianwen7252/tianwen-v2/compare/v2.8.0...v2.9.0) (2026-04-10)
+
+
+### Features
+
+* V2-218 add ErrorOverlay with Event Horizon animation ([287d1ac](https://github.com/tianwen7252/tianwen-v2/commit/287d1ac873b71f7541a335897041c76151cb4046))
+* V2-218 integrate ErrorOverlay with app error flows + stall category fix ([5fbd253](https://github.com/tianwen7252/tianwen-v2/commit/5fbd25360e74045a0e73c40b032924f5c0ca7400))
+
+
+### Bug Fixes
+
+* V2-218 integrate ErrorOverlay with app header + faithful shader port ([83f2d78](https://github.com/tianwen7252/tianwen-v2/commit/83f2d783ccf886d7fd586c96573491b433fe6111))
+* V2-218 replace iframe with native WebGL canvas + add Waiting UI ([985fb19](https://github.com/tianwen7252/tianwen-v2/commit/985fb1983bda45aff94940398eb1799016d52a99))
+* V2-218 use complete error.html shader with proper error checking ([af06c37](https://github.com/tianwen7252/tianwen-v2/commit/af06c376921667bfdd8aaef6473916883ae95c87))
+* V2-218 use iframe for error animation instead of porting WebGL ([c182864](https://github.com/tianwen7252/tianwen-v2/commit/c1828643a11c7843b2b83690755310c2cf14b20d))
+
 ## [2.8.0](https://github.com/tianwen7252/tianwen-v2/compare/v2.7.0...v2.8.0) (2026-04-09)
 
 
