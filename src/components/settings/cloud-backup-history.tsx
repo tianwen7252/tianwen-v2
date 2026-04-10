@@ -58,7 +58,9 @@ export function CloudBackupHistory() {
     setOverlayMessage(t('backup.importingCloudDb'))
 
     // Ensure overlay is visible for at least MIN_OVERLAY_MS so the animation plays
-    const minDelay = new Promise(resolve => setTimeout(resolve, MIN_OVERLAY_MS))
+    const minDelay = new Promise((resolve) =>
+      setTimeout(resolve, MIN_OVERLAY_MS),
+    )
 
     try {
       const work = (async () => {
@@ -126,7 +128,7 @@ export function CloudBackupHistory() {
                   </tr>
                 </thead>
                 <tbody>
-                  {backups.map(backup => (
+                  {backups.map((backup) => (
                     <tr key={backup.filename} className="border-b">
                       <td className="px-2 py-1 break-all">{backup.filename}</td>
                       <td className="px-2 py-1 whitespace-nowrap">
@@ -156,7 +158,7 @@ export function CloudBackupHistory() {
       <ConfirmModal
         open={confirmFilename !== null}
         title={t('backup.importConfirmTitle')}
-        variant="blue"
+        variant="warm"
         onConfirm={() => void handleImportConfirm()}
         onCancel={handleImportCancel}
       >

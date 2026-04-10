@@ -489,11 +489,20 @@ self.onmessage = async (e: MessageEvent<WorkerRequest>) => {
         post({ type: 'get-prev-db-size-result', id: msg.id, size: 0 })
         return
       }
-      const bytes = await pool.exportFile(prevKey)
+      // Export the raw SQLite file then gzip it so the size reported
+      // matches the unit used by the cloud-backup-history list (which
+      // shows `.sqlite.gz` sizes from R2). Showing the raw OPFS byte
+      // count here confused users because the same DB appears with two
+      // very different numbers (gzip is ~3x on this schema).
+      const rawBytes = await pool.exportFile(prevKey)
+      const gzipStream = new Blob([rawBytes as BlobPart])
+        .stream()
+        .pipeThrough(new CompressionStream('gzip'))
+      const compressed = await new Response(gzipStream).arrayBuffer()
       post({
         type: 'get-prev-db-size-result',
         id: msg.id,
-        size: bytes.byteLength,
+        size: compressed.byteLength,
       })
     } catch (err) {
       post({
