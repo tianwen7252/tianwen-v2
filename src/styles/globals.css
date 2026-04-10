@@ -10,15 +10,6 @@ html {
   touch-action: manipulation;
 }
 
-/* Force landscape — show overlay when device is in portrait.
-   The #portrait-overlay element is defined in index.html for instant display
-   before React hydrates. Hidden by default, shown only in portrait. */
-@media screen and (orientation: portrait) {
-  #portrait-overlay {
-    display: flex !important;
-  }
-}
-
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -52,6 +43,19 @@ html {
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  --color-gold: #d4af37;
+  --color-blue: #6aa3d4;
+  --color-yellow: #f5c842;
+  --color-red: #e85d5d;
+  --color-green: var(--primary);
+  --color-purple: #ad9ac0;
+  --color-regal-navy: #0d3b66;
+  --color-lemon-chiffon: #faf0ca;
+  --color-blue-grey: #7298c7;
+  --color-morning-butter: #f3d98f;
+  --color-willow-green: #94c574;
+  --color-eggshell: #f1ead7;
+  --font-size: 18px;
   /* --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -120,19 +124,6 @@ html {
   --sidebar-accent-foreground: #000000;
   --sidebar-border: #ebebeb;
   --sidebar-ring: #afbea5;
-  --color-gold: #d4af37;
-  --color-blue: #6aa3d4;
-  --color-yellow: #f5c842;
-  --color-red: #e85d5d;
-  --color-green: var(--primary);
-  --color-purple: #ad9ac0;
-  --color-regal-navy: #0d3b66;
-  --color-lemon-chiffon: #faf0ca;
-  --color-blue-grey: #7298c7;
-  --color-morning-butter: #f3d98f;
-  --color-willow-green: #94c574;
-  --color-eggshell: #f1ead7;
-  --font-size: 18px;
 }
 
 .dark {

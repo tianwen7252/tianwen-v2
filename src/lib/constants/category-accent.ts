@@ -13,6 +13,10 @@ export const CATEGORY_ACCENT: Readonly<Record<string, CategoryAccentStyle>> = {
   single: { border: 'border-l-[#d4a76a]', text: 'text-[#d4a76a]' },
   drink: { border: 'border-l-[#6aa3d4]', text: 'text-[#6aa3d4]' },
   dumpling: { border: 'border-l-[#c47fd4]', text: 'text-[#c47fd4]' },
+  stall: {
+    border: 'border-l-(--color-regal-navy)',
+    text: 'text-(--color-regal-navy)',
+  },
   other: { border: 'border-l-gray-400', text: 'text-gray-400' },
   discount: { border: 'border-l-[#e57373]', text: 'text-[#e57373]' },
 }

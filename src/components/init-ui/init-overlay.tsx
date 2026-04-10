@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next'
 import { ArrowLeft } from 'lucide-react'
 import { Spinner } from '@/components/ui/spinner'
 import { RippleButton } from '@/components/ui/ripple-button'
+import { useRegisterOverlay } from '@/hooks/use-register-overlay'
 import { InitCanvas } from './init-canvas'
 
 interface InitOverlayProps {
@@ -13,14 +14,15 @@ interface InitOverlayProps {
 
 export function InitOverlay({ message, onClose }: InitOverlayProps) {
   const { t } = useTranslation()
+  useRegisterOverlay('init')
 
   return (
     <div className="fixed inset-0 z-40 overflow-hidden">
       {/* Canvas animation background — fills entire viewport */}
       <InitCanvas className="absolute inset-0" />
 
-      {/* Back button — only when onClose is provided */}
-      {onClose && (
+      {/* Back button — dev mode only */}
+      {import.meta.env.DEV && onClose && (
         <RippleButton
           onClick={onClose}
           className="absolute top-16 left-4 z-50 flex size-10 items-center justify-center rounded-full bg-white/10 text-white/80 backdrop-blur-sm hover:bg-white/20"
@@ -30,20 +32,27 @@ export function InitOverlay({ message, onClose }: InitOverlayProps) {
         </RippleButton>
       )}
 
-      {/* Centered loading card */}
-      <div className="absolute inset-0 flex items-center justify-center">
-        <div
-          className="flex flex-col items-center gap-4 rounded-2xl px-10 py-8 backdrop-blur-md"
-          style={{ backgroundColor: '#ffffff05' }}
+      {/* Centered loading content */}
+      <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <Spinner
+          data-testid="init-spinner"
+          style={{
+            width: '5rem',
+            height: '5rem',
+            filter: 'drop-shadow(0 0 15px #ffe0aa)',
+          }}
+          className="text-white/80"
+        />
+        <p
+          style={{
+            fontSize: '1.7rem',
+            letterSpacing: '4px',
+            color: 'color-mix(in oklab, var(--color-white) 80%, transparent)',
+          }}
+          className="mt-6"
         >
-          <Spinner
-            data-testid="init-spinner"
-            className="size-8 text-white/80"
-          />
-          <p className="text-lg tracking-wide text-white/90">
-            {message ?? t('init.loading')}
-          </p>
-        </div>
+          {message ?? t('init.loading')}
+        </p>
       </div>
     </div>
   )

@@ -6,14 +6,22 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
     />
-    <title>天文 POS</title>
+    <title>天文v2 POS</title>
 
     <!-- PWA Manifest -->
     <link rel="manifest" href="/manifest.json" />
 
     <!-- Theme color (matches --header-bg in globals.css, synced at runtime by main.tsx) -->
-    <meta name="theme-color" content="#F8F4EC" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#1a150e" media="(prefers-color-scheme: dark)" />
+    <meta
+      name="theme-color"
+      content="#F8F4EC"
+      media="(prefers-color-scheme: light)"
+    />
+    <meta
+      name="theme-color"
+      content="#1a150e"
+      media="(prefers-color-scheme: dark)"
+    />
 
     <!-- iOS PWA meta tags -->
     <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -37,45 +45,6 @@
     <script src="https://accounts.google.com/gsi/client" async defer></script>
   </head>
   <body>
-    <!-- Portrait orientation overlay — hidden by default, shown via CSS media query -->
-    <div id="portrait-overlay" style="
-      display: none;
-      position: fixed;
-      inset: 0;
-      z-index: 99999;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 1.5rem;
-      background: var(--background, #fdfdfd);
-    ">
-      <!-- Icon container (matches auth-guard / database-locked design) -->
-      <div style="
-        display: flex;
-        width: 5rem;
-        height: 5rem;
-        align-items: center;
-        justify-content: center;
-        border-radius: 1rem;
-        background: rgba(127, 149, 106, 0.1);
-      ">
-        <!-- Lucide RotateCw icon (inline SVG) -->
-        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24"
-          fill="none" stroke="#7f956a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/>
-          <path d="M21 3v5h-5"/>
-        </svg>
-      </div>
-      <div style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem;">
-        <p style="margin: 0; font-size: 1.25rem; color: var(--foreground, #000);">
-          請將裝置轉為橫向使用
-        </p>
-        <p style="margin: 0; font-size: 0.95rem; color: var(--muted-foreground, #878787);">
-          本系統僅支援橫向模式操作
-        </p>
-      </div>
-    </div>
-
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

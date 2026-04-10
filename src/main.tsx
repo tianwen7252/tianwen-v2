@@ -26,7 +26,7 @@ import { installGlobalErrorLogger } from '@/lib/error-logger'
 import { useInitStore } from '@/stores/init-store'
 
 // Initialize i18n before rendering (side-effect import)
-import './lib/i18n'
+import i18n from './lib/i18n'
 
 // Prevent pinch-to-zoom on iPad (Safari ignores viewport meta for gestures)
 document.addEventListener('gesturestart', e => e.preventDefault())
@@ -127,10 +127,16 @@ async function bootstrapDatabase(): Promise<void> {
   installGlobalErrorLogger()
 
   // Mark DB as initialized for future loads
-  try { localStorage.setItem(DB_INITIALIZED_KEY, '1') } catch { /* ignore */ }
+  try {
+    localStorage.setItem(DB_INITIALIZED_KEY, '1')
+  } catch {
+    /* ignore */
+  }
 
   // Hydrate backup schedule from DB (async, non-blocking)
-  import('@/stores/backup-store').then(m => void m.hydrateBackupScheduleFromDb())
+  import('@/stores/backup-store').then(
+    m => void m.hydrateBackupScheduleFromDb(),
+  )
 }
 
 // ─── Init UI timing logic ───────────────────────────────────────────────────
@@ -166,7 +172,17 @@ bootstrapDatabase()
   })
   .catch((err: unknown) => {
     if (showTimer !== undefined) clearTimeout(showTimer)
-    const msg = err instanceof Error ? err.message : String(err)
+    const rawMsg = err instanceof Error ? err.message : String(err)
+    // OPFS exclusive lock — another tab has the DB open.
+    // DOMException name is the robust signal; the substring fallbacks cover
+    // wrapped errors from @sqlite.org/sqlite-wasm (validated against v3.x).
+    // Re-check if upgrading the WASM library.
+    const isOpfsLocked =
+      (err instanceof DOMException &&
+        err.name === 'NoModificationAllowedError') ||
+      rawMsg.includes('createSyncAccessHandle') ||
+      rawMsg.includes('Access Handles cannot be created')
+    const msg = isOpfsLocked ? i18n.t('error.databaseLocked') : rawMsg
     useInitStore.getState().setShowInitUI(false)
     useInitStore.getState().setError(msg)
   })

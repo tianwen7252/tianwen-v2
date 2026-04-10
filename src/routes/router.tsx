@@ -1,9 +1,11 @@
 import { createRouter } from '@tanstack/react-router'
 import { routeTree } from './route-tree'
+import { NotFoundPage } from '@/pages/not-found'
 
 export const router = createRouter({
   routeTree,
   defaultPreload: 'intent',
+  defaultNotFoundComponent: NotFoundPage,
 })
 
 // Register the router for type safety

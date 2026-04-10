@@ -21,6 +21,7 @@ const CATEGORY_ORDER = [
   'single',
   'drink',
   'dumpling',
+  'stall',
   'other',
   'discount',
 ] as const
@@ -31,6 +32,7 @@ const CATEGORY_I18N_KEYS: Record<string, string> = {
   single: 'order.categorySingle',
   drink: 'order.categoryDrink',
   dumpling: 'order.categoryDumpling',
+  stall: 'order.categoryStall',
   other: 'order.categoryOther',
   discount: 'order.categoryDiscount',
 }
@@ -46,6 +48,7 @@ const CATEGORY_I18N_KEYS: Record<string, string> = {
  * - typeId 'single' -> 'single'
  * - typeId 'drink' -> 'drink'
  * - typeId 'dumpling' -> 'dumpling'
+ * - typeId 'stall' -> 'stall'
  * - anything else -> 'other'
  */
 function getCategoryKey(item: CartItem): string {
@@ -57,6 +60,7 @@ function getCategoryKey(item: CartItem): string {
   if (item.typeId === 'single') return 'single'
   if (item.typeId === 'drink') return 'drink'
   if (item.typeId === 'dumpling') return 'dumpling'
+  if (item.typeId === 'stall') return 'stall'
   return 'other'
 }
 
@@ -65,7 +69,7 @@ function getCategoryKey(item: CartItem): string {
 /**
  * Group cart items by category and append discounts as a separate group.
  *
- * Category order: 餐盒 -> 單點 -> 飲料 -> 水餃 -> 其它 -> 優惠
+ * Category order: 餐盒 -> 單點 -> 飲料 -> 水餃 -> 攤位 -> 其它 -> 優惠
  * Empty categories are excluded from the result.
  *
  * @param items - Cart items to group
