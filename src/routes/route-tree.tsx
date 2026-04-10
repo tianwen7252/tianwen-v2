@@ -19,7 +19,6 @@ import { useInitStore } from '@/stores/init-store'
 import { InitOverlay } from '@/components/init-ui'
 import { ErrorOverlay } from '@/components/error-ui'
 import { WaitingOverlay } from '@/components/waiting-ui'
-import { DatabaseLockedScreen } from '@/components/database-locked'
 
 // ─── Portrait detection (SSR-safe via useSyncExternalStore) ─────────────────
 
@@ -101,7 +100,9 @@ function RootLayout() {
   const forceInitUI = useInitStore(s => s.forceInitUI)
 
   const errorOverlayType = useInitStore(s => s.errorOverlayType)
+  const errorOverlayMessage = useInitStore(s => s.errorOverlayMessage)
   const forceWaitingUI = useInitStore(s => s.forceWaitingUI)
+  const activeOverlays = useInitStore(s => s.activeOverlays)
 
   // Portrait orientation detection
   const isPortrait = useSyncExternalStore(
@@ -113,14 +114,31 @@ function RootLayout() {
   const shouldShowOverlay = showInitUI || forceInitUI
   const shouldShowErrorOverlay = errorOverlayType !== null
   const shouldShowWaiting = isPortrait || forceWaitingUI
-  // Header: disabled during bootstrap or portrait (except dev mode)
-  // Error overlay intentionally does NOT disable header
+
+  // Header visual state is driven by actually-mounted overlays (via
+  // activeOverlays ref count), so any overlay — regardless of who renders
+  // it (RootLayout, NotFoundPage, etc.) — will update the header correctly.
+  const anyOverlayActive =
+    activeOverlays.error > 0 ||
+    activeOverlays.init > 0 ||
+    activeOverlays.waiting > 0
+  // Error overlay does NOT block header; init/waiting do (except in dev).
+  const blockingOverlayActive =
+    activeOverlays.init > 0 || activeOverlays.waiting > 0
   const headerDisabled =
-    (!bootstrapDone && !initError) || (isPortrait && !import.meta.env.DEV)
+    (!bootstrapDone && !initError) ||
+    (blockingOverlayActive && !import.meta.env.DEV)
   const isReady = bootstrapDone && !shouldShowOverlay && !initError
 
   // Auto backup — disabled in DEV mode, gated on ready
   useAutoBackup({ enabled: !import.meta.env.DEV && isReady })
+
+  // Bootstrap error → trigger ErrorOverlay
+  useEffect(() => {
+    if (initError) {
+      useInitStore.getState().setErrorOverlayType('error', initError)
+    }
+  }, [initError])
 
   // Escape key dismisses forced overlays (dev testing)
   useEffect(() => {
@@ -139,18 +157,11 @@ function RootLayout() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <AppHeader
-        disabled={headerDisabled}
-        overlayActive={
-          shouldShowOverlay || shouldShowErrorOverlay || shouldShowWaiting
-        }
-      />
+      <AppHeader disabled={headerDisabled} overlayActive={anyOverlayActive} />
 
       {/* Main content — gated on init status */}
       <main>
-        {initError ? (
-          <DatabaseLockedScreen />
-        ) : shouldShowOverlay ? (
+        {shouldShowOverlay ? (
           <InitOverlay
             onClose={
               forceInitUI
@@ -159,7 +170,7 @@ function RootLayout() {
             }
           />
         ) : isReady ? (
-          <AppErrorBoundary title={t('error.appError')}>
+          <AppErrorBoundary>
             <Suspense>
               <PageTransition key={pathname.split('/').slice(0, 2).join('/')}>
                 <Outlet />
@@ -173,6 +184,7 @@ function RootLayout() {
       {shouldShowErrorOverlay && (
         <ErrorOverlay
           type={errorOverlayType!}
+          message={errorOverlayMessage ?? undefined}
           onClose={() => useInitStore.getState().setErrorOverlayType(null)}
         />
       )}

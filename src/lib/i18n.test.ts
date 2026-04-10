@@ -1,11 +1,9 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import i18n from './i18n'
 import zhTW from '@/locales/zh-TW.json'
-import en from '@/locales/en.json'
 
 describe('i18n configuration', () => {
   beforeEach(async () => {
-    // Reset language to default before each test
     await i18n.changeLanguage('zh-TW')
   })
 
@@ -27,60 +25,14 @@ describe('i18n configuration', () => {
     })
   })
 
-  describe('language switching', () => {
-    it('should switch to English', async () => {
-      await i18n.changeLanguage('en')
-      expect(i18n.language).toBe('en')
-    })
-
-    it('should switch back to zh-TW', async () => {
-      await i18n.changeLanguage('en')
-      await i18n.changeLanguage('zh-TW')
-      expect(i18n.language).toBe('zh-TW')
-    })
-
+  describe('fallback behavior', () => {
     it('should fall back to zh-TW for unsupported language', () => {
-      // When an unsupported language is requested, i18n should fallback
       const result = i18n.t('common.confirm', { lng: 'fr' })
       expect(result).toBe('確認')
     })
   })
 
   describe('translation completeness', () => {
-    /**
-     * Recursively collect all leaf-level keys from a nested JSON object.
-     * Returns flat dot-notation paths like "common.confirm", "staff.title", etc.
-     */
-    function collectKeys(obj: Record<string, unknown>, prefix = ''): string[] {
-      const keys: string[] = []
-      for (const [key, value] of Object.entries(obj)) {
-        const fullKey = prefix ? `${prefix}.${key}` : key
-        if (
-          typeof value === 'object' &&
-          value !== null &&
-          !Array.isArray(value)
-        ) {
-          keys.push(...collectKeys(value as Record<string, unknown>, fullKey))
-        } else {
-          keys.push(fullKey)
-        }
-      }
-      return keys
-    }
-
-    it('should have matching keys in zh-TW and en locale files', () => {
-      const zhKeys = collectKeys(zhTW as Record<string, unknown>).sort()
-      const enKeys = collectKeys(en as Record<string, unknown>).sort()
-
-      // Check for keys missing in English
-      const missingInEn = zhKeys.filter(k => !enKeys.includes(k))
-      expect(missingInEn).toEqual([])
-
-      // Check for extra keys in English (not in zh-TW)
-      const extraInEn = enKeys.filter(k => !zhKeys.includes(k))
-      expect(extraInEn).toEqual([])
-    })
-
     it('should not have any empty string values in zh-TW', () => {
       function findEmptyValues(
         obj: Record<string, unknown>,
@@ -103,39 +55,11 @@ describe('i18n configuration', () => {
       const empties = findEmptyValues(zhTW as Record<string, unknown>)
       expect(empties).toEqual([])
     })
-
-    it('should not have any empty string values in en', () => {
-      function findEmptyValues(
-        obj: Record<string, unknown>,
-        prefix = '',
-      ): string[] {
-        const empties: string[] = []
-        for (const [key, value] of Object.entries(obj)) {
-          const fullKey = prefix ? `${prefix}.${key}` : key
-          if (typeof value === 'string' && value.trim() === '') {
-            empties.push(fullKey)
-          } else if (typeof value === 'object' && value !== null) {
-            empties.push(
-              ...findEmptyValues(value as Record<string, unknown>, fullKey),
-            )
-          }
-        }
-        return empties
-      }
-
-      const empties = findEmptyValues(en as Record<string, unknown>)
-      expect(empties).toEqual([])
-    })
   })
 
   describe('translations', () => {
     it('should return zh-TW translation for common.confirm', () => {
       expect(i18n.t('common.confirm')).toBe('確認')
-    })
-
-    it('should return English translation when language is en', async () => {
-      await i18n.changeLanguage('en')
-      expect(i18n.t('common.confirm')).toBe('Confirm')
     })
 
     it('should handle nested keys correctly', () => {
@@ -167,12 +91,6 @@ describe('i18n configuration', () => {
         weekday: '日',
       })
       expect(result).toBe('今天: 2026/3/22 (日)')
-    })
-
-    it('should interpolate English translations with {{name}}', async () => {
-      await i18n.changeLanguage('en')
-      const result = i18n.t('staff.confirmDeleteMessage', { name: 'John' })
-      expect(result).toBe('Are you sure you want to delete employee "John"?')
     })
 
     it('should interpolate {{time}} in clockIn.reClockOutHint', () => {

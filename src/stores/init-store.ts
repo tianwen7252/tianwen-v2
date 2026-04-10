@@ -2,7 +2,17 @@ import { create } from 'zustand'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-type ErrorOverlayType = '404' | '500' | 'error' | null
+type ErrorOverlayType = '404' | 'error' | null
+
+/** Overlay kind used for self-registration — drives AppHeader visual state. */
+export type OverlayKind = 'error' | 'init' | 'waiting'
+
+/** Ref-counted active overlays so multiple instances are safe. */
+interface ActiveOverlays {
+  readonly error: number
+  readonly init: number
+  readonly waiting: number
+}
 
 interface InitState {
   /** Whether the database bootstrap has completed successfully */
@@ -17,8 +27,12 @@ interface InitState {
   readonly forceInitUI: boolean
   /** Active error overlay type (null = hidden) */
   readonly errorOverlayType: ErrorOverlayType
+  /** Custom message for the error overlay (null = use default from i18n) */
+  readonly errorOverlayMessage: string | null
   /** Dev-only: force the waiting UI to display for testing */
   readonly forceWaitingUI: boolean
+  /** Ref-counted currently mounted overlays (self-registered by overlay components) */
+  readonly activeOverlays: ActiveOverlays
 }
 
 interface InitActions {
@@ -26,8 +40,10 @@ interface InitActions {
   setError: (msg: string) => void
   setShowInitUI: (show: boolean) => void
   setForceInitUI: (flag: boolean) => void
-  setErrorOverlayType: (type: ErrorOverlayType) => void
+  setErrorOverlayType: (type: ErrorOverlayType, message?: string) => void
   setForceWaitingUI: (flag: boolean) => void
+  pushActiveOverlay: (kind: OverlayKind) => void
+  popActiveOverlay: (kind: OverlayKind) => void
 }
 
 // ─── Store ───────────────────────────────────────────────────────────────────
@@ -39,7 +55,9 @@ export const useInitStore = create<InitState & InitActions>((set, get) => ({
   error: null,
   forceInitUI: false,
   errorOverlayType: null,
+  errorOverlayMessage: null,
   forceWaitingUI: false,
+  activeOverlays: { error: 0, init: 0, waiting: 0 },
 
   setBootstrapDone: () => set({ bootstrapDone: true }),
 
@@ -48,17 +66,35 @@ export const useInitStore = create<InitState & InitActions>((set, get) => ({
   setShowInitUI: show => {
     const { shownAt } = get()
     if (show && shownAt === null) {
-      // First time showing — record timestamp
       set({ showInitUI: true, shownAt: Date.now() })
     } else {
-      // Hide or already shown before — don't update shownAt
       set({ showInitUI: show })
     }
   },
 
   setForceInitUI: flag => set({ forceInitUI: flag }),
 
-  setErrorOverlayType: type => set({ errorOverlayType: type }),
+  setErrorOverlayType: (type, message) =>
+    set({
+      errorOverlayType: type,
+      errorOverlayMessage: type === null ? null : (message ?? null),
+    }),
 
   setForceWaitingUI: flag => set({ forceWaitingUI: flag }),
+
+  pushActiveOverlay: kind =>
+    set(state => ({
+      activeOverlays: {
+        ...state.activeOverlays,
+        [kind]: state.activeOverlays[kind] + 1,
+      },
+    })),
+
+  popActiveOverlay: kind =>
+    set(state => ({
+      activeOverlays: {
+        ...state.activeOverlays,
+        [kind]: Math.max(0, state.activeOverlays[kind] - 1),
+      },
+    })),
 }))

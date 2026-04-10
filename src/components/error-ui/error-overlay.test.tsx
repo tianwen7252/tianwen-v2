@@ -13,7 +13,6 @@ vi.mock('react-i18next', () => ({
     t: (key: string) => {
       const map: Record<string, string> = {
         'error.notFound': '找不到頁面',
-        'error.serverError': '伺服器錯誤',
         'error.title': '發生錯誤',
         'error.backHome': '返回首頁',
       }
@@ -33,7 +32,7 @@ describe('ErrorOverlay', () => {
 
   async function renderOverlay(
     props: {
-      type?: '404' | '500' | 'error'
+      type?: '404' | 'error'
       message?: string
       onClose?: () => void
     } = {},
@@ -51,12 +50,6 @@ describe('ErrorOverlay', () => {
     await renderOverlay({ type: '404' })
     expect(screen.getByText('404')).toBeTruthy()
     expect(screen.getByText('找不到頁面')).toBeTruthy()
-  })
-
-  it('should display 500 content', async () => {
-    await renderOverlay({ type: '500' })
-    expect(screen.getByText('500')).toBeTruthy()
-    expect(screen.getByText('伺服器錯誤')).toBeTruthy()
   })
 
   it('should display error content with custom message', async () => {

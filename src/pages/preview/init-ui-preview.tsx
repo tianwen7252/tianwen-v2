@@ -1,7 +1,9 @@
+import { useTranslation } from 'react-i18next'
 import { useInitStore } from '@/stores/init-store'
 import { RippleButton } from '@/components/ui/ripple-button'
 
 export function InitUiPreview() {
+  const { t } = useTranslation()
   const forceInitUI = useInitStore(s => s.forceInitUI)
   const setForceInitUI = useInitStore(s => s.setForceInitUI)
   const setErrorOverlayType = useInitStore(s => s.setErrorOverlayType)
@@ -39,16 +41,50 @@ export function InitUiPreview() {
           404
         </RippleButton>
         <RippleButton
-          onClick={() => setErrorOverlayType('500')}
-          className="w-fit rounded-full bg-red-600 px-4 py-2 text-white hover:bg-red-700"
-        >
-          500
-        </RippleButton>
-        <RippleButton
           onClick={() => setErrorOverlayType('error')}
           className="w-fit rounded-full bg-gray-600 px-4 py-2 text-white hover:bg-gray-700"
         >
           Error
+        </RippleButton>
+      </div>
+
+      <h2 className="mt-4 text-lg">Error Overlay — Integrated Scenarios</h2>
+      <p className="text-muted-foreground">
+        Simulate real error scenarios that trigger the Error Overlay.
+      </p>
+      <div className="flex flex-wrap gap-3">
+        <RippleButton
+          onClick={() =>
+            setErrorOverlayType('error', t('error.databaseLocked'))
+          }
+          className="w-fit rounded-full bg-red-700 px-4 py-2 text-white hover:bg-red-800"
+        >
+          DB 鎖定
+        </RippleButton>
+        <RippleButton
+          onClick={() => setErrorOverlayType('error', 'SQLite WASM 初始化失敗')}
+          className="w-fit rounded-full bg-red-700 px-4 py-2 text-white hover:bg-red-800"
+        >
+          Bootstrap 失敗
+        </RippleButton>
+        <RippleButton
+          onClick={() =>
+            setErrorOverlayType(
+              'error',
+              'TypeError: Cannot read properties of undefined (reading "map") at OrderPanel.tsx:142:18, triggered while rendering the cart items during checkout. This usually means the order data is still loading or the commodity type map has not been initialized. Please refresh the page or contact support.',
+            )
+          }
+          className="w-fit rounded-full bg-red-700 px-4 py-2 text-white hover:bg-red-800"
+        >
+          React Render Error
+        </RippleButton>
+        <RippleButton
+          onClick={() =>
+            setErrorOverlayType('error', 'Unhandled promise rejection')
+          }
+          className="w-fit rounded-full bg-red-700 px-4 py-2 text-white hover:bg-red-800"
+        >
+          Unhandled Rejection
         </RippleButton>
       </div>
 

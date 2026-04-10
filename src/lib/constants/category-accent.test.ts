@@ -9,6 +9,7 @@ describe('CATEGORY_ACCENT', () => {
     'single',
     'drink',
     'dumpling',
+    'stall',
     'other',
     'discount',
   ]
@@ -28,6 +29,7 @@ describe('CATEGORY_ACCENT', () => {
     'single',
     'drink',
     'dumpling',
+    'stall',
     'other',
     'discount',
   ] as const)('should have border and text properties for "%s"', key => {

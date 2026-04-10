@@ -1,5 +1,6 @@
 import { ArrowLeft } from 'lucide-react'
 import { RippleButton } from '@/components/ui/ripple-button'
+import { useRegisterOverlay } from '@/hooks/use-register-overlay'
 import { WaitingCanvas } from './waiting-canvas'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -21,13 +22,14 @@ export function WaitingOverlay({
   message,
   onClose,
 }: WaitingOverlayProps) {
+  useRegisterOverlay('waiting')
   return (
     <div className="fixed inset-0 z-40 overflow-hidden">
       {/* WebGL animation background */}
       <WaitingCanvas className="absolute inset-0" />
 
-      {/* Back button */}
-      {onClose && (
+      {/* Back button — dev mode only */}
+      {import.meta.env.DEV && onClose && (
         <RippleButton
           onClick={onClose}
           className="absolute top-16 left-4 z-50 flex size-10 items-center justify-center rounded-full bg-white/10 text-white/80 backdrop-blur-sm hover:bg-white/20"

@@ -1,24 +1,18 @@
+import { useEffect } from 'react'
 import type { ErrorInfo } from 'react'
-import { ErrorBoundary } from 'react-error-boundary'
-import { ErrorFallback } from '@/components/error-fallback'
+import { ErrorBoundary, type FallbackProps } from 'react-error-boundary'
 import { logError } from '@/lib/error-logger'
+import { useInitStore } from '@/stores/init-store'
 
 interface AppErrorBoundaryProps {
   children: React.ReactNode
-  title?: string
   onReset?: () => void
 }
 
 /**
- * Log error details to console and persist to the error_logs DB table.
+ * Persist error details to the error_logs DB table.
  */
-function handleError(error: unknown, info: ErrorInfo) {
-  console.error('[ErrorBoundary]', error)
-  if (info.componentStack) {
-    console.error('[ErrorBoundary] Component stack:', info.componentStack)
-  }
-
-  // Persist error to DB (fire-and-forget)
+function handleError(error: unknown, _info: ErrorInfo) {
   if (error instanceof Error) {
     logError(error.message, 'ErrorBoundary', error.stack)
   } else {
@@ -27,21 +21,36 @@ function handleError(error: unknown, info: ErrorInfo) {
 }
 
 /**
- * Application-level error boundary wrapper.
- * Catches rendering errors in child components and displays a fallback UI.
+ * Fallback component that triggers the full-screen ErrorOverlay
+ * and renders nothing itself (the overlay is rendered in RootLayout).
  *
- * Usage:
- * - Global: wrap the root layout to catch any uncaught errors
- * - Module-level: wrap individual pages/sections for granular recovery
+ * Cleanup only clears the overlay when the current state still matches
+ * what this trigger set — otherwise a bootstrap error overlay set by
+ * RootLayout could be silently wiped on unmount.
  */
-export function AppErrorBoundary({
-  children,
-  title,
-  onReset,
-}: AppErrorBoundaryProps) {
+function ErrorOverlayTrigger({ error }: FallbackProps) {
+  useEffect(() => {
+    const msg = error instanceof Error ? error.message : String(error)
+    useInitStore.getState().setErrorOverlayType('error', msg)
+    return () => {
+      const current = useInitStore.getState().errorOverlayMessage
+      if (current === msg) {
+        useInitStore.getState().setErrorOverlayType(null)
+      }
+    }
+  }, [error])
+
+  return null
+}
+
+/**
+ * Application-level error boundary wrapper.
+ * Catches rendering errors in child components and triggers the ErrorOverlay.
+ */
+export function AppErrorBoundary({ children, onReset }: AppErrorBoundaryProps) {
   return (
     <ErrorBoundary
-      FallbackComponent={props => <ErrorFallback {...props} title={title} />}
+      FallbackComponent={ErrorOverlayTrigger}
       onError={handleError}
       onReset={onReset}
     >

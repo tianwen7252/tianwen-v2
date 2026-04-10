@@ -175,12 +175,13 @@ describe('groupOrderItems', () => {
     expect(discountGroup).toBeUndefined()
   })
 
-  it('should maintain correct category order: bento -> single -> drink -> dumpling -> other -> discount', () => {
+  it('should maintain correct category order: bento -> single -> drink -> dumpling -> stall -> other -> discount', () => {
     const typeIdMap = new Map([
       ['com-bento', 'bento'],
       ['com-single', 'bento'],
       ['com-drink', 'drink'],
       ['com-dumpling', 'dumpling'],
+      ['com-stall', 'stall'],
       ['com-unknown', 'special'],
     ])
     const items = [
@@ -214,6 +215,12 @@ describe('groupOrderItems', () => {
         name: 'Dumplings',
         includesSoup: false,
       }),
+      makeOrderItem({
+        id: 'i6',
+        commodityId: 'com-stall',
+        name: '京醬肉絲飯',
+        includesSoup: false,
+      }),
     ]
     const discounts = [makeOrderDiscount()]
     const result = groupOrderItems(items, discounts, typeIdMap)
@@ -223,9 +230,26 @@ describe('groupOrderItems', () => {
       'single',
       'drink',
       'dumpling',
+      'stall',
       'other',
       'discount',
     ])
+  })
+
+  it('should group stall items under "stall" category', () => {
+    const typeIdMap = new Map([['com-stall', 'stall']])
+    const items = [
+      makeOrderItem({
+        id: 'i1',
+        commodityId: 'com-stall',
+        name: '京醬肉絲飯',
+        includesSoup: false,
+      }),
+    ]
+    const result = groupOrderItems(items, [], typeIdMap)
+    expect(result).toHaveLength(1)
+    expect(result[0]!.key).toBe('stall')
+    expect(result[0]!.label).toBe('order.categoryStall')
   })
 
   it('should handle mixed bento items correctly (some with soup, some without)', () => {

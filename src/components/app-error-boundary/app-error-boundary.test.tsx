@@ -1,11 +1,29 @@
 import type React from 'react'
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { render, screen, cleanup } from '@testing-library/react'
 
 // Mock the error-logger to prevent provider dependency in tests
 vi.mock('@/lib/error-logger', () => ({
   logError: vi.fn(),
+}))
+
+// Mock init-store with a mutable state for cleanup race-condition tests
+let mockErrorMessage: string | null = null
+const mockSetErrorOverlayType = vi.fn(
+  (_type: string | null, message?: string) => {
+    mockErrorMessage = _type === null ? null : (message ?? null)
+  },
+)
+
+vi.mock('@/stores/init-store', () => ({
+  useInitStore: {
+    getState: () => ({
+      setErrorOverlayType: mockSetErrorOverlayType,
+      get errorOverlayMessage() {
+        return mockErrorMessage
+      },
+    }),
+  },
 }))
 
 import { AppErrorBoundary } from './app-error-boundary'
@@ -17,142 +35,92 @@ function AlwaysThrows(): React.ReactNode {
 }
 
 describe('AppErrorBoundary', () => {
-  let consoleErrorSpy: ReturnType<typeof vi.spyOn>
-
   beforeEach(() => {
-    // Suppress console.error for intentional throws
-    consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    mockSetErrorOverlayType.mockClear()
+    mockErrorMessage = null
+    // Suppress React's uncaught-error console logging during intentional throws
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+  })
+
+  afterEach(() => {
+    cleanup()
+    vi.restoreAllMocks()
   })
 
   it('should render children when no error occurs', () => {
+    // Arrange
     render(
       <AppErrorBoundary>
         <div>Normal content</div>
       </AppErrorBoundary>,
     )
+
+    // Assert
     expect(screen.getByText('Normal content')).toBeTruthy()
   })
 
-  it('should show ErrorFallback when a child component throws', () => {
+  it('should trigger ErrorOverlay when a child component throws', () => {
+    // Arrange + Act
     render(
       <AppErrorBoundary>
         <AlwaysThrows />
       </AppErrorBoundary>,
     )
-    expect(screen.getByRole('alert')).toBeTruthy()
-    expect(screen.getByText('Always fails')).toBeTruthy()
-  })
 
-  it('should call console.error when an error is caught', () => {
-    render(
-      <AppErrorBoundary>
-        <AlwaysThrows />
-      </AppErrorBoundary>,
+    // Assert
+    expect(mockSetErrorOverlayType).toHaveBeenCalledWith(
+      'error',
+      'Always fails',
     )
-    expect(consoleErrorSpy).toHaveBeenCalledWith(
-      '[ErrorBoundary]',
-      expect.any(Error),
-    )
-  })
-
-  it('should log component stack when available', () => {
-    render(
-      <AppErrorBoundary>
-        <AlwaysThrows />
-      </AppErrorBoundary>,
-    )
-    // React provides componentStack info on errors caught by error boundaries
-    const stackCall = consoleErrorSpy.mock.calls.find(
-      (call: unknown[]) =>
-        typeof call[0] === 'string' &&
-        call[0] === '[ErrorBoundary] Component stack:',
-    )
-    // If componentStack is provided by the runtime, it should be logged
-    if (stackCall) {
-      expect(stackCall[1]).toBeTruthy()
-    }
-  })
-
-  it('should propagate custom title to the fallback UI', () => {
-    render(
-      <AppErrorBoundary title="模組錯誤">
-        <AlwaysThrows />
-      </AppErrorBoundary>,
-    )
-    expect(screen.getByText('模組錯誤')).toBeTruthy()
-  })
-
-  it('should re-render children after reset via retry button', async () => {
-    const user = userEvent.setup()
-    let shouldThrow = true
-
-    function ConditionalThrow() {
-      if (shouldThrow) {
-        throw new Error('Temporary error')
-      }
-      return <div>Recovered content</div>
-    }
-
-    render(
-      <AppErrorBoundary>
-        <ConditionalThrow />
-      </AppErrorBoundary>,
-    )
-
-    // Should show error fallback
-    expect(screen.getByRole('alert')).toBeTruthy()
-
-    // Fix the error condition, then retry
-    shouldThrow = false
-    await user.click(screen.getByRole('button', { name: '重試' }))
-
-    expect(screen.getByText('Recovered content')).toBeTruthy()
-  })
-
-  it('should call onReset callback when reset occurs', async () => {
-    const user = userEvent.setup()
-    const onReset = vi.fn()
-    let shouldThrow = true
-
-    function ConditionalThrow() {
-      if (shouldThrow) {
-        throw new Error('Error')
-      }
-      return <div>OK</div>
-    }
-
-    render(
-      <AppErrorBoundary onReset={onReset}>
-        <ConditionalThrow />
-      </AppErrorBoundary>,
-    )
-
-    shouldThrow = false
-    await user.click(screen.getByRole('button', { name: '重試' }))
-
-    expect(onReset).toHaveBeenCalledTimes(1)
-  })
-
-  it('should show default title when no custom title is provided', () => {
-    render(
-      <AppErrorBoundary>
-        <AlwaysThrows />
-      </AppErrorBoundary>,
-    )
-    expect(screen.getByText('發生錯誤')).toBeTruthy()
   })
 
   it('should persist error to DB via logError when a child throws', () => {
+    // Arrange + Act
     render(
       <AppErrorBoundary>
         <AlwaysThrows />
       </AppErrorBoundary>,
     )
 
+    // Assert
     expect(logError).toHaveBeenCalledWith(
       'Always fails',
       'ErrorBoundary',
       expect.any(String),
     )
+  })
+
+  it('should clear overlay on unmount when current message matches', () => {
+    // Arrange
+    const { unmount } = render(
+      <AppErrorBoundary>
+        <AlwaysThrows />
+      </AppErrorBoundary>,
+    )
+    mockSetErrorOverlayType.mockClear()
+
+    // Act
+    unmount()
+
+    // Assert — cleanup should clear because stored message still matches
+    expect(mockSetErrorOverlayType).toHaveBeenCalledWith(null)
+  })
+
+  it('should NOT clear overlay on unmount when a different error was set externally', () => {
+    // Arrange
+    const { unmount } = render(
+      <AppErrorBoundary>
+        <AlwaysThrows />
+      </AppErrorBoundary>,
+    )
+    // Simulate another source setting a different error message
+    mockErrorMessage = 'Bootstrap failure: DB locked'
+    mockSetErrorOverlayType.mockClear()
+
+    // Act
+    unmount()
+
+    // Assert — cleanup should NOT touch the overlay (race prevention)
+    expect(mockSetErrorOverlayType).not.toHaveBeenCalled()
   })
 })

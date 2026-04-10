@@ -1,11 +1,12 @@
 import { useTranslation } from 'react-i18next'
 import { ArrowLeft } from 'lucide-react'
 import { RippleButton } from '@/components/ui/ripple-button'
+import { useRegisterOverlay } from '@/hooks/use-register-overlay'
 import { ErrorCanvas } from './error-canvas'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-type ErrorType = '404' | '500' | 'error'
+type ErrorType = '404' | 'error'
 
 interface ErrorOverlayProps {
   /** Error type determines title and default message */
@@ -20,25 +21,29 @@ interface ErrorOverlayProps {
 
 const ERROR_CONFIG: Record<ErrorType, { title: string; messageKey: string }> = {
   '404': { title: '404', messageKey: 'error.notFound' },
-  '500': { title: '500', messageKey: 'error.serverError' },
   error: { title: 'ERROR', messageKey: 'error.title' },
 }
 
 // ─── Component ──────────────────────────────────────────────────────────────
 
 /** Full-screen error overlay with Event Horizon animation background */
+const LONG_MESSAGE_THRESHOLD = 20
+
 export function ErrorOverlay({ type, message, onClose }: ErrorOverlayProps) {
   const { t } = useTranslation()
+  useRegisterOverlay('error')
   const config = ERROR_CONFIG[type]
-  const isNumeric = type === '404' || type === '500'
+  const isNumeric = type === '404'
+  const displayMessage = message ?? t(config.messageKey)
+  const isLongMessage = displayMessage.length > LONG_MESSAGE_THRESHOLD
 
   return (
     <div className="fixed inset-0 z-40 overflow-hidden">
       {/* WebGL animation background */}
       <ErrorCanvas className="absolute inset-0" />
 
-      {/* Back button */}
-      {onClose && (
+      {/* Back button — dev mode only */}
+      {import.meta.env.DEV && onClose && (
         <RippleButton
           onClick={onClose}
           className="absolute top-16 left-4 z-50 flex size-10 items-center justify-center rounded-full bg-white/10 text-white/80 backdrop-blur-sm hover:bg-white/20"
@@ -62,13 +67,14 @@ export function ErrorOverlay({ type, message, onClose }: ErrorOverlayProps) {
         </h1>
         <p
           style={{
-            fontSize: '1.5rem',
-            letterSpacing: '4px',
+            fontSize: isLongMessage ? '1.2rem' : '1.5rem',
+            letterSpacing: isLongMessage ? 'normal' : '4px',
             color: 'color-mix(in oklab, var(--color-white) 80%, transparent)',
+            textAlign: 'center',
           }}
-          className="mt-3"
+          className="mt-3 max-w-3xl px-8"
         >
-          {message ?? t(config.messageKey)}
+          {displayMessage}
         </p>
       </div>
     </div>
