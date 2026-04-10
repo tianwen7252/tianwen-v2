@@ -1,41 +1,30 @@
-import { useTranslation } from 'react-i18next'
 import { ArrowLeft } from 'lucide-react'
 import { RippleButton } from '@/components/ui/ripple-button'
-import { ErrorCanvas } from './error-canvas'
+import { WaitingCanvas } from './waiting-canvas'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-type ErrorType = '404' | '500' | 'error'
-
-interface ErrorOverlayProps {
-  /** Error type determines title and default message */
-  readonly type: ErrorType
-  /** Custom message (overrides default for the type) */
-  readonly message?: string
+interface WaitingOverlayProps {
+  /** Title displayed below the vortex center */
+  readonly title: string
+  /** Description displayed below the title */
+  readonly message: string
   /** Callback to close the overlay (shows back button when provided) */
   readonly onClose?: () => void
 }
 
-// ─── Config ─────────────────────────────────────────────────────────────────
-
-const ERROR_CONFIG: Record<ErrorType, { title: string; messageKey: string }> = {
-  '404': { title: '404', messageKey: 'error.notFound' },
-  '500': { title: '500', messageKey: 'error.serverError' },
-  error: { title: 'ERROR', messageKey: 'error.title' },
-}
-
 // ─── Component ──────────────────────────────────────────────────────────────
 
-/** Full-screen error overlay with Event Horizon animation background */
-export function ErrorOverlay({ type, message, onClose }: ErrorOverlayProps) {
-  const { t } = useTranslation()
-  const config = ERROR_CONFIG[type]
-  const isNumeric = type === '404' || type === '500'
-
+/** Full-screen waiting overlay with Vortex animation background */
+export function WaitingOverlay({
+  title,
+  message,
+  onClose,
+}: WaitingOverlayProps) {
   return (
     <div className="fixed inset-0 z-40 overflow-hidden">
       {/* WebGL animation background */}
-      <ErrorCanvas className="absolute inset-0" />
+      <WaitingCanvas className="absolute inset-0" />
 
       {/* Back button */}
       {onClose && (
@@ -48,17 +37,17 @@ export function ErrorOverlay({ type, message, onClose }: ErrorOverlayProps) {
         </RippleButton>
       )}
 
-      {/* Centered text — positioned below the black hole center */}
-      <div className="absolute inset-0 flex flex-col items-center justify-center pt-120">
+      {/* Centered text */}
+      <div className="absolute inset-0 flex flex-col items-center justify-center">
         <h1
           style={{
-            fontSize: isNumeric ? '5rem' : '4rem',
-            letterSpacing: isNumeric ? '15px' : '8px',
-            color: '#000000',
+            fontSize: '3rem',
+            letterSpacing: '8px',
+            color: 'color-mix(in oklab, var(--color-white) 80%, transparent)',
             textShadow: '0 0 15px #ffe0aa',
           }}
         >
-          {config.title}
+          {title}
         </h1>
         <p
           style={{
@@ -68,7 +57,7 @@ export function ErrorOverlay({ type, message, onClose }: ErrorOverlayProps) {
           }}
           className="mt-3"
         >
-          {message ?? t(config.messageKey)}
+          {message}
         </p>
       </div>
     </div>

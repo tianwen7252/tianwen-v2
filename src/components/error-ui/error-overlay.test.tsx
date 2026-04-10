@@ -61,7 +61,7 @@ describe('ErrorOverlay', () => {
 
   it('should display error content with custom message', async () => {
     await renderOverlay({ type: 'error', message: '自訂錯誤訊息' })
-    expect(screen.getByText('Error')).toBeTruthy()
+    expect(screen.getByText('ERROR')).toBeTruthy()
     expect(screen.getByText('自訂錯誤訊息')).toBeTruthy()
   })
 

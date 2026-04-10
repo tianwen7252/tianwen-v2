@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect } from 'react'
+import { lazy, Suspense, useEffect, useSyncExternalStore } from 'react'
 import {
   createRootRoute,
   createRoute,
@@ -18,7 +18,28 @@ import { useAutoBackup } from '@/hooks/use-auto-backup'
 import { useInitStore } from '@/stores/init-store'
 import { InitOverlay } from '@/components/init-ui'
 import { ErrorOverlay } from '@/components/error-ui'
+import { WaitingOverlay } from '@/components/waiting-ui'
 import { DatabaseLockedScreen } from '@/components/database-locked'
+
+// ─── Portrait detection (SSR-safe via useSyncExternalStore) ─────────────────
+
+const portraitQuery =
+  typeof window !== 'undefined'
+    ? window.matchMedia('(orientation: portrait)')
+    : null
+
+function subscribePortrait(cb: () => void) {
+  portraitQuery?.addEventListener('change', cb)
+  return () => portraitQuery?.removeEventListener('change', cb)
+}
+
+function getPortrait() {
+  return portraitQuery?.matches ?? false
+}
+
+function getPortraitServer() {
+  return false
+}
 
 // Lazy-loaded pages — each becomes a separate chunk
 const NotFoundPage = lazy(() =>
@@ -80,35 +101,49 @@ function RootLayout() {
   const forceInitUI = useInitStore(s => s.forceInitUI)
 
   const errorOverlayType = useInitStore(s => s.errorOverlayType)
+  const forceWaitingUI = useInitStore(s => s.forceWaitingUI)
+
+  // Portrait orientation detection
+  const isPortrait = useSyncExternalStore(
+    subscribePortrait,
+    getPortrait,
+    getPortraitServer,
+  )
 
   const shouldShowOverlay = showInitUI || forceInitUI
   const shouldShowErrorOverlay = errorOverlayType !== null
-  // Header stays clickable in dev forceInitUI/errorOverlay mode
-  const headerDisabled = !bootstrapDone && !initError
+  const shouldShowWaiting = isPortrait || forceWaitingUI
+  // Header: disabled during bootstrap or portrait (except dev mode)
+  // Error overlay intentionally does NOT disable header
+  const headerDisabled =
+    (!bootstrapDone && !initError) || (isPortrait && !import.meta.env.DEV)
   const isReady = bootstrapDone && !shouldShowOverlay && !initError
 
   // Auto backup — disabled in DEV mode, gated on ready
   useAutoBackup({ enabled: !import.meta.env.DEV && isReady })
 
-  // Escape key dismisses forceInitUI or errorOverlay (dev testing)
+  // Escape key dismisses forced overlays (dev testing)
   useEffect(() => {
-    if (!forceInitUI && !shouldShowErrorOverlay) return
+    if (!forceInitUI && !shouldShowErrorOverlay && !forceWaitingUI) return
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         if (forceInitUI) useInitStore.getState().setForceInitUI(false)
         if (shouldShowErrorOverlay)
           useInitStore.getState().setErrorOverlayType(null)
+        if (forceWaitingUI) useInitStore.getState().setForceWaitingUI(false)
       }
     }
     window.addEventListener('keydown', handleKey)
     return () => window.removeEventListener('keydown', handleKey)
-  }, [forceInitUI, shouldShowErrorOverlay])
+  }, [forceInitUI, shouldShowErrorOverlay, forceWaitingUI])
 
   return (
     <div className="min-h-screen bg-background text-foreground">
       <AppHeader
         disabled={headerDisabled}
-        overlayActive={shouldShowOverlay || shouldShowErrorOverlay}
+        overlayActive={
+          shouldShowOverlay || shouldShowErrorOverlay || shouldShowWaiting
+        }
       />
 
       {/* Main content — gated on init status */}
@@ -139,6 +174,19 @@ function RootLayout() {
         <ErrorOverlay
           type={errorOverlayType!}
           onClose={() => useInitStore.getState().setErrorOverlayType(null)}
+        />
+      )}
+
+      {/* Waiting overlay — portrait orientation or dev forced */}
+      {shouldShowWaiting && (
+        <WaitingOverlay
+          title={t('waiting.rotateTitle')}
+          message={t('waiting.rotateMessage')}
+          onClose={
+            forceWaitingUI
+              ? () => useInitStore.getState().setForceWaitingUI(false)
+              : undefined
+          }
         />
       )}
 

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, cleanup } from '@testing-library/react'
-import { ErrorCanvas } from './error-canvas'
+import { WaitingCanvas } from './waiting-canvas'
 
 // Mock WebGL context since jsdom doesn't support WebGL
 const mockGl = {
@@ -38,7 +38,6 @@ const mockGl = {
 }
 
 beforeEach(() => {
-  // Clear accumulated call counts from previous tests
   Object.values(mockGl).forEach(v => {
     if (typeof v === 'function' && 'mockClear' in v) {
       ;(v as ReturnType<typeof vi.fn>).mockClear()
@@ -54,64 +53,44 @@ afterEach(() => {
   vi.restoreAllMocks()
 })
 
-describe('ErrorCanvas', () => {
+describe('WaitingCanvas', () => {
   it('should render a canvas element', () => {
-    const { container } = render(<ErrorCanvas />)
+    const { container } = render(<WaitingCanvas />)
     const canvas = container.querySelector('canvas')
     expect(canvas).toBeTruthy()
   })
 
   it('should accept className prop', () => {
-    const { container } = render(<ErrorCanvas className="test-class" />)
+    const { container } = render(<WaitingCanvas className="test-class" />)
     const wrapper = container.firstElementChild
     expect(wrapper?.classList.contains('test-class')).toBe(true)
   })
 
   it('should start requestAnimationFrame on mount', () => {
     const rafSpy = vi.spyOn(window, 'requestAnimationFrame').mockReturnValue(1)
-    render(<ErrorCanvas />)
+    render(<WaitingCanvas />)
     expect(rafSpy).toHaveBeenCalled()
   })
 
   it('should cancel animation frame on unmount', () => {
     vi.spyOn(window, 'requestAnimationFrame').mockReturnValue(42)
     const cafSpy = vi.spyOn(window, 'cancelAnimationFrame')
-    const { unmount } = render(<ErrorCanvas />)
+    const { unmount } = render(<WaitingCanvas />)
     unmount()
     expect(cafSpy).toHaveBeenCalledWith(42)
   })
 
-  it('should add and remove resize listener', () => {
-    const addSpy = vi.spyOn(window, 'addEventListener')
-    const removeSpy = vi.spyOn(window, 'removeEventListener')
-    vi.spyOn(window, 'requestAnimationFrame').mockReturnValue(1)
-
-    const { unmount } = render(<ErrorCanvas />)
-    expect(addSpy).toHaveBeenCalledWith('resize', expect.any(Function))
-
-    unmount()
-    expect(removeSpy).toHaveBeenCalledWith('resize', expect.any(Function))
-  })
-
   it('should initialize WebGL context', () => {
-    render(<ErrorCanvas />)
+    render(<WaitingCanvas />)
     expect(HTMLCanvasElement.prototype.getContext).toHaveBeenCalledWith(
       'webgl',
       expect.objectContaining({ alpha: false }),
     )
   })
 
-  it('should compile shaders and create program', () => {
-    render(<ErrorCanvas />)
-    expect(mockGl.createShader).toHaveBeenCalledTimes(2)
-    expect(mockGl.compileShader).toHaveBeenCalledTimes(2)
-    expect(mockGl.createProgram).toHaveBeenCalledTimes(1)
-    expect(mockGl.linkProgram).toHaveBeenCalledTimes(1)
-  })
-
   it('should clean up WebGL resources on unmount', () => {
     vi.spyOn(window, 'requestAnimationFrame').mockReturnValue(1)
-    const { unmount } = render(<ErrorCanvas />)
+    const { unmount } = render(<WaitingCanvas />)
     unmount()
     expect(mockGl.deleteBuffer).toHaveBeenCalled()
     expect(mockGl.deleteProgram).toHaveBeenCalled()

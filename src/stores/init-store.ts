@@ -17,6 +17,8 @@ interface InitState {
   readonly forceInitUI: boolean
   /** Active error overlay type (null = hidden) */
   readonly errorOverlayType: ErrorOverlayType
+  /** Dev-only: force the waiting UI to display for testing */
+  readonly forceWaitingUI: boolean
 }
 
 interface InitActions {
@@ -25,6 +27,7 @@ interface InitActions {
   setShowInitUI: (show: boolean) => void
   setForceInitUI: (flag: boolean) => void
   setErrorOverlayType: (type: ErrorOverlayType) => void
+  setForceWaitingUI: (flag: boolean) => void
 }
 
 // ─── Store ───────────────────────────────────────────────────────────────────
@@ -36,6 +39,7 @@ export const useInitStore = create<InitState & InitActions>((set, get) => ({
   error: null,
   forceInitUI: false,
   errorOverlayType: null,
+  forceWaitingUI: false,
 
   setBootstrapDone: () => set({ bootstrapDone: true }),
 
@@ -55,4 +59,6 @@ export const useInitStore = create<InitState & InitActions>((set, get) => ({
   setForceInitUI: flag => set({ forceInitUI: flag }),
 
   setErrorOverlayType: type => set({ errorOverlayType: type }),
+
+  setForceWaitingUI: flag => set({ forceWaitingUI: flag }),
 }))

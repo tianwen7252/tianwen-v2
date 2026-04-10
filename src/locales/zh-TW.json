@@ -146,6 +146,10 @@
     "error": "初始化失敗",
     "retryHint": "請重新整理頁面"
   },
+  "waiting": {
+    "rotateTitle": "請將裝置轉為橫向使用",
+    "rotateMessage": "本系統僅支援橫向模式操作"
+  },
   "error": {
     "title": "發生錯誤",
     "unknown": "未知錯誤",

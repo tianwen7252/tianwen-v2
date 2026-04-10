@@ -146,6 +146,10 @@
     "error": "Initialization failed",
     "retryHint": "Please refresh the page"
   },
+  "waiting": {
+    "rotateTitle": "Rotate to Landscape",
+    "rotateMessage": "This system requires landscape orientation"
+  },
   "error": {
     "title": "Error Occurred",
     "unknown": "Unknown error",

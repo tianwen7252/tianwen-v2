@@ -30,20 +30,27 @@ export function InitOverlay({ message, onClose }: InitOverlayProps) {
         </RippleButton>
       )}
 
-      {/* Centered loading card */}
-      <div className="absolute inset-0 flex items-center justify-center">
-        <div
-          className="flex flex-col items-center gap-4 rounded-2xl px-10 py-8 backdrop-blur-md"
-          style={{ backgroundColor: '#ffffff05' }}
+      {/* Centered loading content */}
+      <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <Spinner
+          data-testid="init-spinner"
+          style={{
+            width: '5rem',
+            height: '5rem',
+            filter: 'drop-shadow(0 0 15px #ffe0aa)',
+          }}
+          className="text-white/80"
+        />
+        <p
+          style={{
+            fontSize: '1.7rem',
+            letterSpacing: '4px',
+            color: 'color-mix(in oklab, var(--color-white) 80%, transparent)',
+          }}
+          className="mt-6"
         >
-          <Spinner
-            data-testid="init-spinner"
-            className="size-8 text-white/80"
-          />
-          <p className="text-lg tracking-wide text-white/90">
-            {message ?? t('init.loading')}
-          </p>
-        </div>
+          {message ?? t('init.loading')}
+        </p>
       </div>
     </div>
   )

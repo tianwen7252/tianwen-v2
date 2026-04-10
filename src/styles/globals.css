@@ -10,14 +10,6 @@ html {
   touch-action: manipulation;
 }
 
-/* Force landscape — show overlay when device is in portrait.
-   The #portrait-overlay element is defined in index.html for instant display
-   before React hydrates. Hidden by default, shown only in portrait. */
-@media screen and (orientation: portrait) {
-  #portrait-overlay {
-    display: flex !important;
-  }
-}
 
 @theme inline {
   --color-background: var(--background);
