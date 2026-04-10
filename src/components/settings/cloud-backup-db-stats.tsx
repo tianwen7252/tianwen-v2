@@ -381,7 +381,7 @@ export function CloudBackupDbStats() {
       <ConfirmModal
         open={restoreConfirmOpen}
         title={t('backup.restoreConfirmTitle')}
-        variant="warm"
+        variant="gold"
         onConfirm={() => void handleRestoreConfirm()}
         onCancel={() => setRestoreConfirmOpen(false)}
       >
