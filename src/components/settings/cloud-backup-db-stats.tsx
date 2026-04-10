@@ -171,10 +171,12 @@ export function CloudBackupDbStats() {
     setDeletePrevConfirmOpen(false)
     try {
       await getDatabase().deletePreviousDatabase()
-      // Invalidate both queries so the row disappears and the restore
-      // button becomes disabled.
-      await queryClient.invalidateQueries({ queryKey: ['has-prev-db'] })
-      await queryClient.invalidateQueries({ queryKey: ['prev-db-size'] })
+      // Synchronously flip the cache so the restore button disables and
+      // the size row hides in the same render. `invalidateQueries` would
+      // schedule a refetch, leaving a brief window where the stale `true`
+      // value still enables the button.
+      queryClient.setQueryData(['has-prev-db'], false)
+      queryClient.setQueryData(['prev-db-size'], 0)
       notify.success(t('backup.deletePrevSuccess'))
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err)
