@@ -5,7 +5,7 @@ export function ClockInPage() {
   return (
     <div>
       {/* ClockIn component with module-level error boundary */}
-      <AppErrorBoundary title="打卡頁面發生錯誤">
+      <AppErrorBoundary>
         <ClockIn />
       </AppErrorBoundary>
     </div>

@@ -146,13 +146,17 @@
     "error": "初始化失敗",
     "retryHint": "請重新整理頁面"
   },
+  "waiting": {
+    "rotateTitle": "請將裝置轉為橫向使用",
+    "rotateMessage": "本系統僅支援橫向模式操作"
+  },
   "error": {
     "title": "發生錯誤",
     "unknown": "未知錯誤",
     "appError": "應用程式發生錯誤",
     "settingsError": "設定頁面發生錯誤",
     "clockInError": "打卡頁面發生錯誤",
-    "databaseLocked": "基於PWA的安全性考量，資料庫僅供單一網頁分頁使用",
+    "databaseLocked": "系統不支援多分頁，OPFS 資料庫被另一個分頁鎖定",
     "notFound": "找不到此頁面",
     "backHome": "回到首頁"
   },
@@ -181,6 +185,7 @@
     "categorySingle": "單點",
     "categoryDrink": "飲料",
     "categoryDumpling": "水餃",
+    "categoryStall": "攤位",
     "categoryOther": "其它",
     "categoryDiscount": "優惠",
     "orderNote": "訂單備註",

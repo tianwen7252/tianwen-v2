@@ -149,7 +149,7 @@ describe('groupCartItems', () => {
     expect(result[0]!.key).toBe('drink')
   })
 
-  it('should maintain correct category order: bento -> single -> drink -> dumpling -> other -> discount', () => {
+  it('should maintain correct category order: bento -> single -> drink -> dumpling -> stall -> other -> discount', () => {
     const items = [
       makeCartItem({
         id: '1',
@@ -187,6 +187,12 @@ describe('groupCartItems', () => {
         typeId: 'single',
         includesSoup: false,
       }), // single
+      makeCartItem({
+        id: '7',
+        name: '京醬肉絲飯',
+        typeId: 'stall',
+        includesSoup: false,
+      }), // stall
     ]
     const discounts = [
       makeDiscount({ id: 'd1', label: '會員折扣', amount: 50 }),
@@ -198,9 +204,26 @@ describe('groupCartItems', () => {
       'single',
       'drink',
       'dumpling',
+      'stall',
       'other',
       'discount',
     ])
+  })
+
+  it('should group stall items under "stall" category', () => {
+    const items = [
+      makeCartItem({
+        id: '1',
+        name: '京醬肉絲飯',
+        typeId: 'stall',
+        includesSoup: false,
+      }),
+    ]
+    const result = groupCartItems(items, [])
+    expect(result).toHaveLength(1)
+    expect(result[0]!.key).toBe('stall')
+    expect(result[0]!.label).toBe('order.categoryStall')
+    expect(result[0]!.items).toHaveLength(1)
   })
 
   it('should handle mixed bento items correctly (some with includesSoup, some without)', () => {

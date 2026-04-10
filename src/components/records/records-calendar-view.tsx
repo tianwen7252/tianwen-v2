@@ -62,14 +62,16 @@ function DayCellContent({
   if (day.cells.length === 0) return null
 
   // Filter cells that have attendance
-  const activeCells = day.cells.filter(cell => cell.attendances.length > 0)
+  const activeCells = day.cells.filter((cell) => cell.attendances.length > 0)
   if (activeCells.length === 0) return null
 
   return (
     <div className="mt-1 flex flex-col gap-1">
       {activeCells.map((cell, cellIdx) => {
         const { employee, attendances } = cell
-        const hasVacation = attendances.some(a => getCellDisplayType(a) === 'vacation')
+        const hasVacation = attendances.some(
+          (a) => getCellDisplayType(a) === 'vacation',
+        )
         const totalHours = calcTotalHours(attendances)
 
         return (
@@ -80,16 +82,17 @@ function DayCellContent({
               'rounded px-1.5 py-1 cursor-pointer text-left w-full flex items-center gap-1 flex-wrap',
               cellIdx > 0 && 'border-t border-blue-grey/30',
             )}
-            style={{ backgroundColor: 'color-mix(in srgb, var(--color-blue-grey) 10%, transparent)' }}
-            onClick={e => {
+            style={{
+              backgroundColor:
+                'color-mix(in srgb, var(--color-blue-grey) 10%, transparent)',
+            }}
+            onClick={(e) => {
               e.stopPropagation()
               onEditRecord(employee, day.date, attendances[0]!)
             }}
           >
             <AvatarImage avatar={employee.avatar} size={18} />
-            <span className="text-md text-regal-navy">
-              {employee.name}
-            </span>
+            <span className="text-md text-regal-navy">{employee.name}</span>
             <span className="text-md text-regal-navy ml-auto">
               {hasVacation
                 ? t('records.vacation')
@@ -131,7 +134,7 @@ export function RecordsCalendarView({
       {/* Calendar grid */}
       <div className="grid grid-cols-7 gap-px bg-regal-navy/10">
         {calendarGrid.map((week, _weekIdx) =>
-          week.map(day => {
+          week.map((day) => {
             const dateNum = parseInt(day.date.split('-')[2] ?? '0', 10)
 
             return (
@@ -142,7 +145,8 @@ export function RecordsCalendarView({
                   'min-h-[140px] bg-lemon-chiffon/40 p-3',
                   !day.isCurrentMonth && 'opacity-40',
                   day.isWeekend && 'bg-lemon-chiffon/20',
-                  day.isToday && 'border-2 border-blue-grey bg-lemon-chiffon/70',
+                  day.isToday &&
+                    'border-2 border-blue-grey bg-lemon-chiffon/70',
                 )}
                 onClick={() => onCellClick?.(day.date)}
               >
@@ -151,7 +155,9 @@ export function RecordsCalendarView({
                   <span
                     className={cn(
                       'text-[15px] font-bold',
-                      day.isCurrentMonth ? 'text-regal-navy' : 'text-regal-navy/40',
+                      day.isCurrentMonth
+                        ? 'text-regal-navy'
+                        : 'text-regal-navy/40',
                     )}
                   >
                     {dateNum}

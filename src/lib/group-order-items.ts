@@ -21,6 +21,7 @@ const CATEGORY_ORDER = [
   'single',
   'drink',
   'dumpling',
+  'stall',
   'other',
   'discount',
 ] as const
@@ -31,6 +32,7 @@ const CATEGORY_I18N_KEYS: Record<string, string> = {
   single: 'order.categorySingle',
   drink: 'order.categoryDrink',
   dumpling: 'order.categoryDumpling',
+  stall: 'order.categoryStall',
   other: 'order.categoryOther',
   discount: 'order.categoryDiscount',
 }
@@ -47,6 +49,7 @@ const CATEGORY_I18N_KEYS: Record<string, string> = {
  * - typeId 'single' -> 'single'
  * - typeId 'drink' -> 'drink'
  * - typeId 'dumpling' -> 'dumpling'
+ * - typeId 'stall' -> 'stall'
  * - anything else (including missing) -> 'other'
  */
 function getCategoryKey(
@@ -63,6 +66,7 @@ function getCategoryKey(
   if (typeId === 'single') return 'single'
   if (typeId === 'drink') return 'drink'
   if (typeId === 'dumpling') return 'dumpling'
+  if (typeId === 'stall') return 'stall'
   return 'other'
 }
 
@@ -72,7 +76,7 @@ function getCategoryKey(
  * Group order items by category using a commodityId -> typeId lookup map.
  * Falls back to 'other' when commodity not found in map.
  *
- * Category order: bento -> single -> drink -> dumpling -> other -> discount
+ * Category order: bento -> single -> drink -> dumpling -> stall -> other -> discount
  * Empty categories are excluded from the result.
  *
  * @param items - Order items to group
