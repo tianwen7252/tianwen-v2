@@ -76,6 +76,21 @@ function resolveFileKey(
   return null
 }
 
+/**
+ * Gzip a byte array and return the resulting compressed byte length.
+ * Uses the worker-global CompressionStream (available in all modern
+ * browsers and web workers). Used to report DB sizes in the same unit
+ * as the `.sqlite.gz` files on R2 so the cloud backup UI can display
+ * comparable numbers.
+ */
+async function gzipLength(bytes: Uint8Array): Promise<number> {
+  const stream = new Blob([bytes as BlobPart])
+    .stream()
+    .pipeThrough(new CompressionStream('gzip'))
+  const compressed = await new Response(stream).arrayBuffer()
+  return compressed.byteLength
+}
+
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
 /** Thin wrapper to adapt the SAHPool DB to our Database interface */
@@ -476,37 +491,55 @@ self.onmessage = async (e: MessageEvent<WorkerRequest>) => {
     }
   }
 
-  if (msg.type === 'get-prev-db-size') {
-    if (!sahPoolUtilRef) {
-      post({ type: 'get-prev-db-size-result', id: msg.id, size: 0 })
+  if (msg.type === 'get-db-sizes') {
+    if (!sahPoolUtilRef || !rawDbHandle || !sqlite3Ref) {
+      post({
+        type: 'get-db-sizes-result',
+        id: msg.id,
+        currentRaw: 0,
+        currentCompressed: 0,
+        prevRaw: 0,
+        prevCompressed: 0,
+      })
       return
     }
 
     try {
       const pool = sahPoolUtilRef
+
+      // Current DB: use sqlite3_js_db_export (same path as export-db)
+      // because the file is live and we should read a consistent
+      // snapshot of the committed data, not raw OPFS bytes.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const currentBytes: Uint8Array = sqlite3Ref.capi.sqlite3_js_db_export(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        rawDbHandle as any,
+      )
+      const currentRaw = currentBytes.byteLength
+      const currentCompressed = await gzipLength(currentBytes)
+
+      // Previous DB snapshot: use the SAH pool directly (no live
+      // connection to it). 0/0 if no snapshot exists.
+      let prevRaw = 0
+      let prevCompressed = 0
       const prevKey = resolveFileKey(pool, PREV_DB_FILE)
-      if (!prevKey) {
-        post({ type: 'get-prev-db-size-result', id: msg.id, size: 0 })
-        return
+      if (prevKey) {
+        const prevBytes: Uint8Array = await pool.exportFile(prevKey)
+        prevRaw = prevBytes.byteLength
+        prevCompressed = await gzipLength(prevBytes)
       }
-      // Export the raw SQLite file then gzip it so the size reported
-      // matches the unit used by the cloud-backup-history list (which
-      // shows `.sqlite.gz` sizes from R2). Showing the raw OPFS byte
-      // count here confused users because the same DB appears with two
-      // very different numbers (gzip is ~3x on this schema).
-      const rawBytes = await pool.exportFile(prevKey)
-      const gzipStream = new Blob([rawBytes as BlobPart])
-        .stream()
-        .pipeThrough(new CompressionStream('gzip'))
-      const compressed = await new Response(gzipStream).arrayBuffer()
+
       post({
-        type: 'get-prev-db-size-result',
+        type: 'get-db-sizes-result',
         id: msg.id,
-        size: compressed.byteLength,
+        currentRaw,
+        currentCompressed,
+        prevRaw,
+        prevCompressed,
       })
     } catch (err) {
       post({
-        type: 'get-prev-db-size-error',
+        type: 'get-db-sizes-error',
         id: msg.id,
         error: String(err),
       })

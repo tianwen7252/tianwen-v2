@@ -30,7 +30,7 @@ export type WorkerRequest =
     }
   | { readonly type: 'restore-prev-db'; readonly id: number }
   | { readonly type: 'has-prev-db'; readonly id: number }
-  | { readonly type: 'get-prev-db-size'; readonly id: number }
+  | { readonly type: 'get-db-sizes'; readonly id: number }
   | { readonly type: 'delete-prev-db'; readonly id: number }
 
 /** Worker → Main message types */
@@ -73,12 +73,15 @@ export type WorkerResponse =
       readonly hasPrev: boolean
     }
   | {
-      readonly type: 'get-prev-db-size-result'
+      readonly type: 'get-db-sizes-result'
       readonly id: number
-      readonly size: number
+      readonly currentRaw: number
+      readonly currentCompressed: number
+      readonly prevRaw: number
+      readonly prevCompressed: number
     }
   | {
-      readonly type: 'get-prev-db-size-error'
+      readonly type: 'get-db-sizes-error'
       readonly id: number
       readonly error: string
     }
@@ -88,6 +91,25 @@ export type WorkerResponse =
       readonly id: number
       readonly error: string
     }
+
+/**
+ * Raw and gzip-compressed byte counts for a database file. `raw` is the
+ * uncompressed SQLite file size; `compressed` is the size it would be
+ * after gzip (matching the unit used by `.sqlite.gz` files on R2).
+ */
+export interface DatabaseByteSizes {
+  readonly raw: number
+  readonly compressed: number
+}
+
+/**
+ * Byte-size report for both the active DB and the previous snapshot.
+ * Each field is 0 when the corresponding file does not exist.
+ */
+export interface DatabaseSizes {
+  readonly current: DatabaseByteSizes
+  readonly prev: DatabaseByteSizes
+}
 
 /** Async database interface for use on the main thread */
 export interface AsyncDatabase {
@@ -100,10 +122,12 @@ export interface AsyncDatabase {
   restorePreviousDatabase(): Promise<void>
   hasPreviousDatabase(): Promise<boolean>
   /**
-   * Bytes occupied by the previous database snapshot (`/tianwen-prev.db`).
-   * Returns 0 if no snapshot exists.
+   * Raw + gzipped byte counts for the active DB and the previous
+   * snapshot. Combined into a single call so the worker can compute
+   * both reports in one pass and the main thread can populate the
+   * cloud-backup panel in a single React Query fetch.
    */
-  getPreviousDatabaseSize(): Promise<number>
+  getDatabaseSizes(): Promise<DatabaseSizes>
   /**
    * Delete the previous database snapshot. No-op if it does not exist.
    */
@@ -132,8 +156,8 @@ interface PendingBoolRequest {
   readonly reject: (reason: Error) => void
 }
 
-interface PendingNumberRequest {
-  readonly resolve: (value: number) => void
+interface PendingDatabaseSizesRequest {
+  readonly resolve: (value: DatabaseSizes) => void
   readonly reject: (reason: Error) => void
 }
 
@@ -150,7 +174,7 @@ export function createWorkerDatabase(worker: Worker): AsyncDatabase {
   const pendingImports = new Map<number, PendingVoidRequest>()
   const pendingRestores = new Map<number, PendingVoidRequest>()
   const pendingHasPrev = new Map<number, PendingBoolRequest>()
-  const pendingPrevSize = new Map<number, PendingNumberRequest>()
+  const pendingDbSizes = new Map<number, PendingDatabaseSizesRequest>()
   const pendingDeletePrev = new Map<number, PendingVoidRequest>()
 
   worker.addEventListener('message', (e: MessageEvent<WorkerResponse>) => {
@@ -228,18 +252,21 @@ export function createWorkerDatabase(worker: Worker): AsyncDatabase {
       }
     }
 
-    if (msg.type === 'get-prev-db-size-result') {
-      const p = pendingPrevSize.get(msg.id)
+    if (msg.type === 'get-db-sizes-result') {
+      const p = pendingDbSizes.get(msg.id)
       if (p) {
-        pendingPrevSize.delete(msg.id)
-        p.resolve(msg.size)
+        pendingDbSizes.delete(msg.id)
+        p.resolve({
+          current: { raw: msg.currentRaw, compressed: msg.currentCompressed },
+          prev: { raw: msg.prevRaw, compressed: msg.prevCompressed },
+        })
       }
     }
 
-    if (msg.type === 'get-prev-db-size-error') {
-      const p = pendingPrevSize.get(msg.id)
+    if (msg.type === 'get-db-sizes-error') {
+      const p = pendingDbSizes.get(msg.id)
       if (p) {
-        pendingPrevSize.delete(msg.id)
+        pendingDbSizes.delete(msg.id)
         p.reject(new Error(msg.error))
       }
     }
@@ -313,11 +340,11 @@ export function createWorkerDatabase(worker: Worker): AsyncDatabase {
       })
     },
 
-    getPreviousDatabaseSize(): Promise<number> {
-      return new Promise<number>((resolve, reject) => {
+    getDatabaseSizes(): Promise<DatabaseSizes> {
+      return new Promise<DatabaseSizes>((resolve, reject) => {
         const id = nextId++
-        pendingPrevSize.set(id, { resolve, reject })
-        worker.postMessage({ type: 'get-prev-db-size', id })
+        pendingDbSizes.set(id, { resolve, reject })
+        worker.postMessage({ type: 'get-db-sizes', id })
       })
     },
 

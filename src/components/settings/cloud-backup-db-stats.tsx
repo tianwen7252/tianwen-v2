@@ -3,9 +3,9 @@
  * and cloud backup summary + actions (right).
  */
 
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Trash2 } from 'lucide-react'
+import { MoveDown, Trash2 } from 'lucide-react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { RippleButton } from '@/components/ui/ripple-button'
@@ -29,6 +29,29 @@ const R2_FREE_QUOTA_BYTES = 10 * 1024 * 1024 * 1024 // 10 GB
 // Minimum time (ms) to show the overlay so the animation plays.
 // Skipped in test environment to avoid flaky timing issues.
 const MIN_RESTORE_OVERLAY_MS = import.meta.env.VITEST ? 0 : 5000
+// Maximum height (px) of the data-tables list before the "view all"
+// expand affordance kicks in. Matches the pattern used by
+// OrderHistoryCard so users get the same interaction across the app.
+const TABLE_LIST_MAX_HEIGHT = 300
+
+// Placeholder zero-sizes used while the db-sizes query is loading.
+const ZERO_SIZES = {
+  current: { raw: 0, compressed: 0 },
+  prev: { raw: 0, compressed: 0 },
+} as const
+
+/**
+ * Format a pair of (raw, compressed) byte counts as
+ * "24 MB / 7.4 MB (壓縮後)" so the local DB panel rows are directly
+ * comparable to the `.sqlite.gz` sizes shown in the cloud backup list.
+ */
+function formatSizePair(
+  raw: number,
+  compressed: number,
+  compressedLabel: string,
+): string {
+  return `${formatBytes(raw)} / ${formatBytes(compressed)} (${compressedLabel})`
+}
 
 const SCHEDULE_OPTIONS: readonly {
   readonly type: ScheduleType
@@ -52,22 +75,30 @@ export function CloudBackupDbStats() {
   const [deletePrevConfirmOpen, setDeletePrevConfirmOpen] = useState(false)
   const [overlayMessage, setOverlayMessage] = useState<string | null>(null)
 
+  // Collapse state for the data-tables list (view-all pattern).
+  const [tablesExpanded, setTablesExpanded] = useState(false)
+  const [tablesOverflow, setTablesOverflow] = useState(false)
+  const tablesRef = useRef<HTMLDivElement>(null)
+
   const queryClient = useQueryClient()
 
-  // Check if a previous DB snapshot exists
-  const { data: hasPrev = false } = useQuery({
-    queryKey: ['has-prev-db'],
-    queryFn: () => getDatabase().hasPreviousDatabase(),
+  // Raw + gzipped byte counts for the active DB and the previous
+  // snapshot. A single call keeps both rows in sync and avoids two
+  // round-trips to the worker.
+  const { data: dbSizes = ZERO_SIZES } = useQuery({
+    queryKey: ['db-sizes'],
+    queryFn: () => getDatabase().getDatabaseSizes(),
   })
+  const hasPrev = dbSizes.prev.raw > 0
 
-  // Fetch the byte size of the previous DB snapshot (0 when none).
-  // Kept separate from `has-prev-db` so the two mutations invalidate
-  // independently.
-  const { data: prevDbSize = 0 } = useQuery({
-    queryKey: ['prev-db-size'],
-    queryFn: () => getDatabase().getPreviousDatabaseSize(),
-    enabled: hasPrev,
-  })
+  // Detect overflow on the data-tables list after render. Re-run when
+  // the table set or the expanded flag changes so the gradient/button
+  // only appears when the list actually overflows.
+  useEffect(() => {
+    const el = tablesRef.current
+    if (!el || tablesExpanded) return
+    setTablesOverflow(el.scrollHeight > TABLE_LIST_MAX_HEIGHT)
+  }, [tables, tablesExpanded])
 
   // Backup store state
   const isBackingUp = useBackupStore((s) => s.isBackingUp)
@@ -172,11 +203,13 @@ export function CloudBackupDbStats() {
     try {
       await getDatabase().deletePreviousDatabase()
       // Synchronously flip the cache so the restore button disables and
-      // the size row hides in the same render. `invalidateQueries` would
-      // schedule a refetch, leaving a brief window where the stale `true`
-      // value still enables the button.
-      queryClient.setQueryData(['has-prev-db'], false)
-      queryClient.setQueryData(['prev-db-size'], 0)
+      // the prev row hides in the same render. `invalidateQueries`
+      // would schedule a refetch, leaving a brief window where the
+      // stale prev.raw value still enables the button.
+      queryClient.setQueryData(['db-sizes'], (prev: typeof ZERO_SIZES) => ({
+        current: prev?.current ?? ZERO_SIZES.current,
+        prev: { raw: 0, compressed: 0 },
+      }))
       notify.success(t('backup.deletePrevSuccess'))
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err)
@@ -203,7 +236,60 @@ export function CloudBackupDbStats() {
           <CardTitle>{t('backup.localDbStats')}</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="overflow-auto">
+          {/* Summary rows: current DB + previous DB snapshot */}
+          <table className="w-full text-left">
+            <tbody>
+              <tr className="border-b">
+                <td className="whitespace-nowrap px-2 py-1 text-muted-foreground">
+                  {t('backup.currentDb')}
+                </td>
+                <td className="px-2 py-1 text-right">
+                  {formatSizePair(
+                    dbSizes.current.raw,
+                    dbSizes.current.compressed,
+                    t('backup.compressedLabel'),
+                  )}
+                </td>
+              </tr>
+              {hasPrev && (
+                <tr className="border-b">
+                  <td className="whitespace-nowrap px-2 py-1 text-muted-foreground">
+                    {t('backup.prevDb')}
+                  </td>
+                  <td className="px-2 py-1">
+                    <div className="flex items-center justify-end gap-2">
+                      <span>
+                        {formatSizePair(
+                          dbSizes.prev.raw,
+                          dbSizes.prev.compressed,
+                          t('backup.compressedLabel'),
+                        )}
+                      </span>
+                      <RippleButton
+                        onClick={() => setDeletePrevConfirmOpen(true)}
+                        aria-label={t('backup.deletePrev')}
+                        className="flex size-8 items-center justify-center rounded-md border-none bg-transparent text-(--color-red) hover:bg-(--color-red)/10"
+                      >
+                        <Trash2 size={18} />
+                      </RippleButton>
+                    </div>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+
+          {/* Data-tables section — collapsed to TABLE_LIST_MAX_HEIGHT with
+              an orders-style "查看全部" expand button when the list
+              overflows. Total row stays outside the scroll area so it
+              is always visible. */}
+          <div
+            ref={tablesRef}
+            className="relative mt-4 overflow-hidden transition-[max-height] duration-300 ease-in-out"
+            style={
+              tablesExpanded ? undefined : { maxHeight: TABLE_LIST_MAX_HEIGHT }
+            }
+          >
             <table className="w-full text-left">
               <thead>
                 <tr className="border-b text-muted-foreground">
@@ -222,15 +308,36 @@ export function CloudBackupDbStats() {
                     </td>
                   </tr>
                 ))}
-                {/* Total row */}
-                <tr className="border-t-2">
-                  <td className="px-2 py-1">{t('backup.totalRows')}</td>
-                  <td className="px-2 py-1 text-right">
-                    {totalRows.toLocaleString('zh-TW')}
-                  </td>
-                </tr>
               </tbody>
             </table>
+            {tablesOverflow && !tablesExpanded && (
+              <div
+                data-testid="tables-expand-overlay"
+                className="pointer-events-none absolute inset-x-0 bottom-0 flex flex-col items-center justify-end pb-2 pt-16"
+                style={{
+                  background:
+                    'linear-gradient(to bottom, transparent, rgba(255,255,255,0.85) 40%, rgba(255,255,255,1))',
+                }}
+              >
+                <RippleButton
+                  rippleColor="rgba(0,0,0,0.1)"
+                  className="pointer-events-auto flex items-center gap-1 text-md text-muted-foreground transition hover:text-foreground"
+                  onClick={() => setTablesExpanded(true)}
+                >
+                  <MoveDown size={16} />
+                  {t('orders.viewAll')}
+                </RippleButton>
+              </div>
+            )}
+          </div>
+
+          {/* Total rows — pinned outside the collapsible area so users
+              always see the grand total even when the list is capped. */}
+          <div className="mt-2 flex items-center justify-between border-t-2 border-border px-2 py-1">
+            <span className="text-muted-foreground">
+              {t('backup.totalRows')}
+            </span>
+            <span>{totalRows.toLocaleString('zh-TW')}</span>
           </div>
         </CardContent>
       </Card>
@@ -285,28 +392,6 @@ export function CloudBackupDbStats() {
                       {latestBackup?.filename}
                     </td>
                   </tr>
-                  {/* Previous DB snapshot size — only shown when a snapshot
-                      exists. Clicking the trash icon purges it after
-                      confirmation. */}
-                  {hasPrev && (
-                    <tr className="border-b">
-                      <td className="px-2 py-1 text-muted-foreground">
-                        {t('backup.prevDbSize')}
-                      </td>
-                      <td className="px-2 py-1">
-                        <div className="flex items-center justify-end gap-2">
-                          <span>{formatBytes(prevDbSize)}</span>
-                          <RippleButton
-                            onClick={() => setDeletePrevConfirmOpen(true)}
-                            aria-label={t('backup.deletePrev')}
-                            className="flex size-8 items-center justify-center rounded-md border-none bg-transparent text-(--color-red) hover:bg-(--color-red)/10"
-                          >
-                            <Trash2 size={18} />
-                          </RippleButton>
-                        </div>
-                      </td>
-                    </tr>
-                  )}
                 </tbody>
               </table>
             )}

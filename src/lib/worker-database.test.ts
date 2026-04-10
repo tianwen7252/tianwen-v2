@@ -310,64 +310,76 @@ describe('createWorkerDatabase', () => {
     })
   })
 
-  // ── getPreviousDatabaseSize ───────────────────────────────────────────────
+  // ── getDatabaseSizes ──────────────────────────────────────────────────────
 
-  describe('getPreviousDatabaseSize()', () => {
-    it('should send get-prev-db-size message to worker', () => {
+  describe('getDatabaseSizes()', () => {
+    it('should send get-db-sizes message to worker', () => {
       const db = createWorkerDatabase(mockWorker.worker)
 
-      db.getPreviousDatabaseSize()
+      db.getDatabaseSizes()
 
       expect(mockWorker.worker.postMessage).toHaveBeenCalledWith({
-        type: 'get-prev-db-size',
+        type: 'get-db-sizes',
         id: expect.any(Number),
       })
     })
 
-    it('should resolve with the byte count on success', async () => {
+    it('should resolve with current + prev raw/compressed byte counts', async () => {
       const db = createWorkerDatabase(mockWorker.worker)
 
-      const promise = db.getPreviousDatabaseSize()
+      const promise = db.getDatabaseSizes()
 
       const sentMessage = (
         mockWorker.worker.postMessage as ReturnType<typeof vi.fn>
       ).mock.calls[0]?.[0] as { id: number }
       mockWorker.respond({
-        type: 'get-prev-db-size-result',
+        type: 'get-db-sizes-result',
         id: sentMessage.id,
-        size: 12345678,
+        currentRaw: 25_000_000,
+        currentCompressed: 7_800_000,
+        prevRaw: 23_100_000,
+        prevCompressed: 7_300_000,
       })
 
-      await expect(promise).resolves.toBe(12345678)
+      await expect(promise).resolves.toEqual({
+        current: { raw: 25_000_000, compressed: 7_800_000 },
+        prev: { raw: 23_100_000, compressed: 7_300_000 },
+      })
     })
 
-    it('should resolve with 0 when no previous database exists', async () => {
+    it('should resolve with zeros when no previous database exists', async () => {
       const db = createWorkerDatabase(mockWorker.worker)
 
-      const promise = db.getPreviousDatabaseSize()
+      const promise = db.getDatabaseSizes()
 
       const sentMessage = (
         mockWorker.worker.postMessage as ReturnType<typeof vi.fn>
       ).mock.calls[0]?.[0] as { id: number }
       mockWorker.respond({
-        type: 'get-prev-db-size-result',
+        type: 'get-db-sizes-result',
         id: sentMessage.id,
-        size: 0,
+        currentRaw: 1000,
+        currentCompressed: 200,
+        prevRaw: 0,
+        prevCompressed: 0,
       })
 
-      await expect(promise).resolves.toBe(0)
+      await expect(promise).resolves.toEqual({
+        current: { raw: 1000, compressed: 200 },
+        prev: { raw: 0, compressed: 0 },
+      })
     })
 
-    it('should reject with error message on get-prev-db-size-error', async () => {
+    it('should reject with error message on get-db-sizes-error', async () => {
       const db = createWorkerDatabase(mockWorker.worker)
 
-      const promise = db.getPreviousDatabaseSize()
+      const promise = db.getDatabaseSizes()
 
       const sentMessage = (
         mockWorker.worker.postMessage as ReturnType<typeof vi.fn>
       ).mock.calls[0]?.[0] as { id: number }
       mockWorker.respond({
-        type: 'get-prev-db-size-error',
+        type: 'get-db-sizes-error',
         id: sentMessage.id,
         error: 'SAH pool unavailable',
       })
