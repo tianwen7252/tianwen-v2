@@ -223,10 +223,15 @@ function RootLayout() {
         />
       )}
 
-      {/* Only show extras when app is ready */}
+      {/* Only show extras when app is ready. ScrollToTop is also
+          hidden while any overlay is mounted — it uses `z-40` (same as
+          the overlays) and is rendered later in the DOM, so without
+          this guard it would paint on top of the Init/Error/Waiting
+          UI (visible as a blurry round button over the V2-import
+          overlay). */}
       {isReady && (
         <>
-          {pathname !== '/' && <ScrollToTop />}
+          {pathname !== '/' && !anyOverlayActive && <ScrollToTop />}
           <SwUpdatePrompt />
         </>
       )}
