@@ -140,27 +140,6 @@ function RootLayout() {
     }
   }, [initError])
 
-  // Lock the document scroll while any Init/Error/Waiting overlay is
-  // mounted. `fixed inset-0` covers the viewport minus the scrollbar
-  // gutter, so without this the overlay leaves a visible strip down
-  // the right side on routes whose content overflows (notably the
-  // cloud-backup settings page during V2 import). Both html and body
-  // are locked because tailwind/shadcn defaults scroll the html
-  // element but third-party code sometimes sets overflow on body.
-  useEffect(() => {
-    if (!anyOverlayActive) return
-    const html = document.documentElement
-    const body = document.body
-    const prevHtmlOverflow = html.style.overflow
-    const prevBodyOverflow = body.style.overflow
-    html.style.overflow = 'hidden'
-    body.style.overflow = 'hidden'
-    return () => {
-      html.style.overflow = prevHtmlOverflow
-      body.style.overflow = prevBodyOverflow
-    }
-  }, [anyOverlayActive])
-
   // Escape key dismisses forced overlays (dev testing)
   useEffect(() => {
     if (!forceInitUI && !shouldShowErrorOverlay && !forceWaitingUI) return
@@ -224,11 +203,10 @@ function RootLayout() {
       )}
 
       {/* Only show extras when app is ready. ScrollToTop is also
-          hidden while any overlay is mounted — it uses `z-40` (same as
-          the overlays) and is rendered later in the DOM, so without
-          this guard it would paint on top of the Init/Error/Waiting
-          UI (visible as a blurry round button over the V2-import
-          overlay). */}
+          hidden while any overlay is mounted — it uses `z-40`, which
+          is above the overlays' `z-30` wrapper, so without this guard
+          it would paint on top of the Init/Error/Waiting UI (visible
+          as a blurry round button over the V2-import overlay). */}
       {isReady && (
         <>
           {pathname !== '/' && !anyOverlayActive && <ScrollToTop />}
