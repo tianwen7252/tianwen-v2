@@ -1,5 +1,25 @@
 # Changelog
 
+## [2.10.0](https://github.com/tianwen7252/tianwen-v2/compare/v2.9.0...v2.10.0) (2026-04-11)
+
+
+### Features
+
+* V2-222 consolidate DB sizes in local panel + collapsible tables ([5d8e8fb](https://github.com/tianwen7252/tianwen-v2/commit/5d8e8fb611fd7464ab7d1e3d116c6bbc463a5b8d))
+
+
+### Bug Fixes
+
+* prevent auto-backup from running multiple times per day on iPad ([273444b](https://github.com/tianwen7252/tianwen-v2/commit/273444be9eef32b5f002d803539d59de38205f71))
+* V2-222 add disabled styling to restore-prev-db button ([02b0279](https://github.com/tianwen7252/tianwen-v2/commit/02b02790e2e1b0c373e6569960fb529e72c42d60))
+* V2-222 disable restore button immediately after deleting prev DB ([c447751](https://github.com/tianwen7252/tianwen-v2/commit/c4477516e73cf7cafd296e8eb326cea2b45fe21a))
+* V2-222 hide ScrollToTop button while any overlay is mounted ([19ec992](https://github.com/tianwen7252/tianwen-v2/commit/19ec992e4e48ce2825e32f18a6e5fafc39050ca5))
+* V2-222 lock document scroll while any overlay is mounted ([cdc3479](https://github.com/tianwen7252/tianwen-v2/commit/cdc3479abd8146b37929e32d852ff53f05d3597a))
+* V2-222 rebuild cloud backup import + error logging + prev DB management ([e6f6975](https://github.com/tianwen7252/tianwen-v2/commit/e6f6975ad33a96345712b9a364e1195e190a3251))
+* V2-222 render overlays via portal with proper header stacking ([8a38e9b](https://github.com/tianwen7252/tianwen-v2/commit/8a38e9bea65f5301e215a09d995742de58d2e299))
+* V2-222 report prev DB size in gzipped bytes to match cloud list ([7a8e9f5](https://github.com/tianwen7252/tianwen-v2/commit/7a8e9f592310cfd1a80e0f25e60eba0f69806f68))
+* V2-222 restore gold variant on restore-prev confirm modal ([a581d42](https://github.com/tianwen7252/tianwen-v2/commit/a581d42ed9effdeed72f27f9bb5494ec1404cf3a))
+
 ## [2.9.0](https://github.com/tianwen7252/tianwen-v2/compare/v2.8.0...v2.9.0) (2026-04-10)
 
 
