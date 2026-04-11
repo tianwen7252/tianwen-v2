@@ -58,11 +58,30 @@ const mockHasPreviousDatabase = vi.hoisted(() =>
 const mockRestorePreviousDatabase = vi.hoisted(() =>
   vi.fn().mockResolvedValue(undefined),
 )
+const mockGetDatabaseSizes = vi.hoisted(() =>
+  vi.fn().mockResolvedValue({
+    current: { raw: 0, compressed: 0 },
+    prev: { raw: 0, compressed: 0 },
+  }),
+)
+const mockDeletePreviousDatabase = vi.hoisted(() =>
+  vi.fn().mockResolvedValue(undefined),
+)
+const mockExportDatabase = vi.hoisted(() =>
+  vi.fn().mockResolvedValue(new Uint8Array([1, 2, 3])),
+)
+const mockErrorLogCreate = vi.hoisted(() => vi.fn().mockResolvedValue({}))
 
 vi.mock('@/lib/repositories/provider', () => ({
   getDatabase: () => ({
     hasPreviousDatabase: mockHasPreviousDatabase,
     restorePreviousDatabase: mockRestorePreviousDatabase,
+    getDatabaseSizes: mockGetDatabaseSizes,
+    deletePreviousDatabase: mockDeletePreviousDatabase,
+    exportDatabase: mockExportDatabase,
+  }),
+  getErrorLogRepo: () => ({
+    create: mockErrorLogCreate,
   }),
 }))
 
@@ -84,6 +103,7 @@ Object.defineProperty(window, 'location', {
 })
 
 import { CloudBackupDbStats } from './cloud-backup-db-stats'
+import { clearLogBuffer } from '@/lib/log-buffer'
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -101,6 +121,7 @@ function renderWithProviders(ui: React.ReactNode) {
 describe('CloudBackupDbStats', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    clearLogBuffer()
     mockDbStats = {
       tables: [
         { tableName: 'commodities', rowCount: 25 },
@@ -129,9 +150,23 @@ describe('CloudBackupDbStats', () => {
         createdAt: '2026-04-01T10:00:00Z',
       },
     ])
-    mockHasPreviousDatabase.mockResolvedValue(false)
     mockRestorePreviousDatabase.mockResolvedValue(undefined)
+    setPrevDbAbsent()
   })
+
+  // Helper to simulate the presence of a previous DB snapshot.
+  function setPrevDbPresent(): void {
+    mockGetDatabaseSizes.mockResolvedValue({
+      current: { raw: 25_000_000, compressed: 7_800_000 },
+      prev: { raw: 23_100_000, compressed: 7_300_000 },
+    })
+  }
+  function setPrevDbAbsent(): void {
+    mockGetDatabaseSizes.mockResolvedValue({
+      current: { raw: 25_000_000, compressed: 7_800_000 },
+      prev: { raw: 0, compressed: 0 },
+    })
+  }
 
   // ── Local DB stats (unchanged) ────────────────────────────────────────
 
@@ -243,7 +278,7 @@ describe('CloudBackupDbStats', () => {
 
   describe('Restore Previous Database button', () => {
     it('disables restore button when hasPreviousDatabase returns false', async () => {
-      mockHasPreviousDatabase.mockResolvedValue(false)
+      setPrevDbAbsent()
 
       renderWithProviders(<CloudBackupDbStats />)
 
@@ -253,7 +288,7 @@ describe('CloudBackupDbStats', () => {
     })
 
     it('renders restore button when hasPreviousDatabase returns true', async () => {
-      mockHasPreviousDatabase.mockResolvedValue(true)
+      setPrevDbPresent()
 
       renderWithProviders(<CloudBackupDbStats />)
 
@@ -264,7 +299,7 @@ describe('CloudBackupDbStats', () => {
     })
 
     it('opens confirm modal when restore button is clicked', async () => {
-      mockHasPreviousDatabase.mockResolvedValue(true)
+      setPrevDbPresent()
 
       renderWithProviders(<CloudBackupDbStats />)
 
@@ -282,7 +317,7 @@ describe('CloudBackupDbStats', () => {
     })
 
     it('calls restorePreviousDatabase and reloads on confirm', async () => {
-      mockHasPreviousDatabase.mockResolvedValue(true)
+      setPrevDbPresent()
 
       renderWithProviders(<CloudBackupDbStats />)
 
@@ -306,7 +341,7 @@ describe('CloudBackupDbStats', () => {
     })
 
     it('shows error toast and does not reload when restore fails', async () => {
-      mockHasPreviousDatabase.mockResolvedValue(true)
+      setPrevDbPresent()
       mockRestorePreviousDatabase.mockRejectedValueOnce(new Error('No prev db'))
 
       renderWithProviders(<CloudBackupDbStats />)
@@ -332,7 +367,7 @@ describe('CloudBackupDbStats', () => {
     })
 
     it('shows overlay with restore message during restore', async () => {
-      mockHasPreviousDatabase.mockResolvedValue(true)
+      setPrevDbPresent()
 
       let resolveRestore!: () => void
       mockRestorePreviousDatabase.mockReturnValue(
@@ -357,14 +392,14 @@ describe('CloudBackupDbStats', () => {
       fireEvent.click(screen.getByText('確認'))
 
       await waitFor(() => {
-        expect(screen.getByText('還原資料庫中...')).toBeTruthy()
+        expect(screen.getByText('還原上一版本資料庫中')).toBeTruthy()
       })
 
       resolveRestore()
     })
 
     it('closes modal when cancel is clicked', async () => {
-      mockHasPreviousDatabase.mockResolvedValue(true)
+      setPrevDbPresent()
 
       renderWithProviders(<CloudBackupDbStats />)
 

@@ -18,6 +18,8 @@ function createMockAsyncDb(): AsyncDatabase {
     importDatabase: vi.fn(async () => undefined),
     restorePreviousDatabase: vi.fn(async () => undefined),
     hasPreviousDatabase: vi.fn(async () => false),
+    getDatabaseSizes: vi.fn(async () => ({ current: { raw: 0, compressed: 0 }, prev: { raw: 0, compressed: 0 } })),
+    deletePreviousDatabase: vi.fn(async () => undefined),
   }
 }
 
@@ -383,6 +385,48 @@ describe('BackupLogRepository', () => {
       const result = await repo.count()
 
       expect(result).toBe(0)
+    })
+  })
+
+  describe('findLatestSuccessfulTimestamp()', () => {
+    it('returns the created_at of the most recent successful row', async () => {
+      vi.mocked(db.exec).mockResolvedValueOnce({
+        rows: [{ created_at: 1700000005000 }],
+        changes: 0,
+      })
+
+      const repo = createBackupLogRepository(db)
+      const result = await repo.findLatestSuccessfulTimestamp()
+
+      expect(db.exec).toHaveBeenCalledWith(
+        expect.stringContaining("WHERE status = 'success'"),
+      )
+      expect(db.exec).toHaveBeenCalledWith(
+        expect.stringContaining('ORDER BY created_at DESC'),
+      )
+      expect(db.exec).toHaveBeenCalledWith(expect.stringContaining('LIMIT 1'))
+      expect(result).toBe(1700000005000)
+    })
+
+    it('returns null when no successful backups exist', async () => {
+      vi.mocked(db.exec).mockResolvedValueOnce({ rows: [], changes: 0 })
+
+      const repo = createBackupLogRepository(db)
+      const result = await repo.findLatestSuccessfulTimestamp()
+
+      expect(result).toBeNull()
+    })
+
+    it('returns null when row has null created_at', async () => {
+      vi.mocked(db.exec).mockResolvedValueOnce({
+        rows: [{ created_at: null }],
+        changes: 0,
+      })
+
+      const repo = createBackupLogRepository(db)
+      const result = await repo.findLatestSuccessfulTimestamp()
+
+      expect(result).toBeNull()
     })
   })
 

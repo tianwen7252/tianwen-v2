@@ -6,14 +6,15 @@
 import { useState, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import dayjs from 'dayjs'
-import { LoaderCircle } from 'lucide-react'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { RippleButton } from '@/components/ui/ripple-button'
 import { ConfirmModal } from '@/components/modal/modal'
 import { notify } from '@/components/ui/sonner'
+import { InitOverlay } from '@/components/init-ui'
 import { useCloudBackups } from '@/hooks/use-cloud-backups'
 import { createBackupService, decompress } from '@/lib/backup'
 import { getDatabase } from '@/lib/repositories/provider'
+import { bufferLog, flushLogBuffer } from '@/lib/log-buffer'
 
 // ── Constants ───────────────────────────────────────────────────────────────
 
@@ -39,7 +40,7 @@ export function CloudBackupHistory() {
 
   // Import confirmation modal state
   const [confirmFilename, setConfirmFilename] = useState<string | null>(null)
-  // Full-screen blocking overlay message
+  // When non-null, the Init UI overlay is visible with this message.
   const [overlayMessage, setOverlayMessage] = useState<string | null>(null)
 
   const handleImportClick = useCallback((filename: string) => {
@@ -54,7 +55,7 @@ export function CloudBackupHistory() {
     if (!confirmFilename) return
     const filename = confirmFilename
     setConfirmFilename(null)
-    setOverlayMessage(t('backup.importingDatabase'))
+    setOverlayMessage(t('backup.importingCloudDb'))
 
     // Ensure overlay is visible for at least MIN_OVERLAY_MS so the animation plays
     const minDelay = new Promise((resolve) =>
@@ -68,10 +69,34 @@ export function CloudBackupHistory() {
         await getDatabase().importDatabase(rawBytes.buffer as ArrayBuffer)
       })()
       await Promise.all([work, minDelay])
+      // Import succeeded — the new DB is now active and writable, so any
+      // errors buffered earlier in this session can be safely flushed.
+      // A flush failure must never block the reload; swallow and let the
+      // next session retry from the in-memory buffer.
+      try {
+        await flushLogBuffer()
+      } catch {
+        /* ignore — retry on next flush */
+      }
       window.location.reload()
     } catch (err: unknown) {
       setOverlayMessage(null)
       const message = err instanceof Error ? err.message : String(err)
+      const stack = err instanceof Error ? err.stack : undefined
+      // Buffer first so the message is preserved even if the DB was
+      // mid-swap and no longer writable. The worker's rollback path
+      // should have reopened the old DB by the time we get here, which
+      // allows flushLogBuffer() to land in error_logs.
+      bufferLog(
+        `Cloud backup import failed: ${message}`,
+        'cloud-backup-import',
+        stack,
+      )
+      try {
+        await flushLogBuffer()
+      } catch {
+        // Swallow — the entry is still buffered and will retry later.
+      }
       notify.error(`${t('backup.importError')}: ${message}`)
     }
   }, [confirmFilename, t])
@@ -133,22 +158,17 @@ export function CloudBackupHistory() {
       <ConfirmModal
         open={confirmFilename !== null}
         title={t('backup.importConfirmTitle')}
-        variant="blue"
+        variant="warm"
         onConfirm={() => void handleImportConfirm()}
         onCancel={handleImportCancel}
       >
         <p className="text-center">{t('backup.importConfirmDescription')}</p>
       </ConfirmModal>
 
-      {/* Full-screen blocking overlay during import */}
-      {overlayMessage && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-background/80 backdrop-blur-sm">
-          <div className="flex flex-col items-center gap-4">
-            <LoaderCircle className="size-10 animate-spin text-primary" />
-            <p className="text-lg">{overlayMessage}</p>
-          </div>
-        </div>
-      )}
+      {/* Init UI overlay during import — the Event Horizon shader animation
+          reassures the user the app is busy. MIN_OVERLAY_MS enforces ≥5s
+          display via the Promise.all([work, minDelay]) above. */}
+      {overlayMessage && <InitOverlay message={overlayMessage} />}
     </>
   )
 }

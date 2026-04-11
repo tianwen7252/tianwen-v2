@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
 import { ArrowLeft } from 'lucide-react'
 import { RippleButton } from '@/components/ui/ripple-button'
@@ -37,8 +38,12 @@ export function ErrorOverlay({ type, message, onClose }: ErrorOverlayProps) {
   const displayMessage = message ?? t(config.messageKey)
   const isLongMessage = displayMessage.length > LONG_MESSAGE_THRESHOLD
 
-  return (
-    <div className="fixed inset-0 z-40 overflow-hidden">
+  // Render via portal directly under <body>. See the note in
+  // InitOverlay for the rationale — any ancestor containing-block
+  // (transform / backdrop-filter / filter / ...) would otherwise
+  // clip the `fixed inset-0` wrapper.
+  const overlay = (
+    <div className="fixed inset-0 z-30 overflow-hidden">
       {/* WebGL animation background */}
       <ErrorCanvas className="absolute inset-0" />
 
@@ -79,4 +84,7 @@ export function ErrorOverlay({ type, message, onClose }: ErrorOverlayProps) {
       </div>
     </div>
   )
+
+  if (typeof document === 'undefined') return overlay
+  return createPortal(overlay, document.body)
 }

@@ -23,9 +23,15 @@ export type WorkerRequest =
       readonly params?: readonly unknown[]
     }
   | { readonly type: 'export-db'; readonly id: number }
-  | { readonly type: 'import-db'; readonly id: number; readonly data: ArrayBuffer }
+  | {
+      readonly type: 'import-db'
+      readonly id: number
+      readonly data: ArrayBuffer
+    }
   | { readonly type: 'restore-prev-db'; readonly id: number }
   | { readonly type: 'has-prev-db'; readonly id: number }
+  | { readonly type: 'get-db-sizes'; readonly id: number }
+  | { readonly type: 'delete-prev-db'; readonly id: number }
 
 /** Worker → Main message types */
 export type WorkerResponse =
@@ -50,10 +56,60 @@ export type WorkerResponse =
       readonly error: string
     }
   | { readonly type: 'import-db-result'; readonly id: number }
-  | { readonly type: 'import-db-error'; readonly id: number; readonly error: string }
+  | {
+      readonly type: 'import-db-error'
+      readonly id: number
+      readonly error: string
+    }
   | { readonly type: 'restore-prev-db-result'; readonly id: number }
-  | { readonly type: 'restore-prev-db-error'; readonly id: number; readonly error: string }
-  | { readonly type: 'has-prev-db-result'; readonly id: number; readonly hasPrev: boolean }
+  | {
+      readonly type: 'restore-prev-db-error'
+      readonly id: number
+      readonly error: string
+    }
+  | {
+      readonly type: 'has-prev-db-result'
+      readonly id: number
+      readonly hasPrev: boolean
+    }
+  | {
+      readonly type: 'get-db-sizes-result'
+      readonly id: number
+      readonly currentRaw: number
+      readonly currentCompressed: number
+      readonly prevRaw: number
+      readonly prevCompressed: number
+    }
+  | {
+      readonly type: 'get-db-sizes-error'
+      readonly id: number
+      readonly error: string
+    }
+  | { readonly type: 'delete-prev-db-result'; readonly id: number }
+  | {
+      readonly type: 'delete-prev-db-error'
+      readonly id: number
+      readonly error: string
+    }
+
+/**
+ * Raw and gzip-compressed byte counts for a database file. `raw` is the
+ * uncompressed SQLite file size; `compressed` is the size it would be
+ * after gzip (matching the unit used by `.sqlite.gz` files on R2).
+ */
+export interface DatabaseByteSizes {
+  readonly raw: number
+  readonly compressed: number
+}
+
+/**
+ * Byte-size report for both the active DB and the previous snapshot.
+ * Each field is 0 when the corresponding file does not exist.
+ */
+export interface DatabaseSizes {
+  readonly current: DatabaseByteSizes
+  readonly prev: DatabaseByteSizes
+}
 
 /** Async database interface for use on the main thread */
 export interface AsyncDatabase {
@@ -65,6 +121,17 @@ export interface AsyncDatabase {
   importDatabase(data: ArrayBuffer): Promise<void>
   restorePreviousDatabase(): Promise<void>
   hasPreviousDatabase(): Promise<boolean>
+  /**
+   * Raw + gzipped byte counts for the active DB and the previous
+   * snapshot. Combined into a single call so the worker can compute
+   * both reports in one pass and the main thread can populate the
+   * cloud-backup panel in a single React Query fetch.
+   */
+  getDatabaseSizes(): Promise<DatabaseSizes>
+  /**
+   * Delete the previous database snapshot. No-op if it does not exist.
+   */
+  deletePreviousDatabase(): Promise<void>
 }
 
 // ─── Pending request tracking ───────────────────────────────────────────────
@@ -89,6 +156,11 @@ interface PendingBoolRequest {
   readonly reject: (reason: Error) => void
 }
 
+interface PendingDatabaseSizesRequest {
+  readonly resolve: (value: DatabaseSizes) => void
+  readonly reject: (reason: Error) => void
+}
+
 // ─── Factory ────────────────────────────────────────────────────────────────
 
 /**
@@ -102,6 +174,8 @@ export function createWorkerDatabase(worker: Worker): AsyncDatabase {
   const pendingImports = new Map<number, PendingVoidRequest>()
   const pendingRestores = new Map<number, PendingVoidRequest>()
   const pendingHasPrev = new Map<number, PendingBoolRequest>()
+  const pendingDbSizes = new Map<number, PendingDatabaseSizesRequest>()
+  const pendingDeletePrev = new Map<number, PendingVoidRequest>()
 
   worker.addEventListener('message', (e: MessageEvent<WorkerResponse>) => {
     const msg = e.data
@@ -177,6 +251,41 @@ export function createWorkerDatabase(worker: Worker): AsyncDatabase {
         p.resolve(msg.hasPrev)
       }
     }
+
+    if (msg.type === 'get-db-sizes-result') {
+      const p = pendingDbSizes.get(msg.id)
+      if (p) {
+        pendingDbSizes.delete(msg.id)
+        p.resolve({
+          current: { raw: msg.currentRaw, compressed: msg.currentCompressed },
+          prev: { raw: msg.prevRaw, compressed: msg.prevCompressed },
+        })
+      }
+    }
+
+    if (msg.type === 'get-db-sizes-error') {
+      const p = pendingDbSizes.get(msg.id)
+      if (p) {
+        pendingDbSizes.delete(msg.id)
+        p.reject(new Error(msg.error))
+      }
+    }
+
+    if (msg.type === 'delete-prev-db-result') {
+      const p = pendingDeletePrev.get(msg.id)
+      if (p) {
+        pendingDeletePrev.delete(msg.id)
+        p.resolve()
+      }
+    }
+
+    if (msg.type === 'delete-prev-db-error') {
+      const p = pendingDeletePrev.get(msg.id)
+      if (p) {
+        pendingDeletePrev.delete(msg.id)
+        p.reject(new Error(msg.error))
+      }
+    }
   })
 
   return {
@@ -228,6 +337,22 @@ export function createWorkerDatabase(worker: Worker): AsyncDatabase {
         const id = nextId++
         pendingHasPrev.set(id, { resolve, reject })
         worker.postMessage({ type: 'has-prev-db', id })
+      })
+    },
+
+    getDatabaseSizes(): Promise<DatabaseSizes> {
+      return new Promise<DatabaseSizes>((resolve, reject) => {
+        const id = nextId++
+        pendingDbSizes.set(id, { resolve, reject })
+        worker.postMessage({ type: 'get-db-sizes', id })
+      })
+    },
+
+    deletePreviousDatabase(): Promise<void> {
+      return new Promise<void>((resolve, reject) => {
+        const id = nextId++
+        pendingDeletePrev.set(id, { resolve, reject })
+        worker.postMessage({ type: 'delete-prev-db', id })
       })
     },
   }

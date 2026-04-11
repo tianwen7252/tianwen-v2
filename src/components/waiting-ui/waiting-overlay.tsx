@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom'
 import { ArrowLeft } from 'lucide-react'
 import { RippleButton } from '@/components/ui/ripple-button'
 import { useRegisterOverlay } from '@/hooks/use-register-overlay'
@@ -23,8 +24,12 @@ export function WaitingOverlay({
   onClose,
 }: WaitingOverlayProps) {
   useRegisterOverlay('waiting')
-  return (
-    <div className="fixed inset-0 z-40 overflow-hidden">
+
+  // Render via portal directly under <body>. See the note in
+  // InitOverlay for why this is necessary to escape ancestor
+  // containing blocks (transform / backdrop-filter / filter / ...).
+  const overlay = (
+    <div className="fixed inset-0 z-30 overflow-hidden">
       {/* WebGL animation background */}
       <WaitingCanvas className="absolute inset-0" />
 
@@ -64,4 +69,7 @@ export function WaitingOverlay({
       </div>
     </div>
   )
+
+  if (typeof document === 'undefined') return overlay
+  return createPortal(overlay, document.body)
 }

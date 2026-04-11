@@ -58,9 +58,15 @@ export function useAutoBackup(options: UseAutoBackupOptions): void {
   const finishBackup = useBackupStore(s => s.finishBackup)
   const setLastBackupTime = useBackupStore(s => s.setLastBackupTime)
 
-  // Check for overdue backup on mount and when dependencies change
+  // Check for overdue backup on mount and when dependencies change.
+  // Read isBackingUp via getState() (not via selector) so the effect does
+  // not re-run on every progress update while a backup is in flight.
   useEffect(() => {
     if (!enabled || scheduleType === 'none') {
+      return
+    }
+
+    if (useBackupStore.getState().isBackingUp) {
       return
     }
 
@@ -85,6 +91,9 @@ export function useAutoBackup(options: UseAutoBackupOptions): void {
     function handleVisibilityChange(): void {
       if (document.visibilityState === 'visible') {
         const state = useBackupStore.getState()
+        if (state.isBackingUp) {
+          return
+        }
         if (
           isBackupOverdue(state.scheduleType, state.lastBackupTime) &&
           isBackupConfigured()

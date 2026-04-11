@@ -54,11 +54,18 @@ vi.mock('@/lib/backup', () => ({
   decompress: mockDecompress,
 }))
 
-const mockImportDatabase = vi.hoisted(() => vi.fn().mockResolvedValue(undefined))
+const mockImportDatabase = vi.hoisted(() =>
+  vi.fn().mockResolvedValue(undefined),
+)
+
+const mockErrorLogCreate = vi.hoisted(() => vi.fn().mockResolvedValue({}))
 
 vi.mock('@/lib/repositories/provider', () => ({
   getDatabase: () => ({
     importDatabase: mockImportDatabase,
+  }),
+  getErrorLogRepo: () => ({
+    create: mockErrorLogCreate,
   }),
 }))
 
@@ -70,6 +77,7 @@ Object.defineProperty(window, 'location', {
 })
 
 import { CloudBackupHistory } from './cloud-backup-history'
+import { clearLogBuffer } from '@/lib/log-buffer'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -82,6 +90,7 @@ function renderComponent() {
 describe('CloudBackupHistory', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    clearLogBuffer()
     mockReload.mockClear()
     mockUseCloudBackups.mockReturnValue({
       backups: [
@@ -160,7 +169,9 @@ describe('CloudBackupHistory', () => {
 
     await waitFor(() => {
       // After close, the confirmation description should be gone
-      expect(screen.queryByText('確定要匯入此備份？現有資料將被取代')).toBeNull()
+      expect(
+        screen.queryByText('確定要匯入此備份？現有資料將被取代'),
+      ).toBeNull()
     })
   })
 
@@ -239,7 +250,7 @@ describe('CloudBackupHistory', () => {
     fireEvent.click(confirmButton)
 
     await waitFor(() => {
-      expect(screen.getByText('更新資料庫中...')).toBeTruthy()
+      expect(screen.getByText('匯入雲端資料庫中')).toBeTruthy()
     })
 
     // Let the download finish
@@ -263,11 +274,13 @@ describe('CloudBackupHistory', () => {
     })
 
     // Overlay should be gone
-    expect(screen.queryByText('更新資料庫中...')).toBeNull()
+    expect(screen.queryByText('匯入雲端資料庫中')).toBeNull()
   })
 
   it('hides overlay and shows error toast when importDatabase fails', async () => {
-    mockImportDatabase.mockRejectedValueOnce(new Error('Integrity check failed'))
+    mockImportDatabase.mockRejectedValueOnce(
+      new Error('Integrity check failed'),
+    )
 
     renderComponent()
     const importButton = screen.getAllByText('匯入')[0]!
@@ -280,7 +293,7 @@ describe('CloudBackupHistory', () => {
       expect(mockNotify.error).toHaveBeenCalled()
     })
 
-    expect(screen.queryByText('更新資料庫中...')).toBeNull()
+    expect(screen.queryByText('匯入雲端資料庫中')).toBeNull()
   })
 
   it('does not reload when import fails', async () => {

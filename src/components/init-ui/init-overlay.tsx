@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
 import { ArrowLeft } from 'lucide-react'
 import { Spinner } from '@/components/ui/spinner'
@@ -16,8 +17,16 @@ export function InitOverlay({ message, onClose }: InitOverlayProps) {
   const { t } = useTranslation()
   useRegisterOverlay('init')
 
-  return (
-    <div className="fixed inset-0 z-40 overflow-hidden">
+  // Render via portal directly under <body>. Any ancestor with
+  // `transform`, `filter`, `backdrop-filter`, `perspective`, `contain`,
+  // `container-type`, etc. creates a containing block for `fixed`
+  // descendants, which would make `inset-0` size to that ancestor
+  // rather than the viewport. The app header uses backdrop-filter and
+  // PageTransition animates translateY, so a naive in-tree render can
+  // end up clipped (seen as an Init UI that does not fill the screen
+  // height during V2 cloud-backup import). Portal sidesteps all of it.
+  const overlay = (
+    <div className="fixed inset-0 z-30 overflow-hidden">
       {/* Canvas animation background — fills entire viewport */}
       <InitCanvas className="absolute inset-0" />
 
@@ -56,4 +65,8 @@ export function InitOverlay({ message, onClose }: InitOverlayProps) {
       </div>
     </div>
   )
+
+  // Guard for test environments without a document (SSR/node).
+  if (typeof document === 'undefined') return overlay
+  return createPortal(overlay, document.body)
 }

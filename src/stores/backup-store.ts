@@ -51,20 +51,41 @@ async function persistScheduleToDb(scheduleType: ScheduleType): Promise<void> {
 /**
  * Hydrate the store from SQLite DB after initialization.
  * Called once after DB is ready.
+ *
+ * Hydrates two things:
+ * 1. `scheduleType` — from the settings table.
+ * 2. `lastBackupTime` — from the latest successful row in `backup_logs`.
+ *    This is the source of truth for "did we already back up today?" and
+ *    must survive PWA reloads; otherwise auto-backup would fire on every
+ *    cold start (multiple backups per day).
  */
 export async function hydrateBackupScheduleFromDb(): Promise<void> {
+  const provider = await import('@/lib/repositories/provider')
+
+  // Schedule type
   try {
-    const { getSettingsRepo } = await import('@/lib/repositories/provider')
-    const dbValue = await getSettingsRepo().get(DB_SETTING_KEY)
+    const dbValue = await provider.getSettingsRepo().get(DB_SETTING_KEY)
     if (dbValue && isValidScheduleType(dbValue)) {
       useBackupStore.setState({ scheduleType: dbValue })
     } else {
       // DB has no value yet — seed it with default
       const current = useBackupStore.getState().scheduleType
-      await getSettingsRepo().set(DB_SETTING_KEY, current)
+      await provider.getSettingsRepo().set(DB_SETTING_KEY, current)
     }
   } catch {
     // DB not ready — use default value
+  }
+
+  // Last backup time — derived from backup_logs (single source of truth)
+  try {
+    const ts = await provider.getBackupLogRepo().findLatestSuccessfulTimestamp()
+    if (ts != null) {
+      useBackupStore.setState({
+        lastBackupTime: new Date(ts).toISOString(),
+      })
+    }
+  } catch {
+    // DB not ready — leave lastBackupTime as null
   }
 }
 

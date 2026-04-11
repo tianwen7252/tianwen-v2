@@ -31,6 +31,66 @@ let sqlite3Ref: Awaited<ReturnType<typeof sqlite3InitModule>> | null = null
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let sahPoolUtilRef: any = null
 
+// ─── File key normalization ────────────────────────────────────────────────
+//
+// When SQLite opens a file via `new OpfsSAHPoolDb('tianwen.db')`, its xOpen
+// hook normalizes the path via `new URL(name, 'file://localhost/').pathname`
+// which returns `/tianwen.db` (with a leading slash). That normalized key
+// is what gets stored in the SAHPool's internal `mapFilenameToSAH` map.
+//
+// But the SAHPool's own API (`importDb`/`exportFile`/`unlink`) performs an
+// exact-match lookup — `mapFilenameToSAH.get(name)` — with NO normalization.
+// So calling `pool.exportFile('tianwen.db')` looks up `'tianwen.db'` (no
+// slash) and misses, producing `Error: File not found: tianwen.db`. This
+// was the root cause of the V2 cloud-backup import failure reported in
+// V2-222.
+//
+// The helpers below always use the canonical `/`-prefixed key for writes
+// (matching what SQLite xOpen will store) and tolerate legacy no-slash
+// entries when reading, so existing devices that accidentally wrote a
+// no-slash `tianwen-prev.db` still behave correctly after upgrade.
+
+const DB_FILE = '/tianwen.db'
+const PREV_DB_FILE = '/tianwen-prev.db'
+const IMPORT_DB_FILE = '/tianwen-import.db'
+
+/**
+ * Find the actual storage key for a file in the SAH pool. SQLite xOpen
+ * stores files with a leading slash; `pool.importDb()` called with a
+ * no-slash name stores them without. Check both.
+ *
+ * Returns null if the file is not in the pool.
+ */
+function resolveFileKey(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  pool: any,
+  canonicalKey: string,
+): string | null {
+  const names: string[] = pool.getFileNames()
+  if (names.includes(canonicalKey)) return canonicalKey
+  // Fallback: legacy no-slash form
+  const noSlash = canonicalKey.startsWith('/')
+    ? canonicalKey.slice(1)
+    : canonicalKey
+  if (names.includes(noSlash)) return noSlash
+  return null
+}
+
+/**
+ * Gzip a byte array and return the resulting compressed byte length.
+ * Uses the worker-global CompressionStream (available in all modern
+ * browsers and web workers). Used to report DB sizes in the same unit
+ * as the `.sqlite.gz` files on R2 so the cloud backup UI can display
+ * comparable numbers.
+ */
+async function gzipLength(bytes: Uint8Array): Promise<number> {
+  const stream = new Blob([bytes as BlobPart])
+    .stream()
+    .pipeThrough(new CompressionStream('gzip'))
+  const compressed = await new Response(stream).arrayBuffer()
+  return compressed.byteLength
+}
+
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
 /** Thin wrapper to adapt the SAHPool DB to our Database interface */
@@ -104,7 +164,10 @@ self.onmessage = async (e: MessageEvent<WorkerRequest>) => {
       }
       if (!sahPoolUtil) throw lastErr ?? new Error('SAHPool init failed')
       sahPoolUtilRef = sahPoolUtil
-      const rawDb = new sahPoolUtil.OpfsSAHPoolDb('tianwen.db')
+      // Open via DB_FILE so the SAH pool stores the canonical slash-prefixed
+      // key; subsequent pool.exportFile/importDb calls in import-db handler
+      // use the same key and find the SAH.
+      const rawDb = new sahPoolUtil.OpfsSAHPoolDb(DB_FILE)
       rawDbHandle = rawDb
       sqlite3Ref = sqlite3
       db = wrapSahPoolDb(rawDb)
@@ -215,15 +278,29 @@ self.onmessage = async (e: MessageEvent<WorkerRequest>) => {
       return
     }
 
-    try {
-      const pool = sahPoolUtilRef
+    const pool = sahPoolUtilRef
+    // Track swap progress so the catch block can attempt rollback. `true`
+    // means we have already closed the active handle and must reopen one
+    // before leaving the worker.
+    let swapInProgress = false
 
-      // 1. Write the import data into a temporary OPFS slot for validation
-      await pool.importDb('tianwen-import.db', msg.data)
+    try {
+      // 1. Write the import data into a temporary OPFS slot for validation.
+      //    We intentionally unlink any leftover import file first so a
+      //    previous aborted attempt does not conflict with this one.
+      const leftoverImportKey = resolveFileKey(pool, IMPORT_DB_FILE)
+      if (leftoverImportKey) {
+        try {
+          pool.unlink(leftoverImportKey)
+        } catch {
+          // Ignore — best effort cleanup
+        }
+      }
+      await pool.importDb(IMPORT_DB_FILE, msg.data)
 
       // 2. Open a temporary connection and run integrity check
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const tempDb = new (pool as any).OpfsSAHPoolDb('tianwen-import.db')
+      const tempDb = new (pool as any).OpfsSAHPoolDb(IMPORT_DB_FILE)
       let integrityResult: string
       try {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -238,7 +315,11 @@ self.onmessage = async (e: MessageEvent<WorkerRequest>) => {
       }
 
       if (integrityResult !== 'ok') {
-        pool.unlink('tianwen-import.db')
+        try {
+          pool.unlink(IMPORT_DB_FILE)
+        } catch {
+          // Ignore
+        }
         post({
           type: 'import-db-error',
           id: msg.id,
@@ -252,32 +333,81 @@ self.onmessage = async (e: MessageEvent<WorkerRequest>) => {
       ;(rawDbHandle as any).close()
       db = null
       rawDbHandle = null
+      swapInProgress = true
 
-      // 4. Back up the current DB to tianwen-prev.db (replace if exists)
-      try {
-        pool.unlink('tianwen-prev.db')
-      } catch {
-        // tianwen-prev.db may not exist — ignore
+      // 4. Back up the current DB to tianwen-prev.db (replace if exists).
+      //    Resolve the actual key in case legacy no-slash entries exist.
+      const prevKey = resolveFileKey(pool, PREV_DB_FILE)
+      if (prevKey) {
+        try {
+          pool.unlink(prevKey)
+        } catch {
+          // tianwen-prev.db may not exist — ignore
+        }
       }
-      const currentBytes = await pool.exportFile('tianwen.db')
-      await pool.importDb('tianwen-prev.db', currentBytes)
+      const currentKey = resolveFileKey(pool, DB_FILE)
+      if (!currentKey) {
+        throw new Error(
+          'Active database file is missing from the SAH pool (key mismatch)',
+        )
+      }
+      const currentBytes = await pool.exportFile(currentKey)
+      await pool.importDb(PREV_DB_FILE, currentBytes)
 
       // 5. Replace tianwen.db with the import candidate
-      pool.unlink('tianwen.db')
-      const importBytes = await pool.exportFile('tianwen-import.db')
-      await pool.importDb('tianwen.db', importBytes)
-      pool.unlink('tianwen-import.db')
+      pool.unlink(currentKey)
+      const importKey = resolveFileKey(pool, IMPORT_DB_FILE)
+      if (!importKey) {
+        throw new Error('Import candidate file is missing from the SAH pool')
+      }
+      const importBytes = await pool.exportFile(importKey)
+      await pool.importDb(DB_FILE, importBytes)
+      try {
+        pool.unlink(importKey)
+      } catch {
+        // Ignore
+      }
 
       // 6. Reopen the active connection on the new DB
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const newRawDb = new (pool as any).OpfsSAHPoolDb('tianwen.db')
+      const newRawDb = new (pool as any).OpfsSAHPoolDb(DB_FILE)
       rawDbHandle = newRawDb
       db = wrapSahPoolDb(newRawDb)
       initSchema((sql: string) => db!.exec(sql))
+      swapInProgress = false
 
       post({ type: 'import-db-result', id: msg.id })
     } catch (err) {
-      post({ type: 'import-db-error', id: msg.id, error: String(err) })
+      const originalError = String(err)
+
+      // Rollback: if we closed the active handle, we MUST reopen something
+      // before returning so the main thread can continue to use the DB.
+      // Prefer the original tianwen.db if it still exists (swap failed
+      // between close and backup); otherwise fall back to tianwen-prev.db
+      // if we already backed it up.
+      if (swapInProgress) {
+        try {
+          const recoverKey =
+            resolveFileKey(pool, DB_FILE) ?? resolveFileKey(pool, PREV_DB_FILE)
+          if (recoverKey) {
+            // If we recovered via the prev snapshot, copy it back to DB_FILE
+            // so the main handle opens the expected path.
+            if (recoverKey !== DB_FILE && recoverKey !== '/tianwen.db') {
+              const bytes = await pool.exportFile(recoverKey)
+              await pool.importDb(DB_FILE, bytes)
+            }
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const recoveredDb = new (pool as any).OpfsSAHPoolDb(DB_FILE)
+            rawDbHandle = recoveredDb
+            db = wrapSahPoolDb(recoveredDb)
+          }
+        } catch {
+          // Best-effort rollback — swallow any recovery error so the
+          // caller still gets the original import failure.
+        }
+      }
+
+      post({ type: 'import-db-error', id: msg.id, error: originalError })
     }
   }
 
@@ -291,16 +421,12 @@ self.onmessage = async (e: MessageEvent<WorkerRequest>) => {
       return
     }
 
+    const pool = sahPoolUtilRef
+    let swapInProgress = false
+
     try {
-      const pool = sahPoolUtilRef
-      const fileNames = pool.getFileNames()
-
-      // SAHPool filenames may have a leading slash — check both forms
-      const hasPrev =
-        fileNames.includes('tianwen-prev.db') ||
-        fileNames.includes('/tianwen-prev.db')
-
-      if (!hasPrev) {
+      const prevKey = resolveFileKey(pool, PREV_DB_FILE)
+      if (!prevKey) {
         post({
           type: 'restore-prev-db-error',
           id: msg.id,
@@ -314,21 +440,37 @@ self.onmessage = async (e: MessageEvent<WorkerRequest>) => {
       ;(rawDbHandle as any).close()
       db = null
       rawDbHandle = null
+      swapInProgress = true
 
       // Copy tianwen-prev.db over tianwen.db
-      const prevBytes = await pool.exportFile('tianwen-prev.db')
-      pool.unlink('tianwen.db')
-      await pool.importDb('tianwen.db', prevBytes)
+      const prevBytes = await pool.exportFile(prevKey)
+      const currentKey = resolveFileKey(pool, DB_FILE)
+      if (currentKey) {
+        pool.unlink(currentKey)
+      }
+      await pool.importDb(DB_FILE, prevBytes)
 
       // Reopen the active connection
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const newRawDb = new (pool as any).OpfsSAHPoolDb('tianwen.db')
+      const newRawDb = new (pool as any).OpfsSAHPoolDb(DB_FILE)
       rawDbHandle = newRawDb
       db = wrapSahPoolDb(newRawDb)
       initSchema((sql: string) => db!.exec(sql))
 
       post({ type: 'restore-prev-db-result', id: msg.id })
     } catch (err) {
+      // Attempt to reopen whichever file is still around so the main
+      // thread can keep running.
+      if (swapInProgress) {
+        try {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const recoveredDb = new (pool as any).OpfsSAHPoolDb(DB_FILE)
+          rawDbHandle = recoveredDb
+          db = wrapSahPoolDb(recoveredDb)
+        } catch {
+          // Best-effort
+        }
+      }
       post({ type: 'restore-prev-db-error', id: msg.id, error: String(err) })
     }
   }
@@ -341,14 +483,88 @@ self.onmessage = async (e: MessageEvent<WorkerRequest>) => {
     }
 
     try {
-      const fileNames = sahPoolUtilRef.getFileNames()
-      const hasPrev =
-        fileNames.includes('tianwen-prev.db') ||
-        fileNames.includes('/tianwen-prev.db')
+      const hasPrev = resolveFileKey(sahPoolUtilRef, PREV_DB_FILE) !== null
       post({ type: 'has-prev-db-result', id: msg.id, hasPrev })
     } catch {
       // On unexpected error fall back to false
       post({ type: 'has-prev-db-result', id: msg.id, hasPrev: false })
+    }
+  }
+
+  if (msg.type === 'get-db-sizes') {
+    if (!sahPoolUtilRef || !rawDbHandle || !sqlite3Ref) {
+      post({
+        type: 'get-db-sizes-result',
+        id: msg.id,
+        currentRaw: 0,
+        currentCompressed: 0,
+        prevRaw: 0,
+        prevCompressed: 0,
+      })
+      return
+    }
+
+    try {
+      const pool = sahPoolUtilRef
+
+      // Current DB: use sqlite3_js_db_export (same path as export-db)
+      // because the file is live and we should read a consistent
+      // snapshot of the committed data, not raw OPFS bytes.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const currentBytes: Uint8Array = sqlite3Ref.capi.sqlite3_js_db_export(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        rawDbHandle as any,
+      )
+      const currentRaw = currentBytes.byteLength
+      const currentCompressed = await gzipLength(currentBytes)
+
+      // Previous DB snapshot: use the SAH pool directly (no live
+      // connection to it). 0/0 if no snapshot exists.
+      let prevRaw = 0
+      let prevCompressed = 0
+      const prevKey = resolveFileKey(pool, PREV_DB_FILE)
+      if (prevKey) {
+        const prevBytes: Uint8Array = await pool.exportFile(prevKey)
+        prevRaw = prevBytes.byteLength
+        prevCompressed = await gzipLength(prevBytes)
+      }
+
+      post({
+        type: 'get-db-sizes-result',
+        id: msg.id,
+        currentRaw,
+        currentCompressed,
+        prevRaw,
+        prevCompressed,
+      })
+    } catch (err) {
+      post({
+        type: 'get-db-sizes-error',
+        id: msg.id,
+        error: String(err),
+      })
+    }
+  }
+
+  if (msg.type === 'delete-prev-db') {
+    if (!sahPoolUtilRef) {
+      post({
+        type: 'delete-prev-db-error',
+        id: msg.id,
+        error: 'Database not initialized',
+      })
+      return
+    }
+
+    try {
+      const pool = sahPoolUtilRef
+      const prevKey = resolveFileKey(pool, PREV_DB_FILE)
+      if (prevKey) {
+        pool.unlink(prevKey)
+      }
+      post({ type: 'delete-prev-db-result', id: msg.id })
+    } catch (err) {
+      post({ type: 'delete-prev-db-error', id: msg.id, error: String(err) })
     }
   }
 }
