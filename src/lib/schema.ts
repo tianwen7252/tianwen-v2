@@ -51,6 +51,7 @@ export const CREATE_TABLES = `
     edited_memo TEXT,
     editor TEXT NOT NULL DEFAULT '',
     is_served INTEGER NOT NULL DEFAULT 0,
+    order_staff_id TEXT DEFAULT NULL,
     created_at INTEGER NOT NULL DEFAULT (unixepoch('now') * 1000),
     updated_at INTEGER NOT NULL DEFAULT (unixepoch('now') * 1000)
   );
@@ -95,6 +96,7 @@ export const CREATE_TABLES = `
       CHECK (shift_type IN ('regular', 'shift')),
     employee_no TEXT UNIQUE,
     is_admin INTEGER NOT NULL DEFAULT 0,
+    is_default_order_staff INTEGER NOT NULL DEFAULT 0,
     hire_date TEXT,
     resignation_date TEXT,
     created_at INTEGER NOT NULL DEFAULT (unixepoch('now') * 1000),
@@ -417,9 +419,7 @@ function runMigrations(exec: (sql: string) => void): void {
 
   // V2-198: Add is_served column to orders for served status tracking
   try {
-    exec(
-      'ALTER TABLE orders ADD COLUMN is_served INTEGER NOT NULL DEFAULT 0',
-    )
+    exec('ALTER TABLE orders ADD COLUMN is_served INTEGER NOT NULL DEFAULT 0')
   } catch {
     // Column already exists — safe to ignore
   }
@@ -445,31 +445,47 @@ function runMigrations(exec: (sql: string) => void): void {
     exec('INSERT INTO order_items_new SELECT * FROM order_items')
     exec('DROP TABLE order_items')
     exec('ALTER TABLE order_items_new RENAME TO order_items')
-    exec('CREATE INDEX IF NOT EXISTS idx_order_items_order_id ON order_items(order_id)')
+    exec(
+      'CREATE INDEX IF NOT EXISTS idx_order_items_order_id ON order_items(order_id)',
+    )
   } catch {
     // Migration already applied or table doesn't exist yet — safe to ignore
-    try { exec('DROP TABLE IF EXISTS order_items_new') } catch { /* cleanup */ }
+    try {
+      exec('DROP TABLE IF EXISTS order_items_new')
+    } catch {
+      /* cleanup */
+    }
+  }
+
+  // V2-223: Add is_default_order_staff column to employees
+  try {
+    exec(
+      'ALTER TABLE employees ADD COLUMN is_default_order_staff INTEGER NOT NULL DEFAULT 0',
+    )
+  } catch {
+    // Column already exists — safe to ignore
+  }
+
+  // V2-223: Add order_staff_id column to orders
+  try {
+    exec('ALTER TABLE orders ADD COLUMN order_staff_id TEXT DEFAULT NULL')
+  } catch {
+    // Column already exists — safe to ignore
   }
 
   // V2-189: Add missing indexes for query performance.
-  exec(
-    'CREATE INDEX IF NOT EXISTS idx_orders_number ON orders(number)',
-  )
+  exec('CREATE INDEX IF NOT EXISTS idx_orders_number ON orders(number)')
   exec(
     'CREATE INDEX IF NOT EXISTS idx_orders_created_at_editor ON orders(created_at, editor)',
   )
-  exec(
-    'CREATE INDEX IF NOT EXISTS idx_commodities_name ON commodities(name)',
-  )
+  exec('CREATE INDEX IF NOT EXISTS idx_commodities_name ON commodities(name)')
   exec(
     'CREATE INDEX IF NOT EXISTS idx_commodities_type_id ON commodities(type_id)',
   )
   exec(
     'CREATE INDEX IF NOT EXISTS idx_commodities_type_on_market ON commodities(type_id, on_market)',
   )
-  exec(
-    'CREATE INDEX IF NOT EXISTS idx_employees_name ON employees(name)',
-  )
+  exec('CREATE INDEX IF NOT EXISTS idx_employees_name ON employees(name)')
 }
 
 /**

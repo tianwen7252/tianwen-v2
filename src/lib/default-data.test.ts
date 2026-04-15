@@ -410,8 +410,8 @@ describe('insertDefaultEmployees(db)', () => {
     insertDefaultEmployees(db)
 
     const first = db.calls.find(c => c.sql.includes('employees'))
-    // Expected: id, name, avatar, status, shift_type, employee_no, is_admin, hire_date, resignation_date, created_at, updated_at
-    expect(first!.params).toHaveLength(11)
+    // Expected: id, name, avatar, status, shift_type, employee_no, is_admin, is_default_order_staff, hire_date, resignation_date, created_at, updated_at
+    expect(first!.params).toHaveLength(12)
   })
 
   it('does not mutate DEFAULT_EMPLOYEES array', () => {

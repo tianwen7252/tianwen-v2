@@ -49,13 +49,14 @@ const EMPLOYEE_TIMESTAMPS: Record<
 }
 
 export const DEFAULT_EMPLOYEES: readonly Employee[] = EMPLOYEE_SEEDS.map(
-  (seed) => {
+  seed => {
     const ts = EMPLOYEE_TIMESTAMPS[seed.id] ?? {
       createdAt: BASE_TS,
       updatedAt: BASE_TS,
     }
     return {
       ...seed,
+      isDefaultOrderStaff: seed.isDefaultOrderStaff ?? false,
       createdAt: ts.createdAt,
       updatedAt: ts.updatedAt,
     }
@@ -65,7 +66,7 @@ export const DEFAULT_EMPLOYEES: readonly Employee[] = EMPLOYEE_SEEDS.map(
 // ─── Build Commodity Types ──────────────────────────────────────────────────
 
 export const DEFAULT_COMMODITY_TYPES: readonly CommodityType[] =
-  COMMODITY_TYPE_SEEDS.map((seed) => ({
+  COMMODITY_TYPE_SEEDS.map(seed => ({
     ...seed,
     createdAt: BASE_TS,
     updatedAt: BASE_TS,
@@ -74,7 +75,7 @@ export const DEFAULT_COMMODITY_TYPES: readonly CommodityType[] =
 // ─── Build Commodities ──────────────────────────────────────────────────────
 
 export const DEFAULT_COMMODITIES: readonly Commodity[] = COMMODITY_SEEDS.map(
-  (seed) => ({
+  seed => ({
     id: seed.id,
     typeId: seed.typeId,
     name: seed.name,
@@ -92,7 +93,7 @@ export const DEFAULT_COMMODITIES: readonly Commodity[] = COMMODITY_SEEDS.map(
 // ─── Build Order Types ─────────────────────────────────────────────────────
 
 export const DEFAULT_ORDER_TYPES: readonly OrderType[] = ORDER_TYPE_SEEDS.map(
-  (seed) => ({
+  seed => ({
     ...seed,
     createdAt: BASE_TS,
     updatedAt: BASE_TS,
@@ -134,10 +135,10 @@ export function markDefaultDataVersion(): void {
  *   attendances (for default employees) → employees
  */
 export function deleteDefaultData(db: Database): void {
-  const employeeIds = EMPLOYEE_SEEDS.map((s) => s.id)
-  const typeIds = COMMODITY_TYPE_SEEDS.map((s) => s.id)
-  const typeIdValues = COMMODITY_TYPE_SEEDS.map((s) => s.typeId)
-  const commodityIds = COMMODITY_SEEDS.map((s) => s.id)
+  const employeeIds = EMPLOYEE_SEEDS.map(s => s.id)
+  const typeIds = COMMODITY_TYPE_SEEDS.map(s => s.id)
+  const typeIdValues = COMMODITY_TYPE_SEEDS.map(s => s.typeId)
+  const commodityIds = COMMODITY_SEEDS.map(s => s.id)
 
   const placeholders = (ids: readonly string[]) => ids.map(() => '?').join(', ')
 
@@ -196,8 +197,8 @@ export function clearAllData(db: Database): void {
 export function insertDefaultEmployees(db: Database): void {
   for (const emp of DEFAULT_EMPLOYEES) {
     db.exec(
-      `INSERT OR IGNORE INTO employees (id, name, avatar, status, shift_type, employee_no, is_admin, hire_date, resignation_date, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT OR IGNORE INTO employees (id, name, avatar, status, shift_type, employee_no, is_admin, is_default_order_staff, hire_date, resignation_date, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         emp.id,
         emp.name,
@@ -206,6 +207,7 @@ export function insertDefaultEmployees(db: Database): void {
         emp.shiftType,
         emp.employeeNo ?? null,
         emp.isAdmin ? 1 : 0,
+        emp.isDefaultOrderStaff ? 1 : 0,
         emp.hireDate ?? null,
         emp.resignationDate ?? null,
         emp.createdAt,
@@ -225,8 +227,8 @@ export async function insertDefaultEmployeesAsync(
 ): Promise<void> {
   for (const emp of DEFAULT_EMPLOYEES) {
     await db.exec(
-      `INSERT OR IGNORE INTO employees (id, name, avatar, status, shift_type, employee_no, is_admin, hire_date, resignation_date, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT OR IGNORE INTO employees (id, name, avatar, status, shift_type, employee_no, is_admin, is_default_order_staff, hire_date, resignation_date, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         emp.id,
         emp.name,
@@ -235,6 +237,7 @@ export async function insertDefaultEmployeesAsync(
         emp.shiftType,
         emp.employeeNo ?? null,
         emp.isAdmin ? 1 : 0,
+        emp.isDefaultOrderStaff ? 1 : 0,
         emp.hireDate ?? null,
         emp.resignationDate ?? null,
         emp.createdAt,

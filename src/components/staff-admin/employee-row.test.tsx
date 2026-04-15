@@ -43,6 +43,7 @@ function makeEmployee(overrides: Partial<Employee> = {}): Employee {
     name: 'Alex',
     employeeNo: 'E001',
     isAdmin: false,
+    isDefaultOrderStaff: false,
     shiftType: 'regular',
     status: 'active',
     createdAt: 1700000000000,

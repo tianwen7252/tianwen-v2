@@ -18,6 +18,7 @@ function makeEmployee(overrides: Partial<Employee> = {}): Employee {
     name: 'Test Employee',
     employeeNo: 'E001',
     isAdmin: false,
+    isDefaultOrderStaff: false,
     shiftType: 'regular',
     status: 'active',
     createdAt: Date.now(),
@@ -94,6 +95,7 @@ describe('employeeToFormValues', () => {
       avatar: '/images/cat.png',
       shiftType: 'shift',
       isAdmin: true,
+      isDefaultOrderStaff: false,
       hireDate: '2025-01-01',
       resignationDate: '2026-06-30',
     })

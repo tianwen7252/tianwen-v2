@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import dayjs from 'dayjs'
 import type { Order } from '@/lib/schemas'
 import { OrderHistoryCard } from './order-history-card'
@@ -47,6 +48,19 @@ vi.mock('lucide-react', () => ({
   MoveDown: (props: Record<string, unknown>) => (
     <span data-testid="move-down-icon" {...props} />
   ),
+  CircleCheckBig: (props: Record<string, unknown>) => (
+    <span data-testid="circle-check-icon" {...props} />
+  ),
+  ContactRound: (props: Record<string, unknown>) => (
+    <span data-testid="contact-round-icon" {...props} />
+  ),
+}))
+
+// Mock employee repo for order staff name resolution
+vi.mock('@/lib/repositories/provider', () => ({
+  getEmployeeRepo: () => ({
+    findAll: vi.fn().mockResolvedValue([]),
+  }),
 }))
 
 // Mock i18n — return the key itself, except for known keys
@@ -119,6 +133,18 @@ function makeTypeIdMap(
   return new Map(entries)
 }
 
+// ─── Wrapper ────────────────────────────────────────────────────────────────
+
+const queryClient = new QueryClient({
+  defaultOptions: { queries: { retry: false } },
+})
+
+function renderWithProviders(ui: React.ReactElement) {
+  return render(
+    <QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>,
+  )
+}
+
 // ─── Tests ───────────────────────────────────────────────────────────────────
 
 describe('OrderHistoryCard', () => {
@@ -131,17 +157,17 @@ describe('OrderHistoryCard', () => {
   }
 
   it('should render order number', () => {
-    render(<OrderHistoryCard {...defaultProps} />)
+    renderWithProviders(<OrderHistoryCard {...defaultProps} />)
     expect(screen.getByText('#3')).toBeTruthy()
   })
 
   it('should render formatted time in AM/PM format', () => {
-    render(<OrderHistoryCard {...defaultProps} />)
+    renderWithProviders(<OrderHistoryCard {...defaultProps} />)
     expect(screen.getByText('12:45 PM')).toBeTruthy()
   })
 
   it('should render categorized items with category headers', () => {
-    render(<OrderHistoryCard {...defaultProps} />)
+    renderWithProviders(<OrderHistoryCard {...defaultProps} />)
     const card = screen.getByTestId('order-history-card')
     // Both items are bento with includesSoup=true, so "Bento" header should appear
     expect(card.textContent).toContain('Bento')
@@ -182,7 +208,7 @@ describe('OrderHistoryCard', () => {
       ['c1', 'bento'],
       ['c3', 'drink'],
     ])
-    render(
+    renderWithProviders(
       <OrderHistoryCard
         order={order}
         typeIdMap={typeIdMap}
@@ -214,7 +240,7 @@ describe('OrderHistoryCard', () => {
       ],
     })
     const typeIdMap = makeTypeIdMap([])
-    render(
+    renderWithProviders(
       <OrderHistoryCard
         order={order}
         typeIdMap={typeIdMap}
@@ -253,7 +279,7 @@ describe('OrderHistoryCard', () => {
         },
       ],
     })
-    render(
+    renderWithProviders(
       <OrderHistoryCard
         order={order}
         typeIdMap={defaultTypeIdMap}
@@ -268,14 +294,14 @@ describe('OrderHistoryCard', () => {
   })
 
   it('should render memo tags as pills', () => {
-    render(<OrderHistoryCard {...defaultProps} />)
+    renderWithProviders(<OrderHistoryCard {...defaultProps} />)
     expect(screen.getByText('Attack on Titan')).toBeTruthy()
     expect(screen.getByText('Delivery')).toBeTruthy()
   })
 
   it('should not render memo section when memo is empty', () => {
     const order = makeOrder({ memo: [] })
-    render(
+    renderWithProviders(
       <OrderHistoryCard
         order={order}
         typeIdMap={defaultTypeIdMap}
@@ -286,12 +312,12 @@ describe('OrderHistoryCard', () => {
   })
 
   it('should render total amount', () => {
-    render(<OrderHistoryCard {...defaultProps} />)
+    renderWithProviders(<OrderHistoryCard {...defaultProps} />)
     expect(screen.getByText('$250')).toBeTruthy()
   })
 
   it('should show original price with strikethrough when discounted', () => {
-    render(<OrderHistoryCard {...defaultProps} />)
+    renderWithProviders(<OrderHistoryCard {...defaultProps} />)
     const originalPrice = screen.getByText('$300')
     expect(originalPrice).toBeTruthy()
     expect(originalPrice.className).toContain('line-through')
@@ -299,7 +325,7 @@ describe('OrderHistoryCard', () => {
 
   it('should not show original price when not discounted', () => {
     const order = makeOrder({ originalTotal: undefined })
-    render(
+    renderWithProviders(
       <OrderHistoryCard
         order={order}
         typeIdMap={defaultTypeIdMap}
@@ -313,7 +339,7 @@ describe('OrderHistoryCard', () => {
 
   it('should not show original price when originalTotal equals total', () => {
     const order = makeOrder({ originalTotal: 250, total: 250 })
-    render(
+    renderWithProviders(
       <OrderHistoryCard
         order={order}
         typeIdMap={defaultTypeIdMap}
@@ -330,7 +356,7 @@ describe('OrderHistoryCard', () => {
       createdAt: new Date('2026-03-24T12:45:00').getTime(),
       updatedAt: new Date('2026-03-24T13:30:00').getTime(),
     })
-    render(
+    renderWithProviders(
       <OrderHistoryCard
         order={order}
         typeIdMap={defaultTypeIdMap}
@@ -342,7 +368,7 @@ describe('OrderHistoryCard', () => {
   })
 
   it('should not show update time when updatedAt equals createdAt', () => {
-    render(<OrderHistoryCard {...defaultProps} />)
+    renderWithProviders(<OrderHistoryCard {...defaultProps} />)
     const card = screen.getByTestId('order-history-card')
     // The default order has updatedAt === createdAt, so no date string shown
     const defaultTime = dayjs(defaultProps.order.createdAt).format(
@@ -352,7 +378,7 @@ describe('OrderHistoryCard', () => {
   })
 
   it('should always show both edit and delete swipe actions', () => {
-    render(<OrderHistoryCard {...defaultProps} />)
+    renderWithProviders(<OrderHistoryCard {...defaultProps} />)
     expect(screen.getByTestId('swipe-action-edit')).toBeTruthy()
     expect(screen.getByTestId('swipe-action-delete')).toBeTruthy()
   })
@@ -361,7 +387,7 @@ describe('OrderHistoryCard', () => {
     const onDelete = vi.fn()
     const { default: userEvent } = await import('@testing-library/user-event')
     const user = userEvent.setup()
-    render(
+    renderWithProviders(
       <OrderHistoryCard
         order={makeOrder()}
         typeIdMap={defaultTypeIdMap}
@@ -376,7 +402,7 @@ describe('OrderHistoryCard', () => {
     const onEdit = vi.fn()
     const { default: userEvent } = await import('@testing-library/user-event')
     const user = userEvent.setup()
-    render(
+    renderWithProviders(
       <OrderHistoryCard
         order={makeOrder()}
         typeIdMap={defaultTypeIdMap}
@@ -389,7 +415,7 @@ describe('OrderHistoryCard', () => {
   })
 
   it('should have data-testid="order-history-card"', () => {
-    render(<OrderHistoryCard {...defaultProps} />)
+    renderWithProviders(<OrderHistoryCard {...defaultProps} />)
     expect(screen.getByTestId('order-history-card')).toBeTruthy()
   })
 })

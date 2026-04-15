@@ -15,6 +15,7 @@ export const employeeSchema = z.object({
   shiftType: z.enum(['regular', 'shift']).default('regular'),
   employeeNo: z.string().optional(),
   isAdmin: z.boolean().default(false),
+  isDefaultOrderStaff: z.boolean().default(false),
   hireDate: z.string().optional(),
   resignationDate: z.string().optional(),
   /** Google OAuth subject identifier — set when the employee binds their Google account. */
@@ -189,6 +190,7 @@ export const orderSchema = z.object({
   editedMemo: z.string().optional(),
   editor: z.string().default(''),
   isServed: z.boolean().default(false),
+  orderStaffId: z.string().optional(),
   createdAt: z.number(),
   updatedAt: z.number(),
   // Normalized items and discounts — populated on read, empty array for old orders
@@ -221,6 +223,7 @@ export const createOrderSchema = z.object({
   originalTotal: z.number().optional(),
   editedMemo: z.string().optional(),
   editor: z.string(),
+  orderStaffId: z.string().optional(),
 })
 
 export type Order = z.infer<typeof orderSchema>
