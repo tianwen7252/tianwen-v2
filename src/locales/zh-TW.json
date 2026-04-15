@@ -153,7 +153,18 @@
     "notInWindow": "目前非結帳時段",
     "windowInfo": "結帳時段：早班 1:30 PM ~ 2:00 PM，晚班 7:30 PM ~ 8:00 PM",
     "checkoutTime": "結帳: {{time}}",
-    "notCheckedOut": "未結帳"
+    "notCheckedOut": "未結帳",
+    "recordsTab": "結帳記錄",
+    "recordsTitle": "結帳記錄",
+    "dateColumn": "日期",
+    "shiftColumn": "班次",
+    "staffColumn": "結帳人員",
+    "revenueColumn": "金額",
+    "timeColumn": "結帳時間",
+    "morning": "早班",
+    "evening": "晚班",
+    "noRecords": "尚無結帳記錄",
+    "searchPlaceholder": "搜尋日期、人員、金額..."
   },
   "orderStaff": {
     "selectTitle": "選擇點餐人員",
@@ -334,7 +345,7 @@
     "orderCount": "訂單數量",
     "morningRevenue": "早班營業額",
     "afternoonRevenue": "晚班營業額",
-    "totalQuantity": "訂單總數量",
+    "totalQuantity": "商品總數量",
     "bentoQuantity": "便當銷售數量",
     "orderTimeDistribution": "訂單時間分布",
     "orderCountLabel": "訂單數",

@@ -9,7 +9,7 @@ import { cn } from '@/lib/cn'
 export function HeaderOrderStaff() {
   const { t } = useTranslation()
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const orderStaffName = useOrderStaffStore(s => s.orderStaffName)
+  const orderStaffName = useOrderStaffStore((s) => s.orderStaffName)
 
   return (
     <>
@@ -22,7 +22,7 @@ export function HeaderOrderStaff() {
         )}
         onClick={() => setIsModalOpen(true)}
       >
-        <ContactRound size={18} />
+        <ContactRound size={20} />
         {orderStaffName && (
           <span className="text-md">
             {t('orderStaff.currentlyTaking', { name: orderStaffName })}

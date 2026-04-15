@@ -322,6 +322,7 @@ export const shiftCheckoutSchema = z.object({
   shift: shiftTypeEnum,
   orderStaffId: z.string().optional(),
   orderStaffName: z.string().default(''),
+  revenue: z.number().default(0),
   checkoutAt: z.number(),
   createdAt: z.number(),
   updatedAt: z.number(),

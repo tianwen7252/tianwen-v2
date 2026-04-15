@@ -52,9 +52,9 @@ describe('ProductKpiGrid', () => {
       expect(screen.getByText('晚班營業額')).toBeTruthy()
     })
 
-    it('renders the 訂單總數量 card title', () => {
+    it('renders the 商品總數量 card title', () => {
       render(<ProductKpiGrid kpis={SAMPLE_KPIS} />)
-      expect(screen.getByText('訂單總數量')).toBeTruthy()
+      expect(screen.getByText('商品總數量')).toBeTruthy()
     })
 
     it('renders the 便當銷售數量 card title', () => {

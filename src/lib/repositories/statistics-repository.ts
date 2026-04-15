@@ -251,7 +251,7 @@ export function createStatisticsRepository(
       const result = await db.exec<Record<string, unknown>>(
         `SELECT
            COALESCE(SUM(o.total), 0)                                         AS total_revenue,
-           COUNT(o.id)                                                        AS order_count,
+           COUNT(DISTINCT o.id)                                                AS order_count,
            COALESCE(SUM(CASE WHEN ${hourExpr} < 12 THEN o.total ELSE 0 END), 0)  AS morning_revenue,
            COALESCE(SUM(CASE WHEN ${hourExpr} >= 12 THEN o.total ELSE 0 END), 0) AS afternoon_revenue,
            COALESCE(SUM(oi.quantity), 0)                                      AS total_quantity,

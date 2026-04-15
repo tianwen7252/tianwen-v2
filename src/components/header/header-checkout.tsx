@@ -25,9 +25,9 @@ export function HeaderCheckout() {
 
   function handleClick() {
     if (!isCheckoutTime) {
-      notify.error(
-        `${t('shiftCheckout.notInWindow')}\n${t('shiftCheckout.windowInfo')}`,
-      )
+      notify.error(t('shiftCheckout.notInWindow'), {
+        description: t('shiftCheckout.windowInfo'),
+      })
       return
     }
     setIsModalOpen(true)
@@ -42,7 +42,7 @@ export function HeaderCheckout() {
           className="flex size-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
           onClick={handleClick}
         >
-          <Receipt size={18} />
+          <Receipt size={20} />
         </RippleButton>
         {isCheckoutTime && (
           <ShineBorder
