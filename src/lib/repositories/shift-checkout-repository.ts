@@ -8,6 +8,7 @@ import type {
 
 export interface ShiftCheckoutRepository {
   create(data: CreateShiftCheckout): Promise<ShiftCheckout>
+  findAll(): Promise<ShiftCheckout[]>
   findByDate(date: string): Promise<ShiftCheckout[]>
   findByDateAndShift(
     date: string,
@@ -24,6 +25,7 @@ function toShiftCheckout(row: Record<string, unknown>): ShiftCheckout {
     orderStaffId:
       row['order_staff_id'] != null ? String(row['order_staff_id']) : undefined,
     orderStaffName: String(row['order_staff_name'] ?? ''),
+    revenue: Number(row['revenue'] ?? 0),
     checkoutAt: Number(row['checkout_at']),
     createdAt: Number(row['created_at']),
     updatedAt: Number(row['updated_at']),
@@ -38,14 +40,15 @@ export function createShiftCheckoutRepository(
       const id = nanoid()
       const now = Date.now()
       await db.exec(
-        `INSERT INTO shift_checkouts (id, date, shift, order_staff_id, order_staff_name, checkout_at, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO shift_checkouts (id, date, shift, order_staff_id, order_staff_name, revenue, checkout_at, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           id,
           data.date,
           data.shift,
           data.orderStaffId ?? null,
           data.orderStaffName,
+          data.revenue,
           data.checkoutAt,
           now,
           now,
@@ -56,6 +59,13 @@ export function createShiftCheckoutRepository(
         [id],
       )
       return toShiftCheckout(result.rows[0]!)
+    },
+
+    async findAll() {
+      const result = await db.exec<Record<string, unknown>>(
+        'SELECT * FROM shift_checkouts ORDER BY checkout_at DESC',
+      )
+      return result.rows.map(toShiftCheckout)
     },
 
     async findByDate(date: string) {

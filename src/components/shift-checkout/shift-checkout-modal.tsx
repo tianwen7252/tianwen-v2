@@ -4,7 +4,8 @@ import { useTranslation } from 'react-i18next'
 import { ConfirmModal } from '@/components/modal/modal'
 import { LiveClock } from './live-clock'
 import { getCurrentShift } from '@/lib/shift-checkout'
-import { getShiftCheckoutRepo } from '@/lib/repositories/provider'
+import { getShiftCheckoutRepo, getOrderRepo } from '@/lib/repositories/provider'
+import { MORNING_SHIFT } from '@/constants/app'
 import { useOrderStaffStore } from '@/stores/order-staff-store'
 import { notify } from '@/components/ui/sonner'
 import { logError } from '@/lib/error-logger'
@@ -41,6 +42,22 @@ export function ShiftCheckoutModal({ open, onClose }: ShiftCheckoutModalProps) {
         return
       }
 
+      // Calculate shift revenue from today's orders (all orders including stall)
+      const dayStart = dayjs(today).startOf('day').valueOf()
+      const dayEnd = dayjs(today).endOf('day').valueOf()
+      const todayOrders = await getOrderRepo().findByDateRange(dayStart, dayEnd)
+
+      const [cutoffHour, cutoffMinute] = MORNING_SHIFT.split(':').map(Number) as [number, number]
+      const shiftRevenue = todayOrders
+        .filter(o => {
+          const h = dayjs(o.createdAt).hour()
+          const m = dayjs(o.createdAt).minute()
+          const isMorning =
+            h < cutoffHour || (h === cutoffHour && m < cutoffMinute)
+          return shift === 'morning' ? isMorning : !isMorning
+        })
+        .reduce((sum, o) => sum + o.total, 0)
+
       const { orderStaffId, orderStaffName } = useOrderStaffStore.getState()
 
       await getShiftCheckoutRepo().create({
@@ -48,6 +65,7 @@ export function ShiftCheckoutModal({ open, onClose }: ShiftCheckoutModalProps) {
         shift,
         orderStaffId: orderStaffId ?? undefined,
         orderStaffName: orderStaffName ?? '',
+        revenue: shiftRevenue,
         checkoutAt: Date.now(),
       })
 

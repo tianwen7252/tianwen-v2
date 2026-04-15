@@ -7,7 +7,7 @@
 import dayjs from 'dayjs'
 import { useTranslation } from 'react-i18next'
 import { Sun, MoonStar, CircleDollarSign, Store } from 'lucide-react'
-import type { Order } from '@/lib/schemas'
+import type { Order, ShiftCheckout } from '@/lib/schemas'
 import { formatCurrency } from '@/lib/currency'
 import { MORNING_SHIFT } from '@/constants/app'
 import { isStallOrder } from '@/lib/shift-checkout'
@@ -17,6 +17,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 
 export interface OrdersShiftSummaryProps {
   readonly orders: readonly Order[]
+  readonly checkouts?: readonly ShiftCheckout[]
 }
 
 interface ShiftStats {
@@ -80,9 +81,14 @@ function computeShiftStats(orders: readonly Order[]): {
 
 // ─── Component ───────────────────────────────────────────────────────────────
 
-export function OrdersShiftSummary({ orders }: OrdersShiftSummaryProps) {
+export function OrdersShiftSummary({
+  orders,
+  checkouts = [],
+}: OrdersShiftSummaryProps) {
   const { t } = useTranslation()
   const { stall, morning, afternoon, total } = computeShiftStats(orders)
+  const morningCheckout = checkouts.find(c => c.shift === 'morning')
+  const eveningCheckout = checkouts.find(c => c.shift === 'evening')
 
   return (
     <div data-testid="shift-summary" className="grid grid-cols-4 gap-3">
@@ -117,6 +123,13 @@ export function OrdersShiftSummary({ orders }: OrdersShiftSummaryProps) {
               <Sun />
             </div>
           </CardTitle>
+          {morningCheckout && (
+            <p className="text-xs text-muted-foreground">
+              {t('shiftCheckout.checkoutTime', {
+                time: dayjs(morningCheckout.checkoutAt).format('h:mm A'),
+              })}
+            </p>
+          )}
         </CardHeader>
         <CardContent className="px-3">
           <div className="text-base text-primary">
@@ -139,6 +152,13 @@ export function OrdersShiftSummary({ orders }: OrdersShiftSummaryProps) {
               <MoonStar />
             </div>
           </CardTitle>
+          {eveningCheckout && (
+            <p className="text-xs text-muted-foreground">
+              {t('shiftCheckout.checkoutTime', {
+                time: dayjs(eveningCheckout.checkoutAt).format('h:mm A'),
+              })}
+            </p>
+          )}
         </CardHeader>
         <CardContent className="px-3">
           <div className="text-base text-primary">

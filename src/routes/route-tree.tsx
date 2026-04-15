@@ -62,6 +62,7 @@ import { CloudBackup } from '@/components/settings/cloud-backup'
 import { Records } from '@/components/records'
 import { StaffAdmin } from '@/components/staff-admin'
 import { ProductManagement } from '@/components/settings/product-management'
+import { CheckoutRecords } from '@/components/settings/checkout-records'
 // Dev preview pages — lazy-loaded (dev-only, no flash since PageTransition key uses top-level route)
 const ModalPreview = lazy(() =>
   import('@/pages/preview').then(m => ({ default: m.ModalPreview })),
@@ -401,6 +402,12 @@ const settingsStaffAdminRoute = createRoute({
   component: StaffAdmin,
 })
 
+const settingsCheckoutRecordsRoute = createRoute({
+  getParentRoute: () => settingsRoute,
+  path: '/checkout-records',
+  component: CheckoutRecords,
+})
+
 const settingsProductManagementRoute = createRoute({
   getParentRoute: () => settingsRoute,
   path: '/product-management',
@@ -420,6 +427,7 @@ export const routeTree = rootRoute.addChildren([
     settingsRecordsRoute,
     settingsStaffAdminRoute,
     settingsProductManagementRoute,
+    settingsCheckoutRecordsRoute,
   ]),
   devRoute.addChildren([
     devIndexRoute,

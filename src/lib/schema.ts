@@ -212,6 +212,7 @@ export const CREATE_TABLES = `
     shift TEXT NOT NULL CHECK (shift IN ('morning', 'evening')),
     order_staff_id TEXT,
     order_staff_name TEXT NOT NULL DEFAULT '',
+    revenue REAL NOT NULL DEFAULT 0,
     checkout_at INTEGER NOT NULL,
     created_at INTEGER NOT NULL DEFAULT (unixepoch('now') * 1000),
     updated_at INTEGER NOT NULL DEFAULT (unixepoch('now') * 1000)
@@ -495,6 +496,7 @@ function runMigrations(exec: (sql: string) => void): void {
     shift TEXT NOT NULL CHECK (shift IN ('morning', 'evening')),
     order_staff_id TEXT,
     order_staff_name TEXT NOT NULL DEFAULT '',
+    revenue REAL NOT NULL DEFAULT 0,
     checkout_at INTEGER NOT NULL,
     created_at INTEGER NOT NULL DEFAULT (unixepoch('now') * 1000),
     updated_at INTEGER NOT NULL DEFAULT (unixepoch('now') * 1000)
@@ -502,6 +504,15 @@ function runMigrations(exec: (sql: string) => void): void {
   exec(
     'CREATE UNIQUE INDEX IF NOT EXISTS idx_shift_checkouts_date_shift ON shift_checkouts(date, shift)',
   )
+
+  // V2-237: Add revenue column to shift_checkouts
+  try {
+    exec(
+      'ALTER TABLE shift_checkouts ADD COLUMN revenue REAL NOT NULL DEFAULT 0',
+    )
+  } catch {
+    // Column already exists — safe to ignore
+  }
 
   // V2-189: Add missing indexes for query performance.
   exec('CREATE INDEX IF NOT EXISTS idx_orders_number ON orders(number)')
