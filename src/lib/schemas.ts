@@ -311,3 +311,29 @@ export const priceChangeLogSchema = z.object({
 })
 
 export type PriceChangeLog = z.infer<typeof priceChangeLogSchema>
+
+// ─── ShiftCheckout ─────────────────────────────────────────────────────────
+
+export const shiftTypeEnum = z.enum(['morning', 'evening'])
+
+export const shiftCheckoutSchema = z.object({
+  id: z.string(),
+  date: z.string(),
+  shift: shiftTypeEnum,
+  orderStaffId: z.string().optional(),
+  orderStaffName: z.string().default(''),
+  revenue: z.number().default(0),
+  checkoutAt: z.number(),
+  createdAt: z.number(),
+  updatedAt: z.number(),
+})
+
+export const createShiftCheckoutSchema = shiftCheckoutSchema.omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+})
+
+export type ShiftType = z.infer<typeof shiftTypeEnum>
+export type ShiftCheckout = z.infer<typeof shiftCheckoutSchema>
+export type CreateShiftCheckout = z.infer<typeof createShiftCheckoutSchema>

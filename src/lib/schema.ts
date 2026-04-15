@@ -205,6 +205,22 @@ export const CREATE_TABLES = `
 
   CREATE INDEX IF NOT EXISTS idx_price_change_logs_created_at ON price_change_logs(created_at);
 
+  -- Shift checkout records
+  CREATE TABLE IF NOT EXISTS shift_checkouts (
+    id TEXT PRIMARY KEY,
+    date TEXT NOT NULL,
+    shift TEXT NOT NULL CHECK (shift IN ('morning', 'evening')),
+    order_staff_id TEXT,
+    order_staff_name TEXT NOT NULL DEFAULT '',
+    revenue REAL NOT NULL DEFAULT 0,
+    checkout_at INTEGER NOT NULL,
+    created_at INTEGER NOT NULL DEFAULT (unixepoch('now') * 1000),
+    updated_at INTEGER NOT NULL DEFAULT (unixepoch('now') * 1000)
+  );
+
+  CREATE UNIQUE INDEX IF NOT EXISTS idx_shift_checkouts_date_shift
+    ON shift_checkouts(date, shift);
+
   -- Schema version tracking
   CREATE TABLE IF NOT EXISTS schema_meta (
     key TEXT PRIMARY KEY,
@@ -469,6 +485,31 @@ function runMigrations(exec: (sql: string) => void): void {
   // V2-223: Add order_staff_id column to orders
   try {
     exec('ALTER TABLE orders ADD COLUMN order_staff_id TEXT DEFAULT NULL')
+  } catch {
+    // Column already exists — safe to ignore
+  }
+
+  // V2-230: Add shift_checkouts table
+  exec(`CREATE TABLE IF NOT EXISTS shift_checkouts (
+    id TEXT PRIMARY KEY,
+    date TEXT NOT NULL,
+    shift TEXT NOT NULL CHECK (shift IN ('morning', 'evening')),
+    order_staff_id TEXT,
+    order_staff_name TEXT NOT NULL DEFAULT '',
+    revenue REAL NOT NULL DEFAULT 0,
+    checkout_at INTEGER NOT NULL,
+    created_at INTEGER NOT NULL DEFAULT (unixepoch('now') * 1000),
+    updated_at INTEGER NOT NULL DEFAULT (unixepoch('now') * 1000)
+  )`)
+  exec(
+    'CREATE UNIQUE INDEX IF NOT EXISTS idx_shift_checkouts_date_shift ON shift_checkouts(date, shift)',
+  )
+
+  // V2-237: Add revenue column to shift_checkouts
+  try {
+    exec(
+      'ALTER TABLE shift_checkouts ADD COLUMN revenue REAL NOT NULL DEFAULT 0',
+    )
   } catch {
     // Column already exists — safe to ignore
   }

@@ -8,6 +8,7 @@ import { Link, useRouterState } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { Settings, Code } from 'lucide-react'
 import { HeaderOrderStaff } from '@/components/header/header-order-staff'
+import { HeaderCheckout } from '@/components/header/header-checkout'
 import { HeaderUserMenu } from '@/components/header/header-user-menu'
 import { RippleButton } from '@/components/ui/ripple-button'
 import { cn } from '@/lib/cn'
@@ -177,6 +178,7 @@ export function AppHeader({ disabled, overlayActive }: AppHeaderProps) {
             </NavIconLink>
           )}
           <HeaderOrderStaff />
+          <HeaderCheckout />
           <NavIconLink
             to="/settings"
             ariaLabel={t('nav.settings')}

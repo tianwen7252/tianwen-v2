@@ -102,7 +102,7 @@ describe('SettingsPage', () => {
       })
     })
 
-    it('should render tabs in correct order: system, records, staff, products, backup', async () => {
+    it('should render tabs in correct order: system, records, staff, products, checkout, backup', async () => {
       renderWithRouter()
       await waitFor(() => {
         expect(screen.getByText('系統資訊')).toBeTruthy()
@@ -114,6 +114,7 @@ describe('SettingsPage', () => {
         '打卡記錄',
         '員工管理',
         '商品管理',
+        '結帳記錄',
         '雲端備份',
       ])
     })
