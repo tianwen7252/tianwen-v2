@@ -14,7 +14,7 @@
  *   pnpm exec playwright test tests/screenshots/user-guide.spec.ts --project=ipad-11
  */
 
-import { test, expect, type Page, type BrowserContext } from '@playwright/test'
+import { test, expect, type Page } from '@playwright/test'
 import path from 'path'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -42,7 +42,7 @@ const FAKE_ACCESS_TOKEN = 'fake-access-token-for-screenshots'
 // via dynamic import inside evaluate, which in Vite dev hits the same
 // singleton because modules are cached.
 
-const STORE_INIT_SCRIPT = `
+const _STORE_INIT_SCRIPT = `
   // Expose stores on window for test use
   // Called once after app mounts to make stores accessible to page.evaluate()
   async function exposeStores() {
