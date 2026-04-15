@@ -1,15 +1,16 @@
 /**
  * Shift summary cards for the Orders page.
- * Splits orders into morning/afternoon shifts based on MORNING_SHIFT cutoff
- * and displays count + revenue for each shift plus a grand total.
+ * Splits orders into stall/morning/afternoon shifts and displays
+ * count + revenue for each category plus a grand total.
  */
 
 import dayjs from 'dayjs'
 import { useTranslation } from 'react-i18next'
-import { Sun, MoonStar, CircleDollarSign } from 'lucide-react'
+import { Sun, MoonStar, CircleDollarSign, Store } from 'lucide-react'
 import type { Order } from '@/lib/schemas'
 import { formatCurrency } from '@/lib/currency'
 import { MORNING_SHIFT } from '@/constants/app'
+import { isStallOrder } from '@/lib/shift-checkout'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -25,7 +26,6 @@ interface ShiftStats {
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
-// Parse MORNING_SHIFT ('HH:mm') into numeric hour and minute for comparison
 const [CUTOFF_HOUR, CUTOFF_MINUTE] = MORNING_SHIFT.split(':').map(Number) as [
   number,
   number,
@@ -33,7 +33,6 @@ const [CUTOFF_HOUR, CUTOFF_MINUTE] = MORNING_SHIFT.split(':').map(Number) as [
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-/** Check if an order was placed during morning shift (before cutoff) */
 function isMorningOrder(order: Order): boolean {
   const orderTime = dayjs(order.createdAt)
   return (
@@ -42,19 +41,24 @@ function isMorningOrder(order: Order): boolean {
   )
 }
 
-/** Split orders into morning and afternoon based on MORNING_SHIFT cutoff */
 function computeShiftStats(orders: readonly Order[]): {
+  readonly stall: ShiftStats
   readonly morning: ShiftStats
   readonly afternoon: ShiftStats
   readonly total: ShiftStats
 } {
+  let stallCount = 0
+  let stallRevenue = 0
   let morningCount = 0
   let morningRevenue = 0
   let afternoonCount = 0
   let afternoonRevenue = 0
 
   for (const order of orders) {
-    if (isMorningOrder(order)) {
+    if (isStallOrder(order)) {
+      stallCount += 1
+      stallRevenue += order.total
+    } else if (isMorningOrder(order)) {
       morningCount += 1
       morningRevenue += order.total
     } else {
@@ -64,27 +68,46 @@ function computeShiftStats(orders: readonly Order[]): {
   }
 
   return {
+    stall: { count: stallCount, revenue: stallRevenue },
     morning: { count: morningCount, revenue: morningRevenue },
     afternoon: { count: afternoonCount, revenue: afternoonRevenue },
     total: {
-      count: morningCount + afternoonCount,
-      revenue: morningRevenue + afternoonRevenue,
+      count: stallCount + morningCount + afternoonCount,
+      revenue: stallRevenue + morningRevenue + afternoonRevenue,
     },
   }
 }
 
 // ─── Component ───────────────────────────────────────────────────────────────
 
-/**
- * Displays three summary cards: morning shift, afternoon shift, and grand total.
- * Each card shows order count and total revenue.
- */
 export function OrdersShiftSummary({ orders }: OrdersShiftSummaryProps) {
   const { t } = useTranslation()
-  const { morning, afternoon, total } = computeShiftStats(orders)
+  const { stall, morning, afternoon, total } = computeShiftStats(orders)
 
   return (
-    <div data-testid="shift-summary" className="grid grid-cols-3 gap-3">
+    <div data-testid="shift-summary" className="grid grid-cols-4 gap-3">
+      {/* Stall card */}
+      <Card shadow data-testid="stall-card" className="py-3">
+        <CardHeader className="px-3 py-0">
+          <CardTitle fontSize="text-md" className="text-muted-foreground">
+            <div className="flex justify-between">
+              {t('orders.stallShift')}
+              <Store />
+            </div>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="px-3">
+          <div className="text-base text-primary">
+            <div className="flex justify-between">
+              {t('orders.orderCount', { count: stall.count })}
+              <span className="text-(--color-gold)">
+                {formatCurrency(stall.revenue)}
+              </span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Morning shift card */}
       <Card shadow data-testid="morning-card" className="py-3">
         <CardHeader className="px-3 py-0">

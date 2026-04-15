@@ -42,14 +42,14 @@ describe('ProductKpiGrid', () => {
       expect(screen.getByText('訂單數量')).toBeTruthy()
     })
 
-    it('renders the 上午營業額 card title', () => {
+    it('renders the 早班營業額 card title', () => {
       render(<ProductKpiGrid kpis={SAMPLE_KPIS} />)
-      expect(screen.getByText('上午營業額')).toBeTruthy()
+      expect(screen.getByText('早班營業額')).toBeTruthy()
     })
 
-    it('renders the 下午營業額 card title', () => {
+    it('renders the 晚班營業額 card title', () => {
       render(<ProductKpiGrid kpis={SAMPLE_KPIS} />)
-      expect(screen.getByText('下午營業額')).toBeTruthy()
+      expect(screen.getByText('晚班營業額')).toBeTruthy()
     })
 
     it('renders the 訂單總數量 card title', () => {

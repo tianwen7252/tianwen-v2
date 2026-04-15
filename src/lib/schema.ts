@@ -205,6 +205,21 @@ export const CREATE_TABLES = `
 
   CREATE INDEX IF NOT EXISTS idx_price_change_logs_created_at ON price_change_logs(created_at);
 
+  -- Shift checkout records
+  CREATE TABLE IF NOT EXISTS shift_checkouts (
+    id TEXT PRIMARY KEY,
+    date TEXT NOT NULL,
+    shift TEXT NOT NULL CHECK (shift IN ('morning', 'evening')),
+    order_staff_id TEXT,
+    order_staff_name TEXT NOT NULL DEFAULT '',
+    checkout_at INTEGER NOT NULL,
+    created_at INTEGER NOT NULL DEFAULT (unixepoch('now') * 1000),
+    updated_at INTEGER NOT NULL DEFAULT (unixepoch('now') * 1000)
+  );
+
+  CREATE UNIQUE INDEX IF NOT EXISTS idx_shift_checkouts_date_shift
+    ON shift_checkouts(date, shift);
+
   -- Schema version tracking
   CREATE TABLE IF NOT EXISTS schema_meta (
     key TEXT PRIMARY KEY,
@@ -472,6 +487,21 @@ function runMigrations(exec: (sql: string) => void): void {
   } catch {
     // Column already exists — safe to ignore
   }
+
+  // V2-230: Add shift_checkouts table
+  exec(`CREATE TABLE IF NOT EXISTS shift_checkouts (
+    id TEXT PRIMARY KEY,
+    date TEXT NOT NULL,
+    shift TEXT NOT NULL CHECK (shift IN ('morning', 'evening')),
+    order_staff_id TEXT,
+    order_staff_name TEXT NOT NULL DEFAULT '',
+    checkout_at INTEGER NOT NULL,
+    created_at INTEGER NOT NULL DEFAULT (unixepoch('now') * 1000),
+    updated_at INTEGER NOT NULL DEFAULT (unixepoch('now') * 1000)
+  )`)
+  exec(
+    'CREATE UNIQUE INDEX IF NOT EXISTS idx_shift_checkouts_date_shift ON shift_checkouts(date, shift)',
+  )
 
   // V2-189: Add missing indexes for query performance.
   exec('CREATE INDEX IF NOT EXISTS idx_orders_number ON orders(number)')
