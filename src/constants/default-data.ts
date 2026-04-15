@@ -51,6 +51,7 @@ export interface EmployeeSeed {
   readonly shiftType: 'regular' | 'shift'
   readonly employeeNo: string
   readonly isAdmin: boolean
+  readonly isDefaultOrderStaff?: boolean
   readonly hireDate: string
   readonly resignationDate?: string
 }
@@ -74,6 +75,7 @@ export const EMPLOYEE_SEEDS: readonly EmployeeSeed[] = [
     shiftType: 'regular',
     employeeNo: 'E002',
     isAdmin: false,
+    isDefaultOrderStaff: true,
     hireDate: '2024-03-01',
   },
   {

@@ -24,6 +24,7 @@ import {
 import { initRepositories } from '@/lib/repositories'
 import { installGlobalErrorLogger } from '@/lib/error-logger'
 import { useInitStore } from '@/stores/init-store'
+import { useOrderStaffStore } from '@/stores/order-staff-store'
 
 // Initialize i18n before rendering (side-effect import)
 import i18n from './lib/i18n'
@@ -165,10 +166,12 @@ bootstrapDatabase()
       setTimeout(() => {
         useInitStore.getState().setShowInitUI(false)
         useInitStore.getState().setBootstrapDone()
+        useOrderStaffStore.getState().initFromDefault()
       }, remaining)
     } else {
       // Fast path — init UI was never shown
       useInitStore.getState().setBootstrapDone()
+      useOrderStaffStore.getState().initFromDefault()
     }
   })
   .catch((err: unknown) => {

@@ -1,8 +1,16 @@
 import { useMemo, useState, useRef, useEffect } from 'react'
 import dayjs from 'dayjs'
 import { useTranslation } from 'react-i18next'
-import { Pencil, Trash2, MoveDown, CircleCheckBig } from 'lucide-react'
+import { useQuery } from '@tanstack/react-query'
+import {
+  Pencil,
+  Trash2,
+  MoveDown,
+  CircleCheckBig,
+  ContactRound,
+} from 'lucide-react'
 import { SwipeActions } from '@/components/ui/swipe-actions'
+import { getEmployeeRepo } from '@/lib/repositories/provider'
 import type { Order } from '@/lib/schemas'
 import { formatCurrency } from '@/lib/currency'
 import { groupOrderItems } from '@/lib/group-order-items'
@@ -95,6 +103,18 @@ export function OrderHistoryCard({
     setOverflows(el.scrollHeight > CARD_MAX_HEIGHT)
   }, [order, expanded])
 
+  // Resolve order staff name from employee list (shared cache across all cards)
+  const { data: employees = [] } = useQuery({
+    queryKey: ['employees', 'all'],
+    queryFn: () => getEmployeeRepo().findAll(),
+    staleTime: 300_000,
+  })
+
+  const orderStaffName = useMemo(() => {
+    if (!order.orderStaffId) return undefined
+    return employees.find(e => e.id === order.orderStaffId)?.name
+  }, [order.orderStaffId, employees])
+
   // AM/PM format for time display
   const formattedTime = dayjs(order.createdAt).format('h:mm A')
   const isDiscounted =
@@ -139,7 +159,7 @@ export function OrderHistoryCard({
 
         {/* Row 2: Categorized items */}
         <div className="flex flex-col gap-2 mb-2">
-          {groups.map((group) => {
+          {groups.map(group => {
             const accent = CATEGORY_ACCENT[group.key] ?? DEFAULT_ACCENT
             return (
               <div
@@ -149,7 +169,7 @@ export function OrderHistoryCard({
                 <div className={`mb-1 text-lg tracking-wide ${accent.text}`}>
                   {t(group.label)}
                 </div>
-                {group.items.map((item) => (
+                {group.items.map(item => (
                   <div
                     key={item.id}
                     className="flex items-baseline justify-between py-[3px]"
@@ -166,7 +186,7 @@ export function OrderHistoryCard({
                     </span>
                   </div>
                 ))}
-                {group.discounts?.map((discount) => (
+                {group.discounts?.map(discount => (
                   <div
                     key={discount.id}
                     className="flex items-baseline justify-between py-[3px]"
@@ -188,7 +208,7 @@ export function OrderHistoryCard({
         {/* Row 3: Memo tags */}
         {order.memo.length > 0 && (
           <div data-testid="memo-tags" className="flex gap-1.5 mb-2">
-            {order.memo.map((tag) => (
+            {order.memo.map(tag => (
               <span
                 key={tag}
                 className="inline-block px-2 py-0.5 text-md rounded-lg bg-[#F8F4EC] text-muted-foreground"
@@ -199,19 +219,25 @@ export function OrderHistoryCard({
           </div>
         )}
 
-        {/* Row 4: Update time (left) + Total price (right) */}
-        <div className="flex items-baseline justify-between mt-auto">
-          {/* Left: update time */}
-          {hasUpdate ? (
-            <span className="text-xs text-muted-foreground flex gap-1">
-              <Pencil size={14} />
-              {dayjs(order.updatedAt).format('YYYY/MM/DD HH:mm:ss')}
-            </span>
-          ) : (
-            <span />
-          )}
+        {/* Row 4: Info (left) + Total price (right) */}
+        <div className="flex justify-between mt-auto">
+          {/* Left: order staff + update time */}
+          <div className="flex flex-col gap-0.5">
+            {orderStaffName && (
+              <span className="flex items-center gap-1 text-md text-muted-foreground">
+                <ContactRound size={14} />
+                {t('orderStaff.staffLabel')}: {orderStaffName}
+              </span>
+            )}
+            {hasUpdate && (
+              <span className="text-xs text-muted-foreground flex gap-1">
+                <Pencil size={14} />
+                {dayjs(order.updatedAt).format('YYYY/MM/DD HH:mm:ss')}
+              </span>
+            )}
+          </div>
           {/* Right: total price */}
-          <div className="flex items-baseline gap-2">
+          <div className="flex items-end gap-2">
             {isDiscounted && (
               <span className="text-xs text-muted-foreground line-through">
                 {formatCurrency(order.originalTotal, { allowEmpty: true })}
@@ -234,7 +260,7 @@ export function OrderHistoryCard({
             <RippleButton
               rippleColor="rgba(0,0,0,0.1)"
               className="pointer-events-auto flex items-center gap-1 text-md text-muted-foreground transition hover:text-foreground"
-              onClick={(e) => {
+              onClick={e => {
                 e.stopPropagation()
                 setExpanded(true)
               }}

@@ -12,6 +12,7 @@ export const employeeFormSchema = z.object({
   avatar: z.string().default(''),
   shiftType: z.enum(['regular', 'shift']).default('regular'),
   isAdmin: z.boolean().default(false),
+  isDefaultOrderStaff: z.boolean().default(false),
   hireDate: z.string().default(''),
   resignationDate: z.string().default(''),
 })

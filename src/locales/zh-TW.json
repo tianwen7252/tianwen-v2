@@ -60,7 +60,9 @@
     "linkGoogleConfirmMessage": "確定要將目前登入的Google帳號「{{googleName}}」連結至員工「{{employeeName}}」嗎？",
     "linkGoogleDuplicate": "此Google帳號已連結至員工「{{name}}」，無法重複連結",
     "unlinkGoogleConfirmTitle": "確認取消連結",
-    "unlinkGoogleConfirmMessage": "確定要取消員工「{{employeeName}}」的Google帳號連結嗎？"
+    "unlinkGoogleConfirmMessage": "確定要取消員工「{{employeeName}}」的Google帳號連結嗎？",
+    "defaultOrderStaff": "預設點餐人員",
+    "orderStaffTag": "點餐員工"
   },
   "clockIn": {
     "today": "今天",
@@ -140,6 +142,12 @@
     "loginError": "登入失敗，請重試",
     "loginViaHeader": "請點擊右上角的登入按鈕",
     "sessionExpired": "登入已過期，請重新登入"
+  },
+  "orderStaff": {
+    "selectTitle": "選擇點餐人員",
+    "currentlyTaking": "{{name}}正在點餐",
+    "noSelection": "選擇點餐人員",
+    "staffLabel": "點餐人員"
   },
   "init": {
     "loading": "資料庫初始化中",

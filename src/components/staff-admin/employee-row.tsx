@@ -45,6 +45,11 @@ export function EmployeeRow({
               {t('staff.admin')}
             </span>
           )}
+          {employee.isDefaultOrderStaff && (
+            <span className="w-fit rounded-md bg-green-100 px-1.5 py-0.5 text-md text-green-800">
+              {t('staff.orderStaffTag')}
+            </span>
+          )}
           {isGoogleLinked && (
             <span className="w-fit rounded-md bg-blue-100 px-1.5 py-0.5 text-md text-blue-800">
               {t('staff.googleLinked')}

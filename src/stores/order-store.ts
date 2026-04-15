@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { nanoid } from 'nanoid'
 import { getOrderRepo } from '@/lib/repositories/provider'
+import { useOrderStaffStore } from '@/stores/order-staff-store'
 import type { Order } from '@/lib/schemas'
 
 /** typeId for stall items — orders containing these auto-get "攤位" memo tag */
@@ -77,7 +78,12 @@ interface OrderActions {
   removeDiscount: (discountId: string) => void
   clearCart: () => void
   loadOrder: (order: Order, typeIdMap: ReadonlyMap<string, string>) => void
-  startEditOrder: (orderId: string, orderNumber: number, order: Order, typeIdMap: ReadonlyMap<string, string>) => void
+  startEditOrder: (
+    orderId: string,
+    orderNumber: number,
+    order: Order,
+    typeIdMap: ReadonlyMap<string, string>,
+  ) => void
   clearEditMode: () => void
   submitOrder: (memoTags?: string[]) => Promise<void>
   getSubtotal: () => number
@@ -206,7 +212,13 @@ export const useOrderStore = create<OrderState & OrderActions>((set, get) => ({
       discounts: state.discounts.filter(d => d.id !== discountId),
     })),
 
-  clearCart: () => set({ items: [], discounts: [], editingOrderId: null, editingOrderNumber: null }),
+  clearCart: () =>
+    set({
+      items: [],
+      discounts: [],
+      editingOrderId: null,
+      editingOrderNumber: null,
+    }),
 
   loadOrder: (order, typeIdMap) =>
     set({
@@ -263,9 +275,12 @@ export const useOrderStore = create<OrderState & OrderActions>((set, get) => ({
 
     // Auto-add "攤位" tag when any stall item is in the order
     const hasStallItem = items.some(item => item.typeId === STALL_TYPE_ID)
-    const memo = hasStallItem && !tags.includes(STALL_MEMO_TAG)
-      ? [STALL_MEMO_TAG, ...tags]
-      : tags
+    const memo =
+      hasStallItem && !tags.includes(STALL_MEMO_TAG)
+        ? [STALL_MEMO_TAG, ...tags]
+        : tags
+
+    const { orderStaffId: currentOrderStaffId } = useOrderStaffStore.getState()
 
     const orderData = {
       number: editingOrderNumber ?? (await repo.getNextOrderNumber()),
@@ -285,6 +300,7 @@ export const useOrderStore = create<OrderState & OrderActions>((set, get) => ({
       total,
       originalTotal: subtotal,
       editor: operatorId ?? '',
+      orderStaffId: currentOrderStaffId ?? undefined,
     }
 
     if (editingOrderId) {

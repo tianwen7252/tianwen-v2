@@ -7,6 +7,8 @@ export interface EmployeeRepository {
   findById(id: string): Promise<Employee | undefined>
   findByStatus(status: 'active' | 'inactive'): Promise<Employee[]>
   findByEmployeeNo(employeeNo: string): Promise<Employee | undefined>
+  /** Find the active employee marked as the default order staff. */
+  findDefaultOrderStaff(): Promise<Employee | undefined>
   create(data: CreateEmployee): Promise<Employee>
   update(
     id: string,
@@ -44,6 +46,9 @@ function toEmployee(row: Record<string, unknown>): Employee {
     employeeNo:
       row['employee_no'] != null ? String(row['employee_no']) : undefined,
     isAdmin: row['is_admin'] === 1 || row['is_admin'] === true,
+    isDefaultOrderStaff:
+      row['is_default_order_staff'] === 1 ||
+      row['is_default_order_staff'] === true,
     hireDate: row['hire_date'] != null ? String(row['hire_date']) : undefined,
     resignationDate:
       row['resignation_date'] != null
@@ -95,12 +100,20 @@ export function createEmployeeRepository(
       return row ? toEmployee(row) : undefined
     },
 
+    async findDefaultOrderStaff() {
+      const result = await db.exec<Record<string, unknown>>(
+        "SELECT * FROM employees WHERE is_default_order_staff = 1 AND status = 'active' LIMIT 1",
+      )
+      const row = result.rows[0]
+      return row ? toEmployee(row) : undefined
+    },
+
     async create(data: CreateEmployee) {
       const id = nanoid()
       const now = Date.now()
       await db.exec(
-        `INSERT INTO employees (id, name, avatar, status, shift_type, employee_no, is_admin, hire_date, resignation_date, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO employees (id, name, avatar, status, shift_type, employee_no, is_admin, is_default_order_staff, hire_date, resignation_date, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           id,
           data.name,
@@ -109,6 +122,7 @@ export function createEmployeeRepository(
           data.shiftType,
           data.employeeNo ?? null,
           data.isAdmin ? 1 : 0,
+          data.isDefaultOrderStaff ? 1 : 0,
           data.hireDate ?? null,
           data.resignationDate ?? null,
           now,
@@ -149,6 +163,10 @@ export function createEmployeeRepository(
       if (data.isAdmin !== undefined) {
         fields.push('is_admin = ?')
         values.push(data.isAdmin ? 1 : 0)
+      }
+      if (data.isDefaultOrderStaff !== undefined) {
+        fields.push('is_default_order_staff = ?')
+        values.push(data.isDefaultOrderStaff ? 1 : 0)
       }
       if (data.hireDate !== undefined) {
         fields.push('hire_date = ?')

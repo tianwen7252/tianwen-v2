@@ -36,6 +36,8 @@ function rowToOrderBase(
       row['edited_memo'] != null ? String(row['edited_memo']) : undefined,
     editor: String(row['editor'] ?? ''),
     isServed: Boolean(Number(row['is_served'])),
+    orderStaffId:
+      row['order_staff_id'] != null ? String(row['order_staff_id']) : undefined,
     createdAt: Number(row['created_at']),
     updatedAt: Number(row['updated_at']),
   }
@@ -98,8 +100,8 @@ export function createOrderRepository(db: AsyncDatabase): OrderRepository {
       await db.exec('BEGIN TRANSACTION')
       try {
         await db.exec(
-          `INSERT INTO orders (id, number, memo, soups, total, original_total, edited_memo, editor, created_at, updated_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          `INSERT INTO orders (id, number, memo, soups, total, original_total, edited_memo, editor, order_staff_id, created_at, updated_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [
             id,
             data.number,
@@ -109,6 +111,7 @@ export function createOrderRepository(db: AsyncDatabase): OrderRepository {
             data.originalTotal ?? null,
             data.editedMemo ?? null,
             data.editor,
+            data.orderStaffId ?? null,
             now,
             now,
           ],
@@ -147,7 +150,7 @@ export function createOrderRepository(db: AsyncDatabase): OrderRepository {
       try {
         await db.exec(
           `UPDATE orders
-           SET memo = ?, soups = ?, total = ?, original_total = ?, edited_memo = ?, editor = ?, updated_at = ?
+           SET memo = ?, soups = ?, total = ?, original_total = ?, edited_memo = ?, editor = ?, order_staff_id = ?, updated_at = ?
            WHERE id = ?`,
           [
             JSON.stringify(data.memo),
@@ -156,6 +159,7 @@ export function createOrderRepository(db: AsyncDatabase): OrderRepository {
             data.originalTotal ?? null,
             data.editedMemo ?? null,
             data.editor,
+            data.orderStaffId ?? null,
             now,
             id,
           ],
@@ -198,10 +202,10 @@ export function createOrderRepository(db: AsyncDatabase): OrderRepository {
     },
 
     async toggleServed(id: string, isServed: boolean) {
-      await db.exec(
-        'UPDATE orders SET is_served = ? WHERE id = ?',
-        [isServed ? 1 : 0, id],
-      )
+      await db.exec('UPDATE orders SET is_served = ? WHERE id = ?', [
+        isServed ? 1 : 0,
+        id,
+      ])
     },
 
     async getNextOrderNumber() {
