@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.11.0](https://github.com/tianwen7252/tianwen-v2/compare/v2.10.0...v2.11.0) (2026-04-16)
+
+
+### Features
+
+* **V2-223:** 點餐人員功能 ([#39](https://github.com/tianwen7252/tianwen-v2/issues/39)) ([595c685](https://github.com/tianwen7252/tianwen-v2/commit/595c685484e9509b3512fd95f0d6240079d68765))
+* **V2-230:** 櫃台結帳功能 + 結帳記錄 ([#41](https://github.com/tianwen7252/tianwen-v2/issues/41)) ([2ef34a5](https://github.com/tianwen7252/tianwen-v2/commit/2ef34a508fc92aae5019b80dbd78fc2226e481f8))
+
 ## [2.10.0](https://github.com/tianwen7252/tianwen-v2/compare/v2.9.0...v2.10.0) (2026-04-11)
 
 
