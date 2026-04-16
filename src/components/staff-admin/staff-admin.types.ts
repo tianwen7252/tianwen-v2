@@ -14,6 +14,7 @@ export const DEFAULT_VALUES: EmployeeFormValues = {
   avatar: '',
   shiftType: 'regular',
   isAdmin: false,
+  isDefaultOrderStaff: false,
   hireDate: '',
   resignationDate: '',
 }
@@ -38,6 +39,7 @@ export function employeeToFormValues(employee: Employee): EmployeeFormValues {
     avatar: employee.avatar ?? '',
     shiftType: (employee.shiftType as 'regular' | 'shift') ?? 'regular',
     isAdmin: employee.isAdmin,
+    isDefaultOrderStaff: employee.isDefaultOrderStaff,
     hireDate: employee.hireDate ?? '',
     resignationDate: employee.resignationDate ?? '',
   }

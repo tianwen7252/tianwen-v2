@@ -15,6 +15,7 @@ export const employeeSchema = z.object({
   shiftType: z.enum(['regular', 'shift']).default('regular'),
   employeeNo: z.string().optional(),
   isAdmin: z.boolean().default(false),
+  isDefaultOrderStaff: z.boolean().default(false),
   hireDate: z.string().optional(),
   resignationDate: z.string().optional(),
   /** Google OAuth subject identifier — set when the employee binds their Google account. */
@@ -189,6 +190,7 @@ export const orderSchema = z.object({
   editedMemo: z.string().optional(),
   editor: z.string().default(''),
   isServed: z.boolean().default(false),
+  orderStaffId: z.string().optional(),
   createdAt: z.number(),
   updatedAt: z.number(),
   // Normalized items and discounts — populated on read, empty array for old orders
@@ -221,6 +223,7 @@ export const createOrderSchema = z.object({
   originalTotal: z.number().optional(),
   editedMemo: z.string().optional(),
   editor: z.string(),
+  orderStaffId: z.string().optional(),
 })
 
 export type Order = z.infer<typeof orderSchema>
@@ -308,3 +311,29 @@ export const priceChangeLogSchema = z.object({
 })
 
 export type PriceChangeLog = z.infer<typeof priceChangeLogSchema>
+
+// ─── ShiftCheckout ─────────────────────────────────────────────────────────
+
+export const shiftTypeEnum = z.enum(['morning', 'evening'])
+
+export const shiftCheckoutSchema = z.object({
+  id: z.string(),
+  date: z.string(),
+  shift: shiftTypeEnum,
+  orderStaffId: z.string().optional(),
+  orderStaffName: z.string().default(''),
+  revenue: z.number().default(0),
+  checkoutAt: z.number(),
+  createdAt: z.number(),
+  updatedAt: z.number(),
+})
+
+export const createShiftCheckoutSchema = shiftCheckoutSchema.omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+})
+
+export type ShiftType = z.infer<typeof shiftTypeEnum>
+export type ShiftCheckout = z.infer<typeof shiftCheckoutSchema>
+export type CreateShiftCheckout = z.infer<typeof createShiftCheckoutSchema>

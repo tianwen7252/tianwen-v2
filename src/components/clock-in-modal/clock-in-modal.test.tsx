@@ -15,6 +15,7 @@ const baseEmployee: Employee = {
   shiftType: 'regular',
   employeeNo: 'E001',
   isAdmin: false,
+  isDefaultOrderStaff: false,
   hireDate: '2024-01-15',
   createdAt: Date.now(),
   updatedAt: Date.now(),

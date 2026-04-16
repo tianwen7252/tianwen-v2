@@ -9,6 +9,7 @@ vi.mock('react-i18next', () => ({
   useTranslation: () => ({
     t: (key: string, opts?: Record<string, unknown>) => {
       const map: Record<string, string> = {
+        'orders.stallShift': '攤位',
         'orders.morningShift': '早班',
         'orders.afternoonShift': '晚班',
         'orders.grandTotal': '合計',
@@ -52,6 +53,16 @@ function makeAfternoonOrder(total: number, time: string): Order {
   return makeOrder({
     id: `afternoon-${time}`,
     total,
+    createdAt: dayjs(`2026-03-24T${time}`).valueOf(),
+    updatedAt: dayjs(`2026-03-24T${time}`).valueOf(),
+  })
+}
+
+function makeStallOrder(total: number, time: string): Order {
+  return makeOrder({
+    id: `stall-${time}`,
+    total,
+    memo: ['攤位'],
     createdAt: dayjs(`2026-03-24T${time}`).valueOf(),
     updatedAt: dayjs(`2026-03-24T${time}`).valueOf(),
   })
@@ -140,12 +151,40 @@ describe('OrdersShiftSummary', () => {
     expect(summary.textContent).toContain('$3,000')
   })
 
-  it('should display shift labels', () => {
+  it('should display shift labels including stall', () => {
     render(<OrdersShiftSummary orders={[]} />)
     const summary = screen.getByTestId('shift-summary')
+    expect(summary.textContent).toContain('攤位')
     expect(summary.textContent).toContain('早班')
     expect(summary.textContent).toContain('晚班')
     expect(summary.textContent).toContain('合計')
+  })
+
+  it('should separate stall orders from morning/afternoon', () => {
+    const orders: readonly Order[] = [
+      makeStallOrder(500, '10:00'),
+      makeStallOrder(300, '15:00'),
+      makeMorningOrder(100, '09:00'),
+      makeAfternoonOrder(200, '14:00'),
+    ]
+
+    render(<OrdersShiftSummary orders={orders} />)
+    const stall = screen.getByTestId('stall-card')
+    const morning = screen.getByTestId('morning-card')
+    const afternoon = screen.getByTestId('afternoon-card')
+    const total = screen.getByTestId('total-card')
+    // Stall: 2 orders, $800
+    expect(stall.textContent).toContain('2')
+    expect(stall.textContent).toContain('$800')
+    // Morning: 1 order, $100 (no stall)
+    expect(morning.textContent).toContain('1')
+    expect(morning.textContent).toContain('$100')
+    // Afternoon: 1 order, $200 (no stall)
+    expect(afternoon.textContent).toContain('1')
+    expect(afternoon.textContent).toContain('$200')
+    // Total: 4 orders, $1,100
+    expect(total.textContent).toContain('4')
+    expect(total.textContent).toContain('$1,100')
   })
 
   it('should treat 13:29 as morning and 13:30 as afternoon (boundary)', () => {

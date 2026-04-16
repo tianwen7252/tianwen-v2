@@ -23,8 +23,8 @@ import type { EmployeeFormValues } from '@/lib/form-schemas'
  */
 export function StaffAdmin() {
   const { t } = useTranslation()
-  const isAdmin = useAppStore((s) => s.isAdmin)
-  const googleUser = useAppStore((s) => s.googleUser)
+  const isAdmin = useAppStore(s => s.isAdmin)
+  const googleUser = useAppStore(s => s.googleUser)
 
   const [refreshKey, setRefreshKey] = useState(0)
   const employees = useDbQuery(
@@ -38,8 +38,9 @@ export function StaffAdmin() {
   const [linkGoogleTarget, setLinkGoogleTarget] = useState<Employee | null>(
     null,
   )
-  const [unlinkGoogleTarget, setUnlinkGoogleTarget] =
-    useState<Employee | null>(null)
+  const [unlinkGoogleTarget, setUnlinkGoogleTarget] = useState<Employee | null>(
+    null,
+  )
 
   const form = useForm<EmployeeFormValues>({
     resolver: zodResolver(employeeFormSchema),
@@ -48,7 +49,7 @@ export function StaffAdmin() {
 
   // Refresh employee list from database
   const refreshEmployees = useCallback(() => {
-    setRefreshKey((k) => k + 1)
+    setRefreshKey(k => k + 1)
   }, [])
 
   // Open add modal
@@ -87,6 +88,18 @@ export function StaffAdmin() {
         return
       }
 
+      // Clear other employees' default order staff flag if this one is being set
+      if (values.isDefaultOrderStaff) {
+        const allEmployees = await getEmployeeRepo().findAll()
+        for (const emp of allEmployees) {
+          if (emp.isDefaultOrderStaff && emp.id !== editingEmployee?.id) {
+            await getEmployeeRepo().update(emp.id, {
+              isDefaultOrderStaff: false,
+            })
+          }
+        }
+      }
+
       if (editingEmployee) {
         // Update existing employee
         await getEmployeeRepo().update(editingEmployee.id, {
@@ -94,6 +107,7 @@ export function StaffAdmin() {
           avatar: values.avatar || undefined,
           shiftType: values.shiftType ?? 'regular',
           isAdmin: values.isAdmin ?? false,
+          isDefaultOrderStaff: values.isDefaultOrderStaff ?? false,
           hireDate: values.hireDate || undefined,
           resignationDate: values.resignationDate || undefined,
           status: values.resignationDate ? 'inactive' : 'active',
@@ -113,6 +127,7 @@ export function StaffAdmin() {
           avatar: values.avatar || undefined,
           shiftType: values.shiftType ?? 'regular',
           isAdmin: values.isAdmin ?? false,
+          isDefaultOrderStaff: values.isDefaultOrderStaff ?? false,
           hireDate: values.hireDate || undefined,
           employeeNo,
           status: 'active',
@@ -164,7 +179,7 @@ export function StaffAdmin() {
     // Prevent linking the same Google account to multiple employees
     const allEmployees = await getEmployeeRepo().findAll()
     const alreadyLinked = allEmployees.find(
-      (e) => e.googleSub === googleUser.sub && e.id !== linkGoogleTarget.id,
+      e => e.googleSub === googleUser.sub && e.id !== linkGoogleTarget.id,
     )
     if (alreadyLinked) {
       notify.warning(
@@ -249,7 +264,7 @@ export function StaffAdmin() {
             </tr>
           </thead>
           <tbody>
-            {employees.map((employee) => (
+            {employees.map(employee => (
               <EmployeeRow
                 key={employee.id}
                 employee={employee}

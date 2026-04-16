@@ -4,9 +4,11 @@
  * then conditionally renders the appropriate stats section.
  */
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import dayjs from 'dayjs'
+import { useDbQuery } from '@/hooks/use-db-query'
+import { getShiftCheckoutRepo } from '@/lib/repositories/provider'
 import { AnalyticsTabBar } from '@/components/analytics/analytics-tab-bar'
 import { AnalyticsDatePicker } from '@/components/analytics/analytics-date-picker'
 import { ProductKpiGrid } from '@/components/analytics/product-stats/product-kpi-grid'
@@ -45,6 +47,17 @@ function ProductStats({
   const { t } = useTranslation()
   const data = useProductChartData({ startDate, endDate, statisticsRepo })
 
+  // Fetch checkout data for the selected date range
+  const dateKey = useMemo(
+    () => dayjs(startDate).format('YYYY-MM-DD'),
+    [startDate],
+  )
+  const checkouts = useDbQuery(
+    () => getShiftCheckoutRepo().findByDate(dateKey),
+    [dateKey],
+    [],
+  )
+
   if (data.loading) {
     return (
       <section aria-label={t('analytics.productStats')}>
@@ -62,7 +75,9 @@ function ProductStats({
         <p className="text-destructive text-base">{data.error}</p>
       )}
 
-      {data.kpis !== null && <ProductKpiGrid kpis={data.kpis} />}
+      {data.kpis !== null && (
+        <ProductKpiGrid kpis={data.kpis} checkouts={checkouts} />
+      )}
 
       <RevenueTimeSeriesChart data={data.amPmRevenue} />
 

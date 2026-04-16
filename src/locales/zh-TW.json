@@ -60,7 +60,9 @@
     "linkGoogleConfirmMessage": "確定要將目前登入的Google帳號「{{googleName}}」連結至員工「{{employeeName}}」嗎？",
     "linkGoogleDuplicate": "此Google帳號已連結至員工「{{name}}」，無法重複連結",
     "unlinkGoogleConfirmTitle": "確認取消連結",
-    "unlinkGoogleConfirmMessage": "確定要取消員工「{{employeeName}}」的Google帳號連結嗎？"
+    "unlinkGoogleConfirmMessage": "確定要取消員工「{{employeeName}}」的Google帳號連結嗎？",
+    "defaultOrderStaff": "預設點餐人員",
+    "orderStaffTag": "點餐員工"
   },
   "clockIn": {
     "today": "今天",
@@ -141,6 +143,35 @@
     "loginViaHeader": "請點擊右上角的登入按鈕",
     "sessionExpired": "登入已過期，請重新登入"
   },
+  "shiftCheckout": {
+    "title": "櫃台結帳",
+    "morningShift": "早班結算",
+    "eveningShift": "晚班結算",
+    "confirmMessage": "是否進行結帳",
+    "successToast": "結帳成功",
+    "alreadyCheckedOut": "此班已結帳",
+    "notInWindow": "目前非結帳時段",
+    "windowInfo": "結帳時段：早班 1:30 PM ~ 2:00 PM，晚班 7:30 PM ~ 8:00 PM",
+    "checkoutTime": "結帳: {{time}}",
+    "notCheckedOut": "未結帳",
+    "recordsTab": "結帳記錄",
+    "recordsTitle": "結帳記錄",
+    "dateColumn": "日期",
+    "shiftColumn": "班次",
+    "staffColumn": "結帳人員",
+    "revenueColumn": "金額",
+    "timeColumn": "結帳時間",
+    "morning": "早班",
+    "evening": "晚班",
+    "noRecords": "尚無結帳記錄",
+    "searchPlaceholder": "搜尋日期、人員、金額..."
+  },
+  "orderStaff": {
+    "selectTitle": "選擇點餐人員",
+    "currentlyTaking": "{{name}}正在點餐",
+    "noSelection": "選擇點餐人員",
+    "staffLabel": "點餐人員"
+  },
   "init": {
     "loading": "資料庫初始化中",
     "error": "初始化失敗",
@@ -220,6 +251,7 @@
     "noOrders": "本日無訂單",
     "morning": "早班",
     "afternoon": "晚班",
+    "stallShift": "攤位",
     "morningShift": "早班",
     "afternoonShift": "晚班",
     "grandTotal": "合計",
@@ -311,9 +343,9 @@
     "trendLoadError": "商品趨勢載入失敗",
     "totalRevenue": "總營業額",
     "orderCount": "訂單數量",
-    "morningRevenue": "上午營業額",
-    "afternoonRevenue": "下午營業額",
-    "totalQuantity": "訂單總數量",
+    "morningRevenue": "早班營業額",
+    "afternoonRevenue": "晚班營業額",
+    "totalQuantity": "商品總數量",
     "bentoQuantity": "便當銷售數量",
     "orderTimeDistribution": "訂單時間分布",
     "orderCountLabel": "訂單數",

@@ -228,6 +228,7 @@ describe('EmployeeRepository', () => {
         status: 'active',
         shiftType: 'regular',
         isAdmin: false,
+        isDefaultOrderStaff: false,
       })
 
       expect(result.name).toBe('New Employee')

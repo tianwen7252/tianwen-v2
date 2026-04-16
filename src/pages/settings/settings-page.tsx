@@ -29,6 +29,10 @@ const TABS: readonly Tab[] = [
     guard: 'productAdmin',
   },
   {
+    path: '/settings/checkout-records',
+    labelKey: 'shiftCheckout.recordsTab',
+  },
+  {
     path: '/settings/cloud-backup',
     labelKey: 'backup.tabTitle',
     guard: 'backup',

@@ -68,9 +68,9 @@ describe('schema', () => {
       // to support nanoid-generated IDs in V2
       const textPkPattern = /id TEXT PRIMARY KEY/g
       const matches = CREATE_TABLES.match(textPkPattern)
-      // 13 core tables use "id TEXT PRIMARY KEY"
+      // 14 core tables use "id TEXT PRIMARY KEY"
       // schema_meta uses "key TEXT PRIMARY KEY" (different column name)
-      expect(matches?.length).toBe(13)
+      expect(matches?.length).toBe(14)
     })
 
     it('should not include a data column in the orders table DDL', () => {

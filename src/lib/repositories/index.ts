@@ -41,6 +41,10 @@ export {
   type PriceChangeLogRepository,
 } from './price-change-log-repository'
 export {
+  createShiftCheckoutRepository,
+  type ShiftCheckoutRepository,
+} from './shift-checkout-repository'
+export {
   initRepositories,
   getDatabase,
   getEmployeeRepo,
@@ -55,6 +59,7 @@ export {
   getCustomOrderNameRepo,
   getOrderTypeRepo,
   getPriceChangeLogRepo,
+  getShiftCheckoutRepo,
   resetRepositories,
 } from './provider'
 export {

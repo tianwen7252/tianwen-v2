@@ -25,6 +25,7 @@ function makeEmployee(overrides: Partial<Employee> = {}): Employee {
     status: 'active',
     shiftType: 'regular',
     isAdmin: false,
+    isDefaultOrderStaff: false,
     createdAt: Date.now(),
     updatedAt: Date.now(),
     ...overrides,

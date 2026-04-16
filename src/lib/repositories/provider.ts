@@ -58,6 +58,10 @@ import {
   createSettingsRepository,
   type SettingsRepository,
 } from './settings-repository'
+import {
+  createShiftCheckoutRepository,
+  type ShiftCheckoutRepository,
+} from './shift-checkout-repository'
 
 let employeeRepo: EmployeeRepository | null = null
 let attendanceRepo: AttendanceRepository | null = null
@@ -73,6 +77,7 @@ let backupLogRepo: BackupLogRepository | null = null
 let orderTypeRepo: OrderTypeRepository | null = null
 let priceChangeLogRepo: PriceChangeLogRepository | null = null
 let settingsRepo: SettingsRepository | null = null
+let shiftCheckoutRepo: ShiftCheckoutRepository | null = null
 let dbInstance: AsyncDatabase | null = null
 
 /**
@@ -95,6 +100,7 @@ export function initRepositories(db: AsyncDatabase): void {
   orderTypeRepo = createOrderTypeRepository(db)
   priceChangeLogRepo = createPriceChangeLogRepository(db)
   settingsRepo = createSettingsRepository(db)
+  shiftCheckoutRepo = createShiftCheckoutRepository(db)
 }
 
 /**
@@ -280,6 +286,19 @@ export function getSettingsRepo(): SettingsRepository {
 }
 
 /**
+ * Get the ShiftCheckoutRepository singleton.
+ * Throws if initRepositories() has not been called.
+ */
+export function getShiftCheckoutRepo(): ShiftCheckoutRepository {
+  if (!shiftCheckoutRepo) {
+    throw new Error(
+      'Repositories not initialized. Call initRepositories(db) first.',
+    )
+  }
+  return shiftCheckoutRepo
+}
+
+/**
  * Get the raw AsyncDatabase instance.
  * Throws if initRepositories() has not been called.
  * Useful for raw SQL queries like table stats.
@@ -312,5 +331,6 @@ export function resetRepositories(): void {
   orderTypeRepo = null
   priceChangeLogRepo = null
   settingsRepo = null
+  shiftCheckoutRepo = null
   dbInstance = null
 }

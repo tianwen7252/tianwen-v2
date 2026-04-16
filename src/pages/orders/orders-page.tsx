@@ -10,7 +10,11 @@ import type { Dayjs } from 'dayjs'
 import { useTranslation } from 'react-i18next'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { PackageOpen } from 'lucide-react'
-import { getOrderRepo, getCommodityRepo } from '@/lib/repositories/provider'
+import {
+  getOrderRepo,
+  getCommodityRepo,
+  getShiftCheckoutRepo,
+} from '@/lib/repositories/provider'
 import { notify } from '@/components/ui/sonner'
 import {
   OrdersDateHeader,
@@ -61,6 +65,14 @@ export function OrdersPage() {
     queryFn: () => getOrderRepo().findAll(),
     enabled: isSearchOpen,
     staleTime: 60_000,
+  })
+
+  // Fetch shift checkouts for the selected date
+  const { data: checkouts = [] } = useQuery({
+    queryKey: ['shift-checkouts', selectedDate.format('YYYY-MM-DD')],
+    queryFn: () =>
+      getShiftCheckoutRepo().findByDate(selectedDate.format('YYYY-MM-DD')),
+    staleTime: 0,
   })
 
   // Fetch commodities for typeIdMap (needed for category grouping)
@@ -162,7 +174,7 @@ export function OrdersPage() {
             <>
               {/* Shift summary */}
               <div className="mt-4">
-                <OrdersShiftSummary orders={orders} />
+                <OrdersShiftSummary orders={orders} checkouts={checkouts} />
               </div>
 
               {/* Empty state */}
