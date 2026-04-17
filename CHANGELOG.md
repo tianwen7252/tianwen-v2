@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.12.0](https://github.com/tianwen7252/tianwen-v2/compare/v2.11.0...v2.12.0) (2026-04-17)
+
+
+### Features
+
+* 統一班次營收計算 + 統計頁面 KPI 重構 + dev 結帳工具 ([feb6a65](https://github.com/tianwen7252/tianwen-v2/commit/feb6a65f366517a899e2a9f4d59617aa29faf4cf))
+
+
+### Bug Fixes
+
+* resolve readonly tuple type error in shine color presets ([81ee058](https://github.com/tianwen7252/tianwen-v2/commit/81ee05825aba2b61300561a33d8d65ced8dfd77b))
+
 ## [2.11.0](https://github.com/tianwen7252/tianwen-v2/compare/v2.10.0...v2.11.0) (2026-04-16)
 
 
