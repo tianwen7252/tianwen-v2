@@ -57,7 +57,7 @@ const VARIANT_TO_SHINE: Record<GradientVariant, ShineColorPreset> = {
 
 function resolveShineColor(shineColor: ShineColor): string | string[] {
   if (typeof shineColor === 'string' && shineColor in SHINE_COLOR_PRESETS) {
-    return SHINE_COLOR_PRESETS[shineColor as ShineColorPreset]
+    return SHINE_COLOR_PRESETS[shineColor]!
   }
   if (typeof shineColor === 'boolean') {
     return []

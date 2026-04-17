@@ -86,7 +86,7 @@ export function HeaderCheckout() {
         </RippleButton>
         {showHighlight && (
           <ShineBorder
-            shineColor={[...SHINE_COLOR_PRESETS.rainbow]}
+            shineColor={SHINE_COLOR_PRESETS.rainbow}
             borderWidth={2}
             duration={8}
           />

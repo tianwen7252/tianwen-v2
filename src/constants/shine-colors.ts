@@ -4,7 +4,7 @@
  * components that render ShineBorder directly.
  */
 
-export const SHINE_COLOR_PRESETS = {
+export const SHINE_COLOR_PRESETS: Record<string, string[]> = {
   green: ['#a8c896', '#c8deb8', '#e4fad9'],
   purple: ['#c4a1e0', '#dcc4f0', '#e3d0f5'],
   red: ['#e39a9d', '#f4b6b7', '#f0c4c4'],
@@ -13,6 +13,14 @@ export const SHINE_COLOR_PRESETS = {
   gray: ['#bbbbbb', '#cccccc', '#dddddd'],
   gold: ['#F4A900', '#F7C242', '#FADE82'],
   rainbow: ['#A07CFE', '#FE8FB5', '#FFBE7B'],
-} as const
+}
 
-export type ShineColorPreset = keyof typeof SHINE_COLOR_PRESETS
+export type ShineColorPreset =
+  | 'green'
+  | 'purple'
+  | 'red'
+  | 'blue'
+  | 'orange'
+  | 'gray'
+  | 'gold'
+  | 'rainbow'
