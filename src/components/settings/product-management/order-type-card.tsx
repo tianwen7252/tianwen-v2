@@ -9,6 +9,7 @@ import { useTranslation } from 'react-i18next'
 import { GripVertical, Pencil, Trash2 } from 'lucide-react'
 import { RippleButton } from '@/components/ui/ripple-button'
 import { ShineBorder } from '@/components/ui/shine-border'
+import { SHINE_COLOR_PRESETS } from '@/constants/shine-colors'
 import { cn } from '@/lib/cn'
 import type { OrderType } from '@/lib/schemas'
 import type { DragHandleProps } from './sortable-list'
@@ -44,11 +45,17 @@ export function OrderTypeCard({
   }, [orderType, onDelete])
 
   return (
-    <div className={cn(
-      'relative flex items-center gap-3 rounded-lg border border-border bg-card p-3',
-    )}>
+    <div
+      className={cn(
+        'relative flex items-center gap-3 rounded-lg border border-border bg-card p-3',
+      )}
+    >
       {dragHandleProps.isOverlay && (
-        <ShineBorder shineColor={['#a8c896', '#c8deb8', '#e4fad9']} duration={4} borderWidth={2} />
+        <ShineBorder
+          shineColor={SHINE_COLOR_PRESETS.green}
+          duration={4}
+          borderWidth={2}
+        />
       )}
       {/* Drag handle */}
       <div

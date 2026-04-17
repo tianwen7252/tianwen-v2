@@ -26,6 +26,8 @@ interface UseProductChartDataParams {
   startDate: Date
   endDate: Date
   statisticsRepo: StatisticsRepository
+  /** HH:mm cutoff for morning/evening split (from getEffectiveCutoff). */
+  cutoffTime?: string
 }
 
 export interface ProductChartData {
@@ -61,6 +63,7 @@ export function useProductChartData({
   startDate,
   endDate,
   statisticsRepo,
+  cutoffTime,
 }: UseProductChartDataParams): ProductChartData {
   const { t } = useTranslation()
 
@@ -141,7 +144,7 @@ export function useProductChartData({
     }
 
     Promise.all([
-      statisticsRepo.getProductKpis(range),
+      statisticsRepo.getProductKpis(range, cutoffTime),
       statisticsRepo.getHourlyOrderDistribution(range),
       statisticsRepo.getBottomBentos(range, 10),
       statisticsRepo.getDailyRevenue(range),
@@ -192,7 +195,7 @@ export function useProductChartData({
     return () => {
       cancelled = true
     }
-  }, [statisticsRepo, startDate, endDate, t])
+  }, [statisticsRepo, startDate, endDate, cutoffTime, t])
 
   // ── Top products (sortBy dependent) ─────────────────────────────────────────
 

@@ -7,15 +7,10 @@ export type GradientVariant =
   | 'gray'
   | 'gold'
 
+import type { ShineColorPreset } from '@/constants/shine-colors'
+
 /** Preset shine color names or custom ShineBorder color format */
-export type ShineColorPreset =
-  | 'green'
-  | 'purple'
-  | 'red'
-  | 'blue'
-  | 'orange'
-  | 'gray'
-  | 'gold'
+export type { ShineColorPreset }
 export type ShineColor = boolean | ShineColorPreset | string | string[]
 
 /**

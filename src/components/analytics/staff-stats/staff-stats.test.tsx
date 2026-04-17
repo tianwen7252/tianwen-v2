@@ -87,10 +87,10 @@ function buildMockRepo(
     getProductKpis: vi.fn().mockResolvedValue({
       totalRevenue: 0,
       orderCount: 0,
+      stallRevenue: 0,
       morningRevenue: 0,
       afternoonRevenue: 0,
       totalQuantity: 0,
-      bentoQuantity: 0,
     }),
     getHourlyOrderDistribution: vi.fn().mockResolvedValue([]),
     getTopProducts: vi.fn().mockResolvedValue([]),

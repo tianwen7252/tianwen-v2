@@ -12,6 +12,7 @@ import { Modal } from '@/components/modal'
 import { RippleButton } from '@/components/ui/ripple-button'
 import { Input } from '@/components/ui/input'
 import { ShineBorder } from '@/components/ui/shine-border'
+import { SHINE_COLOR_PRESETS } from '@/constants/shine-colors'
 import { cn } from '@/lib/cn'
 import { getCommodityTypeRepo } from '@/lib/repositories'
 import { useDbQuery } from '@/hooks/use-db-query'
@@ -57,7 +58,7 @@ function TypeRow({ type, dragHandleProps, onEdit }: TypeRowProps) {
     >
       {dragHandleProps.isOverlay && (
         <ShineBorder
-          shineColor={['#a8c896', '#c8deb8', '#e4fad9']}
+          shineColor={SHINE_COLOR_PRESETS.green}
           duration={4}
           borderWidth={2}
         />

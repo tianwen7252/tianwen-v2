@@ -3,6 +3,7 @@ import { Modal } from '@/components/modal/modal'
 import { AvatarImage } from '@/components/avatar-image'
 import { RippleButton } from '@/components/ui/ripple-button'
 import { ShineBorder } from '@/components/ui/shine-border'
+import { SHINE_COLOR_PRESETS } from '@/constants/shine-colors'
 import { useDbQuery } from '@/hooks/use-db-query'
 import { getEmployeeRepo } from '@/lib/repositories/provider'
 import { useOrderStaffStore } from '@/stores/order-staff-store'
@@ -15,8 +16,8 @@ interface OrderStaffModalProps {
 
 export function OrderStaffModal({ open, onClose }: OrderStaffModalProps) {
   const { t } = useTranslation()
-  const orderStaffId = useOrderStaffStore((s) => s.orderStaffId)
-  const setOrderStaff = useOrderStaffStore((s) => s.setOrderStaff)
+  const orderStaffId = useOrderStaffStore(s => s.orderStaffId)
+  const setOrderStaff = useOrderStaffStore(s => s.setOrderStaff)
 
   const employees = useDbQuery<Employee[]>(
     () => getEmployeeRepo().findByStatus('active'),
@@ -25,7 +26,7 @@ export function OrderStaffModal({ open, onClose }: OrderStaffModalProps) {
   )
 
   // Filter out resigned employees
-  const activeEmployees = employees.filter((e) => !e.resignationDate)
+  const activeEmployees = employees.filter(e => !e.resignationDate)
 
   function handleSelect(employee: Employee) {
     setOrderStaff(employee.id, employee.name, employee.avatar)
@@ -40,10 +41,8 @@ export function OrderStaffModal({ open, onClose }: OrderStaffModalProps) {
       width={700}
       onClose={onClose}
     >
-      <div
-        className="mt-4 flex flex-wrap justify-center gap-4"
-      >
-        {activeEmployees.map((employee) => {
+      <div className="mt-4 flex flex-wrap justify-center gap-4">
+        {activeEmployees.map(employee => {
           const isSelected = employee.id === orderStaffId
           return (
             <RippleButton
@@ -55,7 +54,7 @@ export function OrderStaffModal({ open, onClose }: OrderStaffModalProps) {
             >
               {isSelected && (
                 <ShineBorder
-                  shineColor={['#A07CFE', '#FE8FB5', '#FFBE7B']}
+                  shineColor={SHINE_COLOR_PRESETS.rainbow}
                   borderWidth={2}
                   duration={10}
                 />

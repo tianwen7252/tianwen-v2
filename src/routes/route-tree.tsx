@@ -82,6 +82,9 @@ const V1ImportPreview = lazy(() =>
 const InitUiPreview = lazy(() =>
   import('@/pages/preview').then(m => ({ default: m.InitUiPreview })),
 )
+const CheckoutPreview = lazy(() =>
+  import('@/pages/preview').then(m => ({ default: m.CheckoutPreview })),
+)
 
 // Root layout with navigation
 const rootRoute = createRootRoute({
@@ -239,6 +242,7 @@ const DEV_TABS = [
   { path: '/dev/test-data', label: 'Test Data' },
   { path: '/dev/v1-import', label: 'V1 Import' },
   { path: '/dev/init-ui', label: 'Info UI' },
+  { path: '/dev/checkout', label: 'Checkout' },
 ] as const
 
 function DevLayout() {
@@ -326,6 +330,12 @@ const devInitUiRoute = createRoute({
   getParentRoute: () => devRoute,
   path: '/init-ui',
   component: InitUiPreview,
+})
+
+const devCheckoutRoute = createRoute({
+  getParentRoute: () => devRoute,
+  path: '/checkout',
+  component: CheckoutPreview,
 })
 
 // Clock-in standalone page
@@ -437,5 +447,6 @@ export const routeTree = rootRoute.addChildren([
     devTestDataRoute,
     devV1ImportRoute,
     devInitUiRoute,
+    devCheckoutRoute,
   ]),
 ])

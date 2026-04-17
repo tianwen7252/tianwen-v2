@@ -13,19 +13,19 @@ import type { ProductKpis } from '@/lib/repositories/statistics-repository'
 const SAMPLE_KPIS: ProductKpis = {
   totalRevenue: 12345,
   orderCount: 42,
-  morningRevenue: 7000,
+  stallRevenue: 3000,
+  morningRevenue: 4000,
   afternoonRevenue: 5345,
   totalQuantity: 88,
-  bentoQuantity: 30,
 }
 
 const ZERO_KPIS: ProductKpis = {
   totalRevenue: 0,
   orderCount: 0,
+  stallRevenue: 0,
   morningRevenue: 0,
   afternoonRevenue: 0,
   totalQuantity: 0,
-  bentoQuantity: 0,
 }
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
@@ -57,9 +57,9 @@ describe('ProductKpiGrid', () => {
       expect(screen.getByText('商品總數量')).toBeTruthy()
     })
 
-    it('renders the 便當銷售數量 card title', () => {
+    it('renders the 攤位營業額 card title', () => {
       render(<ProductKpiGrid kpis={SAMPLE_KPIS} />)
-      expect(screen.getByText('便當銷售數量')).toBeTruthy()
+      expect(screen.getByText('攤位營業額')).toBeTruthy()
     })
   })
 
@@ -75,9 +75,10 @@ describe('ProductKpiGrid', () => {
       expect(screen.getByTestId('kpi-totalQuantity')).toBeTruthy()
     })
 
-    it('renders bentoQuantity value', () => {
+    it('renders stallRevenue with TWD $ prefix', () => {
       render(<ProductKpiGrid kpis={SAMPLE_KPIS} />)
-      expect(screen.getByTestId('kpi-bentoQuantity')).toBeTruthy()
+      const el = screen.getByTestId('kpi-stallRevenue')
+      expect(el.textContent).toContain('$')
     })
 
     it('renders totalRevenue with TWD $ prefix', () => {

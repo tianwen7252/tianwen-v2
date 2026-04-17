@@ -179,9 +179,7 @@ export const mockEmployeeRepo = {
     return updated
   },
 
-  async unbindGoogleAccount(
-    employeeId: string,
-  ): Promise<Employee | undefined> {
+  async unbindGoogleAccount(employeeId: string): Promise<Employee | undefined> {
     const index = employees.findIndex(e => e.id === employeeId)
     if (index === -1) return undefined
 
@@ -496,10 +494,10 @@ export function resetMockRepositories(): void {
 const ZERO_PRODUCT_KPIS: ProductKpis = {
   totalRevenue: 0,
   orderCount: 0,
+  stallRevenue: 0,
   morningRevenue: 0,
   afternoonRevenue: 0,
   totalQuantity: 0,
-  bentoQuantity: 0,
 }
 
 export const mockStatisticsRepo: StatisticsRepository = {

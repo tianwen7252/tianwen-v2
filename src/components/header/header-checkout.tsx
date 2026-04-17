@@ -5,7 +5,10 @@ import { Receipt } from 'lucide-react'
 import { RippleButton } from '@/components/ui/ripple-button'
 import { ShineBorder } from '@/components/ui/shine-border'
 import { ShiftCheckoutModal } from '@/components/shift-checkout/shift-checkout-modal'
-import { isInCheckoutWindow } from '@/lib/shift-checkout'
+import { getCurrentShift, isInCheckoutWindow } from '@/lib/shift-checkout'
+import { getShiftCheckoutRepo } from '@/lib/repositories/provider'
+import { SHINE_COLOR_PRESETS } from '@/constants/shine-colors'
+import { useInitStore } from '@/stores/init-store'
 import { notify } from '@/components/ui/sonner'
 
 export function HeaderCheckout() {
@@ -14,14 +17,48 @@ export function HeaderCheckout() {
   const [isCheckoutTime, setIsCheckoutTime] = useState(() =>
     isInCheckoutWindow(dayjs()),
   )
+  // null = not yet checked, true = checked out, false = not checked out
+  const [checkedOutStatus, setCheckedOutStatus] = useState<boolean | null>(null)
+  const bootstrapDone = useInitStore(s => s.bootstrapDone)
 
-  // Check checkout window every second
+  // Poll checkout window every second (pure math, no DB)
   useEffect(() => {
     const timer = setInterval(() => {
       setIsCheckoutTime(isInCheckoutWindow(dayjs()))
     }, 1000)
     return () => clearInterval(timer)
   }, [])
+
+  // Check DB for existing checkout when in window + DB is ready
+  useEffect(() => {
+    if (!isCheckoutTime || !bootstrapDone) {
+      setCheckedOutStatus(null)
+      return
+    }
+
+    let cancelled = false
+    const shift = getCurrentShift(dayjs())
+    if (!shift) return
+
+    const today = dayjs().format('YYYY-MM-DD')
+    getShiftCheckoutRepo()
+      .findByDateAndShift(today, shift)
+      .then(existing => {
+        if (!cancelled) setCheckedOutStatus(existing !== undefined)
+      })
+      .catch(() => {
+        // Provider may not be ready
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [isCheckoutTime, bootstrapDone])
+
+  function handleModalClose() {
+    setIsModalOpen(false)
+    setCheckedOutStatus(true)
+  }
 
   function handleClick() {
     if (!isCheckoutTime) {
@@ -32,6 +69,9 @@ export function HeaderCheckout() {
     }
     setIsModalOpen(true)
   }
+
+  // Show highlight only when: in window + DB confirmed not checked out
+  const showHighlight = isCheckoutTime && checkedOutStatus === false
 
   return (
     <>
@@ -44,19 +84,16 @@ export function HeaderCheckout() {
         >
           <Receipt size={20} />
         </RippleButton>
-        {isCheckoutTime && (
+        {showHighlight && (
           <ShineBorder
-            shineColor={['#d4a76a', '#e0bf8a', '#edd5aa']}
+            shineColor={SHINE_COLOR_PRESETS.rainbow}
             borderWidth={2}
             duration={8}
           />
         )}
       </div>
       {isModalOpen && (
-        <ShiftCheckoutModal
-          open={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-        />
+        <ShiftCheckoutModal open={isModalOpen} onClose={handleModalClose} />
       )}
     </>
   )

@@ -10,6 +10,7 @@ import { Save, Plus, Pencil, Trash2, ArrowUpDown, Tag } from 'lucide-react'
 import { ConfirmModal } from '@/components/modal'
 import { RippleButton } from '@/components/ui/ripple-button'
 import { ShineBorder } from '@/components/ui/shine-border'
+import { SHINE_COLOR_PRESETS } from '@/constants/shine-colors'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { notify } from '@/components/ui/sonner'
 import { CommodityTypeSection } from './commodity-type-section'
@@ -103,7 +104,7 @@ export function ProductManagement() {
         >
           {hasAnyChanges && (
             <ShineBorder
-              shineColor={['#A07CFE', '#FE8FB5', '#FFBE7B']}
+              shineColor={SHINE_COLOR_PRESETS.rainbow}
               duration={4}
               borderWidth={2}
             />

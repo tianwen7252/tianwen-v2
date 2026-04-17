@@ -6,6 +6,7 @@
 
 import type { AsyncDatabase } from '@/lib/worker-database'
 import { formatTimeBuckets } from '@/lib/analytics/format-time-buckets'
+import { MORNING_SHIFT } from '@/constants/app'
 
 // ─── Shared types ────────────────────────────────────────────────────────────
 
@@ -19,10 +20,10 @@ export interface DateRange {
 export interface ProductKpis {
   totalRevenue: number
   orderCount: number
+  stallRevenue: number
   morningRevenue: number
   afternoonRevenue: number
   totalQuantity: number
-  bentoQuantity: number
 }
 
 /** Single hourly order count bucket (0–23). */
@@ -103,7 +104,8 @@ export interface CategorySalesRow {
 // ─── Repository interface ────────────────────────────────────────────────────
 
 export interface StatisticsRepository {
-  getProductKpis(range: DateRange): Promise<ProductKpis>
+  /** @param cutoffTime HH:mm cutoff between morning/evening (default: MORNING_SHIFT). */
+  getProductKpis(range: DateRange, cutoffTime?: string): Promise<ProductKpis>
   getHourlyOrderDistribution(range: DateRange): Promise<HourBucket[]>
   getTopProducts(
     range: DateRange,
@@ -139,24 +141,13 @@ export interface StatisticsRepository {
 
 // ─── Row mappers ─────────────────────────────────────────────────────────────
 
-function toProductKpis(row: Record<string, unknown>): ProductKpis {
-  return {
-    totalRevenue: Number(row['total_revenue'] ?? 0),
-    orderCount: Number(row['order_count'] ?? 0),
-    morningRevenue: Number(row['morning_revenue'] ?? 0),
-    afternoonRevenue: Number(row['afternoon_revenue'] ?? 0),
-    totalQuantity: Number(row['total_quantity'] ?? 0),
-    bentoQuantity: Number(row['bento_quantity'] ?? 0),
-  }
-}
-
 const ZERO_PRODUCT_KPIS: ProductKpis = {
   totalRevenue: 0,
   orderCount: 0,
+  stallRevenue: 0,
   morningRevenue: 0,
   afternoonRevenue: 0,
   totalQuantity: 0,
-  bentoQuantity: 0,
 }
 
 function toProductRanking(row: Record<string, unknown>): ProductRanking {
@@ -230,7 +221,7 @@ function toCategorySalesRow(row: Record<string, unknown>): CategorySalesRow {
   }
 }
 
-// ─── Hour strftime helper ─────────────────────────────────────────────────────
+// ─── SQLite strftime helpers ─────────────────────────────────────────────────
 
 /** Allowlist of column references permitted in LOCAL_HOUR to prevent injection. */
 type TimeColumn = 'o.created_at' | 'created_at'
@@ -239,6 +230,14 @@ type TimeColumn = 'o.created_at' | 'created_at'
 const LOCAL_HOUR = (col: TimeColumn) =>
   `CAST(strftime('%H', datetime(${col}/1000,'unixepoch','localtime')) AS INTEGER)`
 
+/** SQLite expression to extract local HH:MM from a Unix ms timestamp column. */
+const LOCAL_HHMM = (col: TimeColumn) =>
+  `strftime('%H:%M', datetime(${col}/1000,'unixepoch','localtime'))`
+
+/** SQLite expression: true when memo JSON array contains '攤位'. */
+const IS_STALL = (memoCol: string) =>
+  `EXISTS (SELECT 1 FROM json_each(${memoCol}) j WHERE j.value = '攤位')`
+
 // ─── Factory ──────────────────────────────────────────────────────────────────
 
 export function createStatisticsRepository(
@@ -246,23 +245,51 @@ export function createStatisticsRepository(
 ): StatisticsRepository {
   return {
     // ── Product KPIs ──────────────────────────────────────────────────────────
-    async getProductKpis(range) {
-      const hourExpr = LOCAL_HOUR('o.created_at')
-      const result = await db.exec<Record<string, unknown>>(
-        `SELECT
-           COALESCE(SUM(o.total), 0)                                         AS total_revenue,
-           COUNT(DISTINCT o.id)                                                AS order_count,
-           COALESCE(SUM(CASE WHEN ${hourExpr} < 12 THEN o.total ELSE 0 END), 0)  AS morning_revenue,
-           COALESCE(SUM(CASE WHEN ${hourExpr} >= 12 THEN o.total ELSE 0 END), 0) AS afternoon_revenue,
-           COALESCE(SUM(oi.quantity), 0)                                      AS total_quantity,
-           COALESCE(SUM(CASE WHEN oi.includes_soup = 1 THEN oi.quantity ELSE 0 END), 0) AS bento_quantity
-         FROM orders o
-         LEFT JOIN order_items oi ON oi.order_id = o.id
-         WHERE o.created_at >= ? AND o.created_at <= ?`,
-        [range.startDate, range.endDate],
-      )
-      const row = result.rows[0]
-      return row ? toProductKpis(row) : { ...ZERO_PRODUCT_KPIS }
+    // Split into two queries to avoid fan-out: joining orders × order_items
+    // would cause SUM(o.total) to be counted once per item row.
+    // Classification mirrors compute-shift-stats.ts:
+    //   stall   = memo contains '攤位'
+    //   morning = non-stall AND local time < MORNING_SHIFT (13:30)
+    //   evening = non-stall AND local time >= MORNING_SHIFT
+    async getProductKpis(range, cutoffTime) {
+      const cutoff = cutoffTime ?? MORNING_SHIFT
+      const timeExpr = LOCAL_HHMM('created_at')
+      const stallExpr = IS_STALL('memo')
+      const params = [range.startDate, range.endDate]
+
+      const [revenueResult, quantityResult] = await Promise.all([
+        db.exec<Record<string, unknown>>(
+          `SELECT
+             COALESCE(SUM(total), 0) AS total_revenue,
+             COUNT(*) AS order_count,
+             COALESCE(SUM(CASE WHEN ${stallExpr} THEN total ELSE 0 END), 0) AS stall_revenue,
+             COALESCE(SUM(CASE WHEN NOT ${stallExpr} AND ${timeExpr} < '${cutoff}' THEN total ELSE 0 END), 0) AS morning_revenue,
+             COALESCE(SUM(CASE WHEN NOT ${stallExpr} AND ${timeExpr} >= '${cutoff}' THEN total ELSE 0 END), 0) AS afternoon_revenue
+           FROM orders
+           WHERE created_at >= ? AND created_at <= ?`,
+          params,
+        ),
+        db.exec<Record<string, unknown>>(
+          `SELECT COALESCE(SUM(oi.quantity), 0) AS total_quantity
+           FROM order_items oi
+           JOIN orders o ON o.id = oi.order_id
+           WHERE o.created_at >= ? AND o.created_at <= ?`,
+          params,
+        ),
+      ])
+
+      const revRow = revenueResult.rows[0]
+      const qtyRow = quantityResult.rows[0]
+      if (!revRow) return { ...ZERO_PRODUCT_KPIS }
+
+      return {
+        totalRevenue: Number(revRow['total_revenue'] ?? 0),
+        orderCount: Number(revRow['order_count'] ?? 0),
+        stallRevenue: Number(revRow['stall_revenue'] ?? 0),
+        morningRevenue: Number(revRow['morning_revenue'] ?? 0),
+        afternoonRevenue: Number(revRow['afternoon_revenue'] ?? 0),
+        totalQuantity: Number(qtyRow?.['total_quantity'] ?? 0),
+      }
     },
 
     // ── Hourly distribution ───────────────────────────────────────────────────

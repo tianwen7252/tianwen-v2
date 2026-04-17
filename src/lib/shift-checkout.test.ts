@@ -27,45 +27,53 @@ function makeOrder(memo: string[] = []): Order {
   }
 }
 
+// Window times from constants/app.ts:
+// MORNING_CHECKOUT_START = '13:00', MORNING_CHECKOUT_END = '14:30'
+// EVENING_CHECKOUT_START = '19:00', EVENING_CHECKOUT_END = '20:30'
+
 describe('getCurrentShift', () => {
-  it('returns null before morning window (13:29)', () => {
-    expect(getCurrentShift(makeTime(13, 29))).toBeNull()
+  it('returns null before morning window (12:59)', () => {
+    expect(getCurrentShift(makeTime(12, 59))).toBeNull()
   })
 
-  it('returns morning at window start (13:30)', () => {
-    expect(getCurrentShift(makeTime(13, 30))).toBe('morning')
+  it('returns morning at window start (13:00)', () => {
+    expect(getCurrentShift(makeTime(13, 0))).toBe('morning')
   })
 
   it('returns morning inside window (13:45)', () => {
     expect(getCurrentShift(makeTime(13, 45))).toBe('morning')
   })
 
-  it('returns morning at last minute (13:59)', () => {
-    expect(getCurrentShift(makeTime(13, 59))).toBe('morning')
+  it('returns morning at last minute (14:29)', () => {
+    expect(getCurrentShift(makeTime(14, 29))).toBe('morning')
   })
 
-  it('returns null at morning window end (14:00)', () => {
-    expect(getCurrentShift(makeTime(14, 0))).toBeNull()
+  it('returns null at morning window end (14:30)', () => {
+    expect(getCurrentShift(makeTime(14, 30))).toBeNull()
   })
 
   it('returns null between windows (15:00)', () => {
     expect(getCurrentShift(makeTime(15, 0))).toBeNull()
   })
 
-  it('returns null before evening window (19:29)', () => {
-    expect(getCurrentShift(makeTime(19, 29))).toBeNull()
+  it('returns null before evening window (18:59)', () => {
+    expect(getCurrentShift(makeTime(18, 59))).toBeNull()
   })
 
-  it('returns evening at window start (19:30)', () => {
-    expect(getCurrentShift(makeTime(19, 30))).toBe('evening')
+  it('returns evening at window start (19:00)', () => {
+    expect(getCurrentShift(makeTime(19, 0))).toBe('evening')
   })
 
   it('returns evening inside window (19:45)', () => {
     expect(getCurrentShift(makeTime(19, 45))).toBe('evening')
   })
 
-  it('returns null at evening window end (20:00)', () => {
-    expect(getCurrentShift(makeTime(20, 0))).toBeNull()
+  it('returns evening at last minute (20:29)', () => {
+    expect(getCurrentShift(makeTime(20, 29))).toBe('evening')
+  })
+
+  it('returns null at evening window end (20:30)', () => {
+    expect(getCurrentShift(makeTime(20, 30))).toBeNull()
   })
 
   it('returns null early morning (09:00)', () => {
@@ -75,7 +83,7 @@ describe('getCurrentShift', () => {
 
 describe('isInCheckoutWindow', () => {
   it('returns true during morning window', () => {
-    expect(isInCheckoutWindow(makeTime(13, 30))).toBe(true)
+    expect(isInCheckoutWindow(makeTime(13, 0))).toBe(true)
   })
 
   it('returns true during evening window', () => {
