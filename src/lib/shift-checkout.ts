@@ -14,8 +14,8 @@ import type { ShiftType, Order } from '@/lib/schemas'
 
 /**
  * Returns the current shift if `now` falls within a checkout window, or null otherwise.
- * Morning: 13:30 ~ 13:59 (inclusive start, exclusive end)
- * Evening: 19:30 ~ 19:59 (inclusive start, exclusive end)
+ * Morning: MORNING_CHECKOUT_START ~ MORNING_CHECKOUT_END (inclusive start, exclusive end)
+ * Evening: EVENING_CHECKOUT_START ~ EVENING_CHECKOUT_END (inclusive start, exclusive end)
  */
 export function getCurrentShift(now: Dayjs): ShiftType | null {
   const time = now.format('HH:mm')

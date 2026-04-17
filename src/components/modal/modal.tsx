@@ -42,16 +42,7 @@ const CONFIRM_BUTTON_BG: Record<GradientVariant, string> = {
   gold: '#D4920A',
 }
 
-// Preset shine color combinations (3 colors each for animated gradient shine)
-const SHINE_COLOR_PRESETS: Record<ShineColorPreset, string[]> = {
-  green: ['#a8c896', '#c8deb8', '#e4fad9'],
-  purple: ['#c4a1e0', '#dcc4f0', '#e3d0f5'],
-  red: ['#e39a9d', '#f4b6b7', '#f0c4c4'],
-  blue: ['#6aa3d4', '#8bbde0', '#b5d4ee'],
-  orange: ['#d4a76a', '#e0bf8a', '#edd5aa'],
-  gray: ['#bbbbbb', '#cccccc', '#dddddd'],
-  gold: ['#F4A900', '#F7C242', '#FADE82'],
-}
+import { SHINE_COLOR_PRESETS } from '@/constants/shine-colors'
 
 // Map gradient variant to shine color preset
 const VARIANT_TO_SHINE: Record<GradientVariant, ShineColorPreset> = {

@@ -1,6 +1,7 @@
 /**
  * ProductKpiGrid — 3-column × 2-row grid of 6 product KPI cards.
- * All numeric values animate via NumberTicker.
+ * Order: stall revenue, morning revenue, evening revenue,
+ *        total revenue, order count, total quantity.
  */
 
 import dayjs from 'dayjs'
@@ -31,9 +32,6 @@ function TwdTicker({ value, testId }: TwdTickerProps) {
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
-/**
- * Displays all 6 product KPIs in a responsive 3-column grid.
- */
 export function ProductKpiGrid({ kpis, checkouts = [] }: ProductKpiGridProps) {
   const { t } = useTranslation()
   const morningCheckout = checkouts.find(c => c.shift === 'morning')
@@ -41,7 +39,74 @@ export function ProductKpiGrid({ kpis, checkouts = [] }: ProductKpiGridProps) {
 
   return (
     <div className="grid grid-cols-3 gap-4">
-      {/* Row 1 — revenue KPIs */}
+      {/* Row 1 — stall / morning / evening revenue */}
+
+      <Card shadow className="py-4">
+        <CardHeader className="py-0">
+          <CardTitle fontSize="text-md" className="text-muted-foreground">
+            {t('analytics.stallRevenue')}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl text-(--color-gold)">
+            <TwdTicker value={kpis.stallRevenue} testId="kpi-stallRevenue" />
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card shadow className="py-4">
+        <CardHeader className="py-0">
+          <CardTitle fontSize="text-md" className="text-muted-foreground">
+            {t('analytics.morningRevenue')}
+          </CardTitle>
+          <p
+            className="text-xs text-muted-foreground"
+            data-testid="morning-checkout-time"
+          >
+            {morningCheckout
+              ? t('shiftCheckout.checkoutTime', {
+                  time: dayjs(morningCheckout.checkoutAt).format('h:mm A'),
+                })
+              : t('shiftCheckout.notCheckedOut')}
+          </p>
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl text-(--color-gold)">
+            <TwdTicker
+              value={kpis.morningRevenue}
+              testId="kpi-morningRevenue"
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card shadow className="py-4">
+        <CardHeader className="py-0">
+          <CardTitle fontSize="text-md" className="text-muted-foreground">
+            {t('analytics.afternoonRevenue')}
+          </CardTitle>
+          <p
+            className="text-xs text-muted-foreground"
+            data-testid="evening-checkout-time"
+          >
+            {eveningCheckout
+              ? t('shiftCheckout.checkoutTime', {
+                  time: dayjs(eveningCheckout.checkoutAt).format('h:mm A'),
+                })
+              : t('shiftCheckout.notCheckedOut')}
+          </p>
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl text-(--color-gold)">
+            <TwdTicker
+              value={kpis.afternoonRevenue}
+              testId="kpi-afternoonRevenue"
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Row 2 — total revenue / order count / total quantity */}
 
       <Card shadow className="py-4">
         <CardHeader className="py-0">
@@ -74,60 +139,6 @@ export function ProductKpiGrid({ kpis, checkouts = [] }: ProductKpiGridProps) {
       <Card shadow className="py-4">
         <CardHeader className="py-0">
           <CardTitle fontSize="text-md" className="text-muted-foreground">
-            {t('analytics.morningRevenue')}
-          </CardTitle>
-          <p
-            className="text-xs text-muted-foreground"
-            data-testid="morning-checkout-time"
-          >
-            {morningCheckout
-              ? t('shiftCheckout.checkoutTime', {
-                  time: dayjs(morningCheckout.checkoutAt).format('h:mm A'),
-                })
-              : t('shiftCheckout.notCheckedOut')}
-          </p>
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl text-(--color-gold)">
-            <TwdTicker
-              value={kpis.morningRevenue}
-              testId="kpi-morningRevenue"
-            />
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Row 2 */}
-
-      <Card shadow className="py-4">
-        <CardHeader className="py-0">
-          <CardTitle fontSize="text-md" className="text-muted-foreground">
-            {t('analytics.afternoonRevenue')}
-          </CardTitle>
-          <p
-            className="text-xs text-muted-foreground"
-            data-testid="evening-checkout-time"
-          >
-            {eveningCheckout
-              ? t('shiftCheckout.checkoutTime', {
-                  time: dayjs(eveningCheckout.checkoutAt).format('h:mm A'),
-                })
-              : t('shiftCheckout.notCheckedOut')}
-          </p>
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl text-(--color-gold)">
-            <TwdTicker
-              value={kpis.afternoonRevenue}
-              testId="kpi-afternoonRevenue"
-            />
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card shadow className="py-4">
-        <CardHeader className="py-0">
-          <CardTitle fontSize="text-md" className="text-muted-foreground">
             {t('analytics.totalQuantity')}
           </CardTitle>
         </CardHeader>
@@ -135,21 +146,6 @@ export function ProductKpiGrid({ kpis, checkouts = [] }: ProductKpiGridProps) {
           <div className="text-2xl">
             <span data-testid="kpi-totalQuantity">
               <NumberTicker value={kpis.totalQuantity} />
-            </span>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card shadow className="py-4">
-        <CardHeader className="py-0">
-          <CardTitle fontSize="text-md" className="text-muted-foreground">
-            {t('analytics.bentoQuantity')}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl">
-            <span data-testid="kpi-bentoQuantity">
-              <NumberTicker value={kpis.bentoQuantity} />
             </span>
           </div>
         </CardContent>

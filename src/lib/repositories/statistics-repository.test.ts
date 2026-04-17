@@ -18,7 +18,10 @@ function createMockDb(): AsyncDatabase {
     importDatabase: vi.fn(async () => undefined),
     restorePreviousDatabase: vi.fn(async () => undefined),
     hasPreviousDatabase: vi.fn(async () => false),
-    getDatabaseSizes: vi.fn(async () => ({ current: { raw: 0, compressed: 0 }, prev: { raw: 0, compressed: 0 } })),
+    getDatabaseSizes: vi.fn(async () => ({
+      current: { raw: 0, compressed: 0 },
+      prev: { raw: 0, compressed: 0 },
+    })),
     deletePreviousDatabase: vi.fn(async () => undefined),
   }
 }
@@ -45,23 +48,32 @@ describe('StatisticsRepository.getProductKpis()', () => {
     expect(result).toEqual({
       totalRevenue: 0,
       orderCount: 0,
+      stallRevenue: 0,
       morningRevenue: 0,
       afternoonRevenue: 0,
       totalQuantity: 0,
-      bentoQuantity: 0,
     })
   })
 
   it('maps DB row to ProductKpis correctly', async () => {
+    // First call: revenue query (orders only, with stall/morning/evening split)
     vi.mocked(db.exec).mockResolvedValueOnce({
       rows: [
         {
           total_revenue: 15000,
           order_count: 25,
-          morning_revenue: 8000,
+          stall_revenue: 2000,
+          morning_revenue: 6000,
           afternoon_revenue: 7000,
+        },
+      ],
+      changes: 0,
+    })
+    // Second call: quantity query (order_items JOIN orders)
+    vi.mocked(db.exec).mockResolvedValueOnce({
+      rows: [
+        {
           total_quantity: 80,
-          bento_quantity: 50,
         },
       ],
       changes: 0,
@@ -72,19 +84,23 @@ describe('StatisticsRepository.getProductKpis()', () => {
     expect(result).toEqual({
       totalRevenue: 15000,
       orderCount: 25,
-      morningRevenue: 8000,
+      stallRevenue: 2000,
+      morningRevenue: 6000,
       afternoonRevenue: 7000,
       totalQuantity: 80,
-      bentoQuantity: 50,
     })
   })
 
-  it('calls db.exec with startDate and endDate params', async () => {
+  it('calls db.exec twice with startDate and endDate params', async () => {
     const repo = createStatisticsRepository(db)
     await repo.getProductKpis(range)
-    const [, params] = vi.mocked(db.exec).mock.calls[0]!
-    expect(params).toContain(range.startDate)
-    expect(params).toContain(range.endDate)
+    expect(db.exec).toHaveBeenCalledTimes(2)
+    const [, params0] = vi.mocked(db.exec).mock.calls[0]!
+    const [, params1] = vi.mocked(db.exec).mock.calls[1]!
+    expect(params0).toContain(range.startDate)
+    expect(params0).toContain(range.endDate)
+    expect(params1).toContain(range.startDate)
+    expect(params1).toContain(range.endDate)
   })
 })
 

@@ -53,10 +53,10 @@ function createMockRepo(
     getProductKpis: vi.fn().mockResolvedValue({
       totalRevenue: 10000,
       orderCount: 50,
-      morningRevenue: 4000,
+      stallRevenue: 1000,
+      morningRevenue: 3000,
       afternoonRevenue: 6000,
       totalQuantity: 200,
-      bentoQuantity: 100,
     }),
     getHourlyOrderDistribution: vi.fn().mockResolvedValue([
       { hour: 8, count: 5 },

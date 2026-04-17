@@ -27,6 +27,7 @@ import { ProfitStubChart } from '@/components/analytics/product-stats/profit-stu
 import { StaffStats } from '@/components/analytics/staff-stats/staff-stats'
 import { ProductStatsSkeleton } from '@/components/analytics/chart-card-skeleton'
 import { useProductChartData } from '@/hooks/use-product-chart-data'
+import { getEffectiveCutoff } from '@/lib/compute-shift-stats'
 import type { AnalyticsTab } from '@/components/analytics/analytics-tab-bar'
 import type { StatisticsRepository } from '@/lib/repositories/statistics-repository'
 
@@ -45,7 +46,6 @@ function ProductStats({
   statisticsRepo,
 }: ProductStatsProps) {
   const { t } = useTranslation()
-  const data = useProductChartData({ startDate, endDate, statisticsRepo })
 
   // Fetch checkout data for the selected date range
   const dateKey = useMemo(
@@ -57,6 +57,23 @@ function ProductStats({
     [dateKey],
     [],
   )
+
+  // Compute effective cutoff from morning checkout (if any)
+  const morningCheckout = useMemo(
+    () => checkouts.find(c => c.shift === 'morning'),
+    [checkouts],
+  )
+  const cutoffTime = useMemo(
+    () => getEffectiveCutoff(morningCheckout),
+    [morningCheckout],
+  )
+
+  const data = useProductChartData({
+    startDate,
+    endDate,
+    statisticsRepo,
+    cutoffTime,
+  })
 
   if (data.loading) {
     return (
