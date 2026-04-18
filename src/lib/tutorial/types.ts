@@ -21,7 +21,6 @@ export type RunnerPhase =
   | 'navigating'
   | 'waiting-for-target'
   | 'visible'
-  | 'transitioning-out'
 
 // ─── Step ────────────────────────────────────────────────────────────────────
 

@@ -709,5 +709,14 @@
     "update": "更新",
     "later": "稍後",
     "offlineReady": "已可離線使用"
+  },
+  "tutorial": {
+    "runner": {
+      "next": "下一步",
+      "prev": "上一步",
+      "finish": "完成",
+      "skip": "跳過教學",
+      "targetNotFound": "本次教學找不到對應的畫面元件，已切換為說明卡片"
+    }
   }
 }

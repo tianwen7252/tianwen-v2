@@ -16,9 +16,12 @@ import { AppHeader } from '@/components/header/app-header'
 import { cn } from '@/lib/cn'
 import { useAutoBackup } from '@/hooks/use-auto-backup'
 import { useInitStore } from '@/stores/init-store'
+import { useTutorialStore } from '@/stores/tutorial-store'
 import { InitOverlay } from '@/components/init-ui'
 import { ErrorOverlay } from '@/components/error-ui'
 import { WaitingOverlay } from '@/components/waiting-ui'
+import { TutorialHost } from '@/components/tutorial/tutorial-host'
+import { TutorialErrorBoundary } from '@/components/tutorial/tutorial-error-boundary'
 
 // ─── Portrait detection (SSR-safe via useSyncExternalStore) ─────────────────
 
@@ -107,6 +110,7 @@ function RootLayout() {
   const errorOverlayMessage = useInitStore(s => s.errorOverlayMessage)
   const forceWaitingUI = useInitStore(s => s.forceWaitingUI)
   const activeOverlays = useInitStore(s => s.activeOverlays)
+  const activeTutorialId = useTutorialStore(s => s.activeTutorialId)
 
   // Portrait orientation detection
   const isPortrait = useSyncExternalStore(
@@ -213,8 +217,13 @@ function RootLayout() {
           as a blurry round button over the V2-import overlay). */}
       {isReady && (
         <>
-          {pathname !== '/' && !anyOverlayActive && <ScrollToTop />}
+          {pathname !== '/' && !anyOverlayActive && !activeTutorialId && (
+            <ScrollToTop />
+          )}
           <SwUpdatePrompt />
+          <TutorialErrorBoundary>
+            <TutorialHost />
+          </TutorialErrorBoundary>
         </>
       )}
     </div>
