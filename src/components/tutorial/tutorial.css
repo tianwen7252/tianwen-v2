@@ -1,0 +1,52 @@
+/* Tutorial overlay and popover animations */
+
+@keyframes tutorial-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+@keyframes tutorial-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes tutorial-mask-transition {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.tutorial-spotlight-overlay {
+  animation: tutorial-fade-in 200ms ease-out;
+}
+
+.tutorial-popover {
+  animation: tutorial-fade-in 200ms ease-out;
+}
+
+.tutorial-pulse-dot {
+  animation: tutorial-pulse 1.5s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tutorial-spotlight-overlay,
+  .tutorial-popover {
+    animation-duration: 1ms;
+  }
+
+  .tutorial-pulse-dot {
+    animation: none;
+  }
+}
