@@ -10,6 +10,7 @@ import { Settings, Code } from 'lucide-react'
 import { HeaderOrderStaff } from '@/components/header/header-order-staff'
 import { HeaderCheckout } from '@/components/header/header-checkout'
 import { HeaderUserMenu } from '@/components/header/header-user-menu'
+import { TutorialLauncherButton } from '@/components/tutorial/tutorial-launcher-button'
 import { RippleButton } from '@/components/ui/ripple-button'
 import { cn } from '@/lib/cn'
 
@@ -179,6 +180,7 @@ export function AppHeader({ disabled, overlayActive }: AppHeaderProps) {
           )}
           <HeaderOrderStaff />
           <HeaderCheckout />
+          <TutorialLauncherButton overlayActive={overlayActive} />
           <NavIconLink
             to="/settings"
             ariaLabel={t('nav.settings')}

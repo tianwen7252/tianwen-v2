@@ -717,6 +717,44 @@
       "finish": "完成",
       "skip": "跳過教學",
       "targetNotFound": "本次教學找不到對應的畫面元件，已切換為說明卡片"
+    },
+    "launcher": {
+      "openIndex": "開啟教學索引"
+    },
+    "index": {
+      "title": "互動式教學",
+      "close": "關閉",
+      "noTutorialsYet": "本章節暫無教學內容",
+      "adminLockedHint": "需登入管理員才能使用",
+      "adminRequired": "請先以管理員身份登入再開啟此教學",
+      "tutorialCount": "共 {{count}} 個教學",
+      "completed": "已完成"
+    },
+    "chapter": {
+      "00": {
+        "title": "首次設定",
+        "description": "PWA 安裝、首次啟動、認識介面"
+      },
+      "10": {
+        "title": "點餐操作",
+        "description": "選商品、加備註、折扣、送出與編輯訂單"
+      },
+      "20": {
+        "title": "打卡與出勤",
+        "description": "上下班打卡、休假申請、出勤記錄"
+      },
+      "30": {
+        "title": "管理功能",
+        "description": "員工管理、商品管理、營收統計"
+      },
+      "40": {
+        "title": "雲端備份",
+        "description": "備份排程、手動備份、還原、V1 匯入"
+      },
+      "90": {
+        "title": "疑難排解",
+        "description": "錯誤畫面、載入過久、備份失敗等"
+      }
     }
   }
 }

@@ -21,6 +21,7 @@ import { InitOverlay } from '@/components/init-ui'
 import { ErrorOverlay } from '@/components/error-ui'
 import { WaitingOverlay } from '@/components/waiting-ui'
 import { TutorialHost } from '@/components/tutorial/tutorial-host'
+import { TutorialIndexModal } from '@/components/tutorial/tutorial-index-modal'
 import { TutorialErrorBoundary } from '@/components/tutorial/tutorial-error-boundary'
 
 // ─── Portrait detection (SSR-safe via useSyncExternalStore) ─────────────────
@@ -222,6 +223,7 @@ function RootLayout() {
           )}
           <SwUpdatePrompt />
           <TutorialErrorBoundary>
+            <TutorialIndexModal />
             <TutorialHost />
           </TutorialErrorBoundary>
         </>
