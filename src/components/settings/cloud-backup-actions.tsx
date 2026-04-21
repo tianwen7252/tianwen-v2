@@ -13,6 +13,7 @@ import { useBackupStore, type ScheduleType } from '@/stores/backup-store'
 import { performBackup } from '@/lib/perform-backup'
 import { generateExportFilename } from '@/lib/backup'
 import { getDatabase } from '@/lib/repositories/provider'
+import { tutorialAnchor } from '@/lib/tutorial/tutorial-anchor'
 
 // ── Constants ──────────────────────────────────────────────────────────────
 
@@ -54,7 +55,9 @@ export function CloudBackupActions() {
   const handleExportDb = useCallback(async () => {
     try {
       const rawBytes = await getDatabase().exportDatabase()
-      const blob = new Blob([rawBytes as BlobPart], { type: 'application/x-sqlite3' })
+      const blob = new Blob([rawBytes as BlobPart], {
+        type: 'application/x-sqlite3',
+      })
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
@@ -77,7 +80,7 @@ export function CloudBackupActions() {
   )
 
   return (
-    <Card>
+    <Card {...tutorialAnchor('settings.cloudBackup.actions')}>
       <CardHeader>
         <CardTitle>{t('backup.backupActions')}</CardTitle>
       </CardHeader>

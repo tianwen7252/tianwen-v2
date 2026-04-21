@@ -14,6 +14,7 @@ import { useDbQuery } from '@/hooks/use-db-query'
 import { ClockInModal } from '@/components/clock-in-modal'
 import { EmployeeCard } from './employee-card'
 import { deriveCardAction } from './clock-in-utils'
+import { tutorialAnchor } from '@/lib/tutorial/tutorial-anchor'
 import type { ClockInAction } from '@/components/clock-in-modal'
 import type { Employee, Attendance } from '@/lib/schemas'
 
@@ -189,7 +190,7 @@ export function ClockIn() {
   }, [modalState, handleModalClose, t])
 
   return (
-    <div className="p-4">
+    <div className="p-4" {...tutorialAnchor('clockIn.page')}>
       {/* Section header */}
       <div className="mb-4 flex items-center justify-between">
         <h3 className="text-xl font-medium">{headerTitle}</h3>
@@ -204,6 +205,7 @@ export function ClockIn() {
         style={{
           gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
         }}
+        {...tutorialAnchor('clockIn.employeeCardList')}
       >
         {employees.map(employee => {
           const records = attendanceMap[employee.id] ?? []

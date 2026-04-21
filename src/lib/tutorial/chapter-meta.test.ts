@@ -68,10 +68,20 @@ describe('CHAPTER_META', () => {
     expect(CHAPTER_META['10'].tutorialIds).toContain('order-basics')
   })
 
-  it('chapters 20, 30, 40, 90 have empty tutorialIds', () => {
-    for (const id of ['20', '30', '40', '90'] as const) {
-      expect(CHAPTER_META[id].tutorialIds).toHaveLength(0)
-    }
+  it('chapter 20 tutorialIds contains clock-in-basics', () => {
+    expect(CHAPTER_META['20'].tutorialIds).toContain('clock-in-basics')
+  })
+
+  it('chapter 30 tutorialIds contains admin-management', () => {
+    expect(CHAPTER_META['30'].tutorialIds).toContain('admin-management')
+  })
+
+  it('chapter 40 tutorialIds contains cloud-backup', () => {
+    expect(CHAPTER_META['40'].tutorialIds).toContain('cloud-backup')
+  })
+
+  it('chapter 90 tutorialIds contains troubleshooting', () => {
+    expect(CHAPTER_META['90'].tutorialIds).toContain('troubleshooting')
   })
 
   it('tutorialIds arrays are readonly (frozen-like via const assertion)', () => {

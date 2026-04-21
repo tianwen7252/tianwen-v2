@@ -15,6 +15,7 @@ import { useCloudBackups } from '@/hooks/use-cloud-backups'
 import { createBackupService, decompress } from '@/lib/backup'
 import { getDatabase } from '@/lib/repositories/provider'
 import { bufferLog, flushLogBuffer } from '@/lib/log-buffer'
+import { tutorialAnchor } from '@/lib/tutorial/tutorial-anchor'
 
 // ── Constants ───────────────────────────────────────────────────────────────
 
@@ -58,9 +59,7 @@ export function CloudBackupHistory() {
     setOverlayMessage(t('backup.importingCloudDb'))
 
     // Ensure overlay is visible for at least MIN_OVERLAY_MS so the animation plays
-    const minDelay = new Promise((resolve) =>
-      setTimeout(resolve, MIN_OVERLAY_MS),
-    )
+    const minDelay = new Promise(resolve => setTimeout(resolve, MIN_OVERLAY_MS))
 
     try {
       const work = (async () => {
@@ -103,7 +102,7 @@ export function CloudBackupHistory() {
 
   return (
     <>
-      <Card>
+      <Card {...tutorialAnchor('settings.cloudBackup.history')}>
         <CardHeader>
           <CardTitle>{t('backup.history')}</CardTitle>
         </CardHeader>
@@ -128,7 +127,7 @@ export function CloudBackupHistory() {
                   </tr>
                 </thead>
                 <tbody>
-                  {backups.map((backup) => (
+                  {backups.map(backup => (
                     <tr key={backup.filename} className="border-b">
                       <td className="px-2 py-1 break-all">{backup.filename}</td>
                       <td className="px-2 py-1 whitespace-nowrap">
