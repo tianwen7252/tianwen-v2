@@ -60,9 +60,17 @@ describe('CHAPTER_META', () => {
     }
   })
 
-  it('initialises tutorialIds as empty arrays (stub until Story 5/6)', () => {
-    for (const id of CHAPTER_ORDER) {
-      expect(CHAPTER_META[id].tutorialIds).toEqual([])
+  it('chapter 00 tutorialIds contains first-setup', () => {
+    expect(CHAPTER_META['00'].tutorialIds).toContain('first-setup')
+  })
+
+  it('chapter 10 tutorialIds contains order-basics', () => {
+    expect(CHAPTER_META['10'].tutorialIds).toContain('order-basics')
+  })
+
+  it('chapters 20, 30, 40, 90 have empty tutorialIds', () => {
+    for (const id of ['20', '30', '40', '90'] as const) {
+      expect(CHAPTER_META[id].tutorialIds).toHaveLength(0)
     }
   })
 

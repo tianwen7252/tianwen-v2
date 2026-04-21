@@ -12,6 +12,7 @@ import { cn } from '@/lib/cn'
 import { RippleButton } from '@/components/ui/ripple-button'
 import { useOrderStore } from '@/stores/order-store'
 import { getOrderRepo } from '@/lib/repositories/provider'
+import { tutorialAnchor } from '@/lib/tutorial/tutorial-anchor'
 import { OrderPanel } from './order-panel'
 import { RecentOrdersList } from './recent-orders-list'
 
@@ -30,11 +31,11 @@ export function OrderPanelTabs() {
   const queryClient = useQueryClient()
   const [activeTab, setActiveTab] = useState<OrderTab>('current')
 
-  const editingOrderId = useOrderStore((s) => s.editingOrderId)
-  const editingOrderNumber = useOrderStore((s) => s.editingOrderNumber)
-  const items = useOrderStore((s) => s.items)
-  const submitSeq = useOrderStore((s) => s.submitSeq)
-  const clearCart = useOrderStore((s) => s.clearCart)
+  const editingOrderId = useOrderStore(s => s.editingOrderId)
+  const editingOrderNumber = useOrderStore(s => s.editingOrderNumber)
+  const items = useOrderStore(s => s.items)
+  const submitSeq = useOrderStore(s => s.submitSeq)
+  const clearCart = useOrderStore(s => s.clearCart)
 
   const itemCount = items.reduce((sum, item) => sum + item.quantity, 0)
 
@@ -76,7 +77,10 @@ export function OrderPanelTabs() {
   }
 
   return (
-    <div className="flex h-full flex-col">
+    <div
+      className="flex h-full flex-col"
+      {...tutorialAnchor('order.panelTabs')}
+    >
       {/* Tab bar — underline style */}
       <div className="flex items-center border-b border-border">
         {/* Order Items tab */}

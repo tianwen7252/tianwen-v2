@@ -12,6 +12,7 @@ import { HeaderCheckout } from '@/components/header/header-checkout'
 import { HeaderUserMenu } from '@/components/header/header-user-menu'
 import { TutorialLauncherButton } from '@/components/tutorial/tutorial-launcher-button'
 import { RippleButton } from '@/components/ui/ripple-button'
+import { tutorialAnchor } from '@/lib/tutorial/tutorial-anchor'
 import { cn } from '@/lib/cn'
 
 // ─── Constants ───────────────────────────────────────────────────────────────
@@ -38,10 +39,12 @@ function NavLink({
   to,
   children,
   overlayActive,
+  anchorId,
 }: {
   to: string
   children: React.ReactNode
   overlayActive?: boolean
+  anchorId?: string
 }) {
   return (
     <Link
@@ -52,6 +55,7 @@ function NavLink({
           ? '[&.active]:bg-white/10'
           : '[&.active]:bg-primary [&.active]:text-primary-foreground',
       )}
+      {...(anchorId ? tutorialAnchor(anchorId) : {})}
     >
       {children}
     </Link>
@@ -63,17 +67,19 @@ function NavIconLink({
   ariaLabel,
   children,
   overlayActive,
+  anchorId,
 }: {
   to: string
   ariaLabel: string
   children: React.ReactNode
   overlayActive?: boolean
+  anchorId?: string
 }) {
   const pathname = useRouterState({ select: s => s.location.pathname })
   const isActive = pathname === to || pathname.startsWith(`${to}/`)
 
   return (
-    <Link to={to}>
+    <Link to={to} {...(anchorId ? tutorialAnchor(anchorId) : {})}>
       <RippleButton
         aria-label={ariaLabel}
         rippleColor="rgba(0,0,0,0.1)"
@@ -153,16 +159,32 @@ export function AppHeader({ disabled, overlayActive }: AppHeaderProps) {
           {t('nav.appTitle')}
         </a>
         <div className="flex gap-2">
-          <NavLink to="/" overlayActive={overlayActive}>
+          <NavLink
+            to="/"
+            overlayActive={overlayActive}
+            anchorId="header.nav.home"
+          >
             {t('nav.home')}
           </NavLink>
-          <NavLink to="/orders" overlayActive={overlayActive}>
+          <NavLink
+            to="/orders"
+            overlayActive={overlayActive}
+            anchorId="header.nav.orders"
+          >
             {t('nav.orders')}
           </NavLink>
-          <NavLink to="/clock-in" overlayActive={overlayActive}>
+          <NavLink
+            to="/clock-in"
+            overlayActive={overlayActive}
+            anchorId="header.nav.clockIn"
+          >
             {t('nav.clockIn')}
           </NavLink>
-          <NavLink to="/analytics" overlayActive={overlayActive}>
+          <NavLink
+            to="/analytics"
+            overlayActive={overlayActive}
+            anchorId="header.nav.analytics"
+          >
             {t('nav.analytics')}
           </NavLink>
         </div>
@@ -185,6 +207,7 @@ export function AppHeader({ disabled, overlayActive }: AppHeaderProps) {
             to="/settings"
             ariaLabel={t('nav.settings')}
             overlayActive={overlayActive}
+            anchorId="header.nav.settings"
           >
             <Settings size={20} />
           </NavIconLink>

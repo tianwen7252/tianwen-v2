@@ -3,6 +3,7 @@ import { MessageCircleQuestionMark } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { RippleButton } from '@/components/ui/ripple-button'
 import { useTutorialStore } from '@/stores/tutorial-store'
+import { tutorialAnchor } from '@/lib/tutorial/tutorial-anchor'
 import { cn } from '@/lib/cn'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -42,6 +43,7 @@ export function TutorialLauncherButton({
             : 'bg-primary text-primary-foreground'
           : 'text-muted-foreground',
       )}
+      {...tutorialAnchor('header.tutorialLauncher')}
     >
       <MessageCircleQuestionMark size={20} />
     </RippleButton>

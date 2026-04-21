@@ -13,6 +13,7 @@ import {
 import { useOrderStore } from '@/stores/order-store'
 import { logError } from '@/lib/error-logger'
 import { SwipeToDelete } from '@/components/ui/swipe-to-delete'
+import { tutorialAnchor } from '@/lib/tutorial/tutorial-anchor'
 import { OrderItemRow } from './order-item-row'
 import { OrderSummary } from './order-summary'
 import { ConfirmOrderModal } from './confirm-order-modal'
@@ -44,20 +45,20 @@ export function OrderPanel({
   swipeForegroundClassName,
   hideHeader,
 }: OrderPanelProps) {
-  const items = useOrderStore((s) => s.items)
-  const discounts = useOrderStore((s) => s.discounts)
-  const removeItem = useOrderStore((s) => s.removeItem)
-  const updateQuantity = useOrderStore((s) => s.updateQuantity)
-  const updateNote = useOrderStore((s) => s.updateNote)
-  const getTotal = useOrderStore((s) => s.getTotal)
-  const getBentoCount = useOrderStore((s) => s.getBentoCount)
-  const getSoupCount = useOrderStore((s) => s.getSoupCount)
-  const getItemCount = useOrderStore((s) => s.getItemCount)
-  const clearCart = useOrderStore((s) => s.clearCart)
-  const submitOrder = useOrderStore((s) => s.submitOrder)
-  const lastAddedItem = useOrderStore((s) => s.lastAddedItem)
+  const items = useOrderStore(s => s.items)
+  const discounts = useOrderStore(s => s.discounts)
+  const removeItem = useOrderStore(s => s.removeItem)
+  const updateQuantity = useOrderStore(s => s.updateQuantity)
+  const updateNote = useOrderStore(s => s.updateNote)
+  const getTotal = useOrderStore(s => s.getTotal)
+  const getBentoCount = useOrderStore(s => s.getBentoCount)
+  const getSoupCount = useOrderStore(s => s.getSoupCount)
+  const getItemCount = useOrderStore(s => s.getItemCount)
+  const clearCart = useOrderStore(s => s.clearCart)
+  const submitOrder = useOrderStore(s => s.submitOrder)
+  const lastAddedItem = useOrderStore(s => s.lastAddedItem)
 
-  const quickSubmit = useOrderStore((s) => s.quickSubmit)
+  const quickSubmit = useOrderStore(s => s.quickSubmit)
 
   const { t } = useTranslation()
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -67,14 +68,14 @@ export function OrderPanel({
   const scrollRef = useRef<ScrollAreaHandle>(null)
 
   // Auto-select "攤位" tag when stall items are in the cart
-  const hasStallItem = items.some((item) => item.typeId === 'stall')
+  const hasStallItem = items.some(item => item.typeId === 'stall')
   useEffect(() => {
-    setSelectedTags((prev) =>
+    setSelectedTags(prev =>
       hasStallItem
         ? prev.includes('攤位')
           ? prev
           : [...prev, '攤位']
-        : prev.filter((t) => t !== '攤位'),
+        : prev.filter(t => t !== '攤位'),
     )
   }, [hasStallItem])
 
@@ -177,7 +178,7 @@ export function OrderPanel({
           </p>
         ) : (
           <div className="divide-y divide-border pr-2">
-            {items.map((item) => (
+            {items.map(item => (
               <div key={item.id} data-cart-item-id={item.id}>
                 <SwipeToDelete
                   onDelete={() => removeItem(item.id)}
@@ -208,7 +209,10 @@ export function OrderPanel({
       {isQuickMode ? (
         <Popover open={notePopoverOpen} onOpenChange={setNotePopoverOpen}>
           <PopoverAnchor asChild>
-            <div className="flex w-full gap-0">
+            <div
+              className="flex w-full gap-0"
+              {...tutorialAnchor('order.submit')}
+            >
               <RippleButton
                 className="h-15 flex-1 rounded-l-md rounded-r-none bg-primary px-6 text-lg text-primary-foreground hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50"
                 disabled={isEmpty || isSubmitting}
@@ -239,7 +243,7 @@ export function OrderPanel({
             sideOffset={8}
             className="p-4 shadow-xl"
             style={{ width: 'var(--radix-popper-anchor-width)' }}
-            onOpenAutoFocus={(e) => e.preventDefault()}
+            onOpenAutoFocus={e => e.preventDefault()}
           >
             <OrderNoteTags
               selectedTags={selectedTags}
@@ -253,6 +257,7 @@ export function OrderPanel({
           disabled={isEmpty || isSubmitting}
           onClick={onSubmitClick ?? (() => setConfirmOpen(true))}
           style={submitColor ? { backgroundColor: submitColor } : undefined}
+          {...tutorialAnchor('order.submit')}
         >
           {submitLabel ?? t('order.submit')}
         </RippleButton>
