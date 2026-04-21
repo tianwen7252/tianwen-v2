@@ -1,4 +1,5 @@
 import './tutorial.css'
+import { useEffect, useState, type CSSProperties } from 'react'
 import {
   useFloating,
   offset,
@@ -74,7 +75,7 @@ export function StepPopover({
       ? [offset(12), autoPlacement(), shift({ padding: 16 })]
       : [offset(12), flip(), shift({ padding: 16 })]
 
-  const { refs, floatingStyles } = useFloating({
+  const { refs, floatingStyles, update } = useFloating({
     placement: placement === 'auto' ? undefined : (placement as Placement),
     whileElementsMounted: autoUpdate,
     middleware,
@@ -83,7 +84,33 @@ export function StepPopover({
     },
   })
 
+  // Track visualViewport height so we can cap the popover maxHeight and
+  // re-run Floating UI positioning when the iPad soft keyboard appears/disappears.
+  const [viewportHeight, setViewportHeight] = useState<number | null>(
+    () => window.visualViewport?.height ?? null,
+  )
+
+  useEffect(() => {
+    const vv = window.visualViewport
+    if (!vv) return
+
+    const handler = () => {
+      setViewportHeight(vv.height)
+      update()
+    }
+
+    vv.addEventListener('resize', handler)
+    return () => {
+      vv.removeEventListener('resize', handler)
+    }
+  }, [update])
+
   const isCentered = anchor === null
+
+  // Cap the popover height so it stays on-screen when the soft keyboard shrinks
+  // the visible area. Subtract 32px for a comfortable breathing margin.
+  const maxHeightStyle: CSSProperties =
+    viewportHeight !== null ? { maxHeight: `${viewportHeight - 32}px` } : {}
 
   return (
     <div
@@ -93,12 +120,14 @@ export function StepPopover({
       tabIndex={-1}
       className={cn(
         'tutorial-popover z-[61] max-w-[360px] rounded-xl border shadow-lg',
-        'bg-popover text-popover-foreground p-5',
+        'bg-popover text-popover-foreground overflow-y-auto p-5',
         isCentered
           ? 'fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2'
           : 'absolute',
       )}
-      style={isCentered ? undefined : floatingStyles}
+      style={
+        isCentered ? maxHeightStyle : { ...floatingStyles, ...maxHeightStyle }
+      }
     >
       {/* Progress */}
       {progress && (

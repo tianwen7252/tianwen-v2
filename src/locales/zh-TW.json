@@ -721,6 +721,9 @@
     "launcher": {
       "openIndex": "開啟教學索引"
     },
+    "coachmark": {
+      "swipeToEdit": "小提示：向左滑動可編輯或刪除訂單"
+    },
     "index": {
       "title": "互動式教學",
       "close": "關閉",

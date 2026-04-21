@@ -42,11 +42,8 @@
 
 @media (prefers-reduced-motion: reduce) {
   .tutorial-spotlight-overlay,
-  .tutorial-popover {
-    animation-duration: 1ms;
-  }
-
+  .tutorial-popover,
   .tutorial-pulse-dot {
-    animation: none;
+    animation: none !important;
   }
 }
