@@ -510,7 +510,10 @@ describe('SystemInfo', () => {
       vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
         ok: false,
         status: 409,
-        json: async () => ({ success: false, error: 'Device name already in use' }),
+        json: async () => ({
+          success: false,
+          error: 'Device name already in use',
+        }),
       } as Response)
 
       const user = userEvent.setup()

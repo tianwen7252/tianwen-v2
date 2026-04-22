@@ -63,10 +63,7 @@ const TABLE_COLUMNS: Record<string, readonly string[]> = {
  * Import order — commodity_types before commodities (FK), orders before order_items (FK).
  * Only essential tables: excludes order_types, employees, attendances, daily_data, order_discounts.
  */
-const IMPORT_ORDER: readonly string[] = [
-  'orders',
-  'order_items',
-] as const
+const IMPORT_ORDER: readonly string[] = ['orders', 'order_items'] as const
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -136,7 +133,7 @@ function extractValues(
 
     // Ensure includes_soup is a number (V1 doesn't have this field)
     if (col === 'includes_soup') {
-      return value != null ? (Number(value) || 0) : 0
+      return value != null ? Number(value) || 0 : 0
     }
 
     // Ensure priority is a number
@@ -197,73 +194,72 @@ export async function importV1Data(
   await db.exec('PRAGMA foreign_keys = OFF')
 
   try {
-  for (const tableName of IMPORT_ORDER) {
-    let records: readonly Record<string, unknown>[]
-    if (tableName === 'order_items') {
-      records = remappedOrderItems
-    } else {
-      records = transformed.tables.get(tableName) ?? []
-    }
-
-    const columns = TABLE_COLUMNS[tableName]
-    if (!columns || records.length === 0) {
-      counts[tableName] = 0
-      onProgress?.({
-        phase: tableName as V1ImportProgress['phase'],
-        current: 0,
-        total: 0,
-        tableName,
-      })
-      continue
-    }
-
-    const sql = buildInsertSql(tableName, columns)
-    let inserted = 0
-
-    // Begin transaction for this table
-    await db.exec('BEGIN TRANSACTION')
-
-    try {
-      for (let i = 0; i < records.length; i++) {
-        const record = records[i]!
-        const values = extractValues(record, columns, tableName)
-
-        try {
-          const result = await db.exec(sql, values)
-          inserted += result.changes
-        } catch (err: unknown) {
-          const msg =
-            err instanceof Error ? err.message : 'Unknown insert error'
-          errors.push(`[${tableName}] Row ${i}: ${msg}`)
-        }
-
-        // Report progress periodically
-        if ((i + 1) % PROGRESS_BATCH_SIZE === 0 || i === records.length - 1) {
-          onProgress?.({
-            phase: tableName as V1ImportProgress['phase'],
-            current: i + 1,
-            total: records.length,
-            tableName,
-          })
-        }
+    for (const tableName of IMPORT_ORDER) {
+      let records: readonly Record<string, unknown>[]
+      if (tableName === 'order_items') {
+        records = remappedOrderItems
+      } else {
+        records = transformed.tables.get(tableName) ?? []
       }
 
-      await db.exec('COMMIT')
-    } catch (err: unknown) {
-      // If COMMIT fails, try to rollback
+      const columns = TABLE_COLUMNS[tableName]
+      if (!columns || records.length === 0) {
+        counts[tableName] = 0
+        onProgress?.({
+          phase: tableName as V1ImportProgress['phase'],
+          current: 0,
+          total: 0,
+          tableName,
+        })
+        continue
+      }
+
+      const sql = buildInsertSql(tableName, columns)
+      let inserted = 0
+
+      // Begin transaction for this table
+      await db.exec('BEGIN TRANSACTION')
+
       try {
-        await db.exec('ROLLBACK')
-      } catch {
-        // Rollback failed — already in an error state
+        for (let i = 0; i < records.length; i++) {
+          const record = records[i]!
+          const values = extractValues(record, columns, tableName)
+
+          try {
+            const result = await db.exec(sql, values)
+            inserted += result.changes
+          } catch (err: unknown) {
+            const msg =
+              err instanceof Error ? err.message : 'Unknown insert error'
+            errors.push(`[${tableName}] Row ${i}: ${msg}`)
+          }
+
+          // Report progress periodically
+          if ((i + 1) % PROGRESS_BATCH_SIZE === 0 || i === records.length - 1) {
+            onProgress?.({
+              phase: tableName as V1ImportProgress['phase'],
+              current: i + 1,
+              total: records.length,
+              tableName,
+            })
+          }
+        }
+
+        await db.exec('COMMIT')
+      } catch (err: unknown) {
+        // If COMMIT fails, try to rollback
+        try {
+          await db.exec('ROLLBACK')
+        } catch {
+          // Rollback failed — already in an error state
+        }
+        const msg =
+          err instanceof Error ? err.message : 'Unknown transaction error'
+        errors.push(`[${tableName}] Transaction error: ${msg}`)
       }
-      const msg =
-        err instanceof Error ? err.message : 'Unknown transaction error'
-      errors.push(`[${tableName}] Transaction error: ${msg}`)
+
+      counts[tableName] = inserted
     }
-
-    counts[tableName] = inserted
-  }
-
   } finally {
     await db.exec('PRAGMA foreign_keys = ON')
   }

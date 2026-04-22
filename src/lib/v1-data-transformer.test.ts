@@ -49,9 +49,7 @@ describe('transformV1Data', () => {
 
     it('transforms orderTypes to order_types', () => {
       const input: V1BackupData = {
-        orderTypes: [
-          { id: 1, name: 'Dine In', priority: 1, type: 'order' },
-        ],
+        orderTypes: [{ id: 1, name: 'Dine In', priority: 1, type: 'order' }],
       }
 
       const result = transformV1Data(input)
@@ -223,9 +221,7 @@ describe('transformV1Data', () => {
 
     it('transforms typeID (uppercase D) to type_id', () => {
       const input: V1BackupData = {
-        commondity: [
-          { id: 1, typeID: 'bento', name: 'Test', price: 100 },
-        ],
+        commondity: [{ id: 1, typeID: 'bento', name: 'Test', price: 100 }],
       }
 
       const result = transformV1Data(input)
@@ -255,9 +251,7 @@ describe('transformV1Data', () => {
   describe('type coercion', () => {
     it('converts numeric IDs to strings', () => {
       const input: V1BackupData = {
-        commondity: [
-          { id: 42, typeID: 'bento', name: 'Test', price: 100 },
-        ],
+        commondity: [{ id: 42, typeID: 'bento', name: 'Test', price: 100 }],
       }
 
       const result = transformV1Data(input)
@@ -269,9 +263,7 @@ describe('transformV1Data', () => {
 
     it('converts numeric type_id to string', () => {
       const input: V1BackupData = {
-        commondity: [
-          { id: 1, typeID: 3, name: 'Test', price: 100 },
-        ],
+        commondity: [{ id: 1, typeID: 3, name: 'Test', price: 100 }],
       }
 
       const result = transformV1Data(input)
@@ -427,12 +419,8 @@ describe('transformV1Data', () => {
             color: '#fff',
           },
         ],
-        commondity: [
-          { id: 1, typeID: 'bento', name: 'Product A', price: 100 },
-        ],
-        orderTypes: [
-          { id: 1, name: 'Dine In', priority: 1, type: 'order' },
-        ],
+        commondity: [{ id: 1, typeID: 'bento', name: 'Product A', price: 100 }],
+        orderTypes: [{ id: 1, name: 'Dine In', priority: 1, type: 'order' }],
         orders: [{ id: 1, number: 1, total: 100, data: [] }],
         employees: [{ id: 1, name: 'Employee A' }],
         attendances: [

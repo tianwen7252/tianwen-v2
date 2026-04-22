@@ -1,1032 +1,1455 @@
 <!doctype html>
 <html lang="zh-TW">
-<head>
-<meta charset="utf-8">
-<title>天文 V2 POS — Business Domain Report</title>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
-<script>
-  mermaid.initialize({
-    startOnLoad: true,
-    theme: 'base',
-    themeVariables: {
-      primaryColor: '#f3d98f',
-      primaryTextColor: '#0d3b66',
-      primaryBorderColor: '#7f956a',
-      lineColor: '#0d3b66',
-      secondaryColor: '#e8f0dc',
-      tertiaryColor: '#f1ead7',
-      background: '#ffffff',
-      mainBkg: '#f3d98f',
-      fontFamily: "'Noto Sans TC','Inter',sans-serif",
-      fontSize: '13px'
-    },
-    flowchart: { htmlLabels: true, useMaxWidth: true, curve: 'basis' },
-    sequence: { useMaxWidth: true, actorMargin: 60, messageMargin: 35 }
-  });
-</script>
-<style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body {
-    font-family: 'Noto Sans TC','Inter',-apple-system,sans-serif;
-    color: #111827;
-    line-height: 1.75;
-    font-size: 10.5pt;
-    -webkit-font-smoothing: antialiased;
-  }
-  @page { size: A4; margin: 16mm 18mm 18mm 18mm; }
-  @page :first { margin: 0; }
+  <head>
+    <meta charset="utf-8" />
+    <title>天文 V2 POS — Business Domain Report</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+    <script>
+      mermaid.initialize({
+        startOnLoad: true,
+        theme: 'base',
+        themeVariables: {
+          primaryColor: '#f3d98f',
+          primaryTextColor: '#0d3b66',
+          primaryBorderColor: '#7f956a',
+          lineColor: '#0d3b66',
+          secondaryColor: '#e8f0dc',
+          tertiaryColor: '#f1ead7',
+          background: '#ffffff',
+          mainBkg: '#f3d98f',
+          fontFamily: "'Noto Sans TC','Inter',sans-serif",
+          fontSize: '13px',
+        },
+        flowchart: { htmlLabels: true, useMaxWidth: true, curve: 'basis' },
+        sequence: { useMaxWidth: true, actorMargin: 60, messageMargin: 35 },
+      })
+    </script>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html,
+      body {
+        font-family:
+          'Noto Sans TC',
+          'Inter',
+          -apple-system,
+          sans-serif;
+        color: #111827;
+        line-height: 1.75;
+        font-size: 10.5pt;
+        -webkit-font-smoothing: antialiased;
+      }
+      @page {
+        size: A4;
+        margin: 16mm 18mm 18mm 18mm;
+      }
+      @page :first {
+        margin: 0;
+      }
 
-  /* ─── Cover ─────────────────────────── */
-  .cover {
-    page-break-after: always;
-    min-height: 297mm;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    background: linear-gradient(135deg, #0d3b66 0%, #7f956a 55%, #f3d98f 100%);
-    color: #ffffff;
-    padding: 40mm 24mm;
-    position: relative;
-  }
-  .cover::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background:
-      radial-gradient(circle at 80% 20%, rgba(243,217,143,0.35), transparent 50%),
-      radial-gradient(circle at 20% 80%, rgba(127,149,106,0.5), transparent 55%);
-    pointer-events: none;
-  }
-  .cover-header { position: relative; font-size: 11pt; letter-spacing: 4pt; opacity: 0.85; text-transform: uppercase; }
-  .cover-title { position: relative; }
-  .cover-title h1 {
-    font-size: 56pt;
-    font-weight: 700;
-    letter-spacing: -1pt;
-    line-height: 1.05;
-    margin-bottom: 6pt;
-  }
-  .cover-title .sub {
-    font-size: 22pt;
-    font-weight: 300;
-    opacity: 0.92;
-    letter-spacing: 2pt;
-  }
-  .cover-title .tagline {
-    margin-top: 18pt;
-    font-size: 13pt;
-    font-weight: 300;
-    max-width: 420pt;
-    line-height: 1.55;
-    opacity: 0.82;
-  }
-  .cover-meta { position: relative; display: flex; justify-content: space-between; font-size: 10pt; opacity: 0.8; letter-spacing: 1pt; border-top: 1pt solid rgba(255,255,255,0.35); padding-top: 12pt; }
-  .cover-meta strong { font-weight: 600; letter-spacing: 0; }
+      /* ─── Cover ─────────────────────────── */
+      .cover {
+        page-break-after: always;
+        min-height: 297mm;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        background: linear-gradient(
+          135deg,
+          #0d3b66 0%,
+          #7f956a 55%,
+          #f3d98f 100%
+        );
+        color: #ffffff;
+        padding: 40mm 24mm;
+        position: relative;
+      }
+      .cover::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background:
+          radial-gradient(
+            circle at 80% 20%,
+            rgba(243, 217, 143, 0.35),
+            transparent 50%
+          ),
+          radial-gradient(
+            circle at 20% 80%,
+            rgba(127, 149, 106, 0.5),
+            transparent 55%
+          );
+        pointer-events: none;
+      }
+      .cover-header {
+        position: relative;
+        font-size: 11pt;
+        letter-spacing: 4pt;
+        opacity: 0.85;
+        text-transform: uppercase;
+      }
+      .cover-title {
+        position: relative;
+      }
+      .cover-title h1 {
+        font-size: 56pt;
+        font-weight: 700;
+        letter-spacing: -1pt;
+        line-height: 1.05;
+        margin-bottom: 6pt;
+      }
+      .cover-title .sub {
+        font-size: 22pt;
+        font-weight: 300;
+        opacity: 0.92;
+        letter-spacing: 2pt;
+      }
+      .cover-title .tagline {
+        margin-top: 18pt;
+        font-size: 13pt;
+        font-weight: 300;
+        max-width: 420pt;
+        line-height: 1.55;
+        opacity: 0.82;
+      }
+      .cover-meta {
+        position: relative;
+        display: flex;
+        justify-content: space-between;
+        font-size: 10pt;
+        opacity: 0.8;
+        letter-spacing: 1pt;
+        border-top: 1pt solid rgba(255, 255, 255, 0.35);
+        padding-top: 12pt;
+      }
+      .cover-meta strong {
+        font-weight: 600;
+        letter-spacing: 0;
+      }
 
-  /* ─── Typography ────────────────────── */
-  h1.section {
-    font-size: 24pt;
-    font-weight: 700;
-    color: #0d3b66;
-    border-bottom: 2pt solid #7f956a;
-    padding-bottom: 10pt;
-    margin-top: 28pt;
-    margin-bottom: 16pt;
-    page-break-before: always;
-    page-break-after: avoid;
-  }
-  h1.section:first-of-type { page-break-before: auto; }
-  h2 {
-    font-size: 16pt;
-    font-weight: 600;
-    color: #0d3b66;
-    margin-top: 20pt;
-    margin-bottom: 10pt;
-    page-break-after: avoid;
-  }
-  h3 {
-    font-size: 12pt;
-    font-weight: 600;
-    color: #5a7048;
-    margin-top: 14pt;
-    margin-bottom: 6pt;
-    page-break-after: avoid;
-  }
-  p { margin-bottom: 7pt; }
-  strong { color: #0d3b66; font-weight: 600; }
-  code {
-    font-family: 'SFMono-Regular','Menlo','Consolas',monospace;
-    font-size: 9pt;
-    background: #f1ead7;
-    color: #0d3b66;
-    padding: 1pt 5pt;
-    border-radius: 3pt;
-  }
-  ul, ol { margin-left: 18pt; margin-bottom: 8pt; }
-  li { margin-bottom: 3pt; }
+      /* ─── Typography ────────────────────── */
+      h1.section {
+        font-size: 24pt;
+        font-weight: 700;
+        color: #0d3b66;
+        border-bottom: 2pt solid #7f956a;
+        padding-bottom: 10pt;
+        margin-top: 28pt;
+        margin-bottom: 16pt;
+        page-break-before: always;
+        page-break-after: avoid;
+      }
+      h1.section:first-of-type {
+        page-break-before: auto;
+      }
+      h2 {
+        font-size: 16pt;
+        font-weight: 600;
+        color: #0d3b66;
+        margin-top: 20pt;
+        margin-bottom: 10pt;
+        page-break-after: avoid;
+      }
+      h3 {
+        font-size: 12pt;
+        font-weight: 600;
+        color: #5a7048;
+        margin-top: 14pt;
+        margin-bottom: 6pt;
+        page-break-after: avoid;
+      }
+      p {
+        margin-bottom: 7pt;
+      }
+      strong {
+        color: #0d3b66;
+        font-weight: 600;
+      }
+      code {
+        font-family: 'SFMono-Regular', 'Menlo', 'Consolas', monospace;
+        font-size: 9pt;
+        background: #f1ead7;
+        color: #0d3b66;
+        padding: 1pt 5pt;
+        border-radius: 3pt;
+      }
+      ul,
+      ol {
+        margin-left: 18pt;
+        margin-bottom: 8pt;
+      }
+      li {
+        margin-bottom: 3pt;
+      }
 
-  /* ─── Tables ────────────────────────── */
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    margin: 10pt 0 14pt 0;
-    font-size: 9pt;
-    page-break-inside: avoid;
-  }
-  th {
-    background: #0d3b66;
-    color: #ffffff;
-    padding: 7pt 9pt;
-    text-align: left;
-    font-weight: 600;
-    font-size: 9pt;
-    letter-spacing: 0.3pt;
-  }
-  td {
-    padding: 6pt 9pt;
-    border-bottom: 0.5pt solid #e5e7eb;
-    vertical-align: top;
-  }
-  tr:nth-child(even) td { background: #fafaf9; }
+      /* ─── Tables ────────────────────────── */
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 10pt 0 14pt 0;
+        font-size: 9pt;
+        page-break-inside: avoid;
+      }
+      th {
+        background: #0d3b66;
+        color: #ffffff;
+        padding: 7pt 9pt;
+        text-align: left;
+        font-weight: 600;
+        font-size: 9pt;
+        letter-spacing: 0.3pt;
+      }
+      td {
+        padding: 6pt 9pt;
+        border-bottom: 0.5pt solid #e5e7eb;
+        vertical-align: top;
+      }
+      tr:nth-child(even) td {
+        background: #fafaf9;
+      }
 
-  /* ─── Flow card ─────────────────────── */
-  .flow {
-    page-break-inside: avoid;
-    margin-top: 16pt;
-    padding: 12pt 14pt 14pt 14pt;
-    border-left: 4pt solid #7f956a;
-    background: #fafaf9;
-    border-radius: 0 4pt 4pt 0;
-  }
-  .flow h3 {
-    margin-top: 0;
-    color: #0d3b66;
-    font-size: 13pt;
-  }
-  .flow-meta {
-    font-size: 8.5pt;
-    color: #5f6368;
-    margin-bottom: 6pt;
-    letter-spacing: 0.2pt;
-  }
-  .flow-meta strong { color: #0d3b66; }
-  .flow-meta code { font-size: 8pt; background: #f1ead7; }
+      /* ─── Flow card ─────────────────────── */
+      .flow {
+        page-break-inside: avoid;
+        margin-top: 16pt;
+        padding: 12pt 14pt 14pt 14pt;
+        border-left: 4pt solid #7f956a;
+        background: #fafaf9;
+        border-radius: 0 4pt 4pt 0;
+      }
+      .flow h3 {
+        margin-top: 0;
+        color: #0d3b66;
+        font-size: 13pt;
+      }
+      .flow-meta {
+        font-size: 8.5pt;
+        color: #5f6368;
+        margin-bottom: 6pt;
+        letter-spacing: 0.2pt;
+      }
+      .flow-meta strong {
+        color: #0d3b66;
+      }
+      .flow-meta code {
+        font-size: 8pt;
+        background: #f1ead7;
+      }
 
-  /* ─── Mermaid containers ────────────── */
-  .mermaid {
-    text-align: center;
-    margin: 12pt auto;
-    max-width: 100%;
-    page-break-inside: avoid;
-  }
-  .mermaid svg {
-    max-width: 100% !important;
-    height: auto !important;
-  }
+      /* ─── Mermaid containers ────────────── */
+      .mermaid {
+        text-align: center;
+        margin: 12pt auto;
+        max-width: 100%;
+        page-break-inside: avoid;
+      }
+      .mermaid svg {
+        max-width: 100% !important;
+        height: auto !important;
+      }
 
-  /* ─── Rule card ─────────────────────── */
-  .rule {
-    page-break-inside: avoid;
-    padding: 10pt 12pt;
-    margin-bottom: 8pt;
-    background: #ffffff;
-    border: 0.5pt solid #e5e7eb;
-    border-left: 3pt solid #f3d98f;
-    border-radius: 3pt;
-  }
-  .rule-title { font-weight: 600; color: #0d3b66; font-size: 11pt; margin-bottom: 4pt; }
-  .rule-desc { font-size: 9.5pt; color: #374151; margin-bottom: 3pt; }
-  .rule-loc { font-size: 8.5pt; color: #6b7280; font-family: monospace; }
+      /* ─── Rule card ─────────────────────── */
+      .rule {
+        page-break-inside: avoid;
+        padding: 10pt 12pt;
+        margin-bottom: 8pt;
+        background: #ffffff;
+        border: 0.5pt solid #e5e7eb;
+        border-left: 3pt solid #f3d98f;
+        border-radius: 3pt;
+      }
+      .rule-title {
+        font-weight: 600;
+        color: #0d3b66;
+        font-size: 11pt;
+        margin-bottom: 4pt;
+      }
+      .rule-desc {
+        font-size: 9.5pt;
+        color: #374151;
+        margin-bottom: 3pt;
+      }
+      .rule-loc {
+        font-size: 8.5pt;
+        color: #6b7280;
+        font-family: monospace;
+      }
 
-  /* ─── Callout ───────────────────────── */
-  .callout {
-    background: #f1ead7;
-    border-left: 4pt solid #d4af37;
-    padding: 10pt 14pt;
-    margin: 12pt 0;
-    border-radius: 0 4pt 4pt 0;
-    font-size: 9.5pt;
-  }
-  .callout strong { color: #5a3a00; }
+      /* ─── Callout ───────────────────────── */
+      .callout {
+        background: #f1ead7;
+        border-left: 4pt solid #d4af37;
+        padding: 10pt 14pt;
+        margin: 12pt 0;
+        border-radius: 0 4pt 4pt 0;
+        font-size: 9.5pt;
+      }
+      .callout strong {
+        color: #5a3a00;
+      }
 
-  /* ─── TOC ───────────────────────────── */
-  .toc {
-    page-break-after: always;
-  }
-  .toc h1 {
-    font-size: 22pt;
-    color: #0d3b66;
-    border-bottom: 2pt solid #7f956a;
-    padding-bottom: 8pt;
-    margin-bottom: 18pt;
-  }
-  .toc-list { list-style: none; margin-left: 0; }
-  .toc-list > li {
-    padding: 7pt 0 7pt 0;
-    border-bottom: 0.5pt dotted #cbd5e1;
-    font-size: 11pt;
-    color: #0d3b66;
-    font-weight: 500;
-  }
-  .toc-list > li::before {
-    content: '§ ';
-    color: #7f956a;
-    font-weight: 700;
-  }
-  .toc-list ol {
-    list-style: none;
-    margin-left: 16pt;
-    margin-top: 4pt;
-  }
-  .toc-list ol li {
-    font-size: 9.5pt;
-    font-weight: 400;
-    color: #4b5563;
-    padding: 1pt 0;
-    border: none;
-  }
-  .toc-list ol li::before { content: '·  '; color: #9ca3af; }
+      /* ─── TOC ───────────────────────────── */
+      .toc {
+        page-break-after: always;
+      }
+      .toc h1 {
+        font-size: 22pt;
+        color: #0d3b66;
+        border-bottom: 2pt solid #7f956a;
+        padding-bottom: 8pt;
+        margin-bottom: 18pt;
+      }
+      .toc-list {
+        list-style: none;
+        margin-left: 0;
+      }
+      .toc-list > li {
+        padding: 7pt 0 7pt 0;
+        border-bottom: 0.5pt dotted #cbd5e1;
+        font-size: 11pt;
+        color: #0d3b66;
+        font-weight: 500;
+      }
+      .toc-list > li::before {
+        content: '§ ';
+        color: #7f956a;
+        font-weight: 700;
+      }
+      .toc-list ol {
+        list-style: none;
+        margin-left: 16pt;
+        margin-top: 4pt;
+      }
+      .toc-list ol li {
+        font-size: 9.5pt;
+        font-weight: 400;
+        color: #4b5563;
+        padding: 1pt 0;
+        border: none;
+      }
+      .toc-list ol li::before {
+        content: '·  ';
+        color: #9ca3af;
+      }
 
-  /* ─── Footer meta ────────────────────── */
-  .doc-footer {
-    margin-top: 24pt;
-    padding-top: 10pt;
-    border-top: 0.5pt solid #e5e7eb;
-    font-size: 8.5pt;
-    color: #6b7280;
-    text-align: center;
-  }
+      /* ─── Footer meta ────────────────────── */
+      .doc-footer {
+        margin-top: 24pt;
+        padding-top: 10pt;
+        border-top: 0.5pt solid #e5e7eb;
+        font-size: 8.5pt;
+        color: #6b7280;
+        text-align: center;
+      }
 
-  .no-break { page-break-inside: avoid; }
-</style>
-</head>
-<body>
-
-<!-- ═════════════════════════════════════════════════ -->
-<!-- COVER                                              -->
-<!-- ═════════════════════════════════════════════════ -->
-<div class="cover">
-  <div class="cover-header">Tianwen V2 · Domain Discovery Report</div>
-  <div class="cover-title">
-    <h1>天文 V2 POS</h1>
-    <div class="sub">Business Domain Report</div>
-    <div class="tagline">
-      Restaurant Point-of-Sale Management System · 商業模型、運作流程與資料結構全景分析報告
+      .no-break {
+        page-break-inside: avoid;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- ═════════════════════════════════════════════════ -->
+    <!-- COVER                                              -->
+    <!-- ═════════════════════════════════════════════════ -->
+    <div class="cover">
+      <div class="cover-header">Tianwen V2 · Domain Discovery Report</div>
+      <div class="cover-title">
+        <h1>天文 V2 POS</h1>
+        <div class="sub">Business Domain Report</div>
+        <div class="tagline">
+          Restaurant Point-of-Sale Management System ·
+          商業模型、運作流程與資料結構全景分析報告
+        </div>
+      </div>
+      <div class="cover-meta">
+        <div><strong>VERSION</strong> &nbsp; v2.10.0</div>
+        <div><strong>PLATFORM</strong> &nbsp; PWA · React 19 · SQLite WASM</div>
+        <div><strong>GENERATED</strong> &nbsp; 2026-04-11</div>
+      </div>
     </div>
-  </div>
-  <div class="cover-meta">
-    <div><strong>VERSION</strong> &nbsp; v2.10.0</div>
-    <div><strong>PLATFORM</strong> &nbsp; PWA · React 19 · SQLite WASM</div>
-    <div><strong>GENERATED</strong> &nbsp; 2026-04-11</div>
-  </div>
-</div>
 
-<!-- ═════════════════════════════════════════════════ -->
-<!-- TABLE OF CONTENTS                                  -->
-<!-- ═════════════════════════════════════════════════ -->
-<div class="toc">
-  <h1>Table of Contents</h1>
-  <ol class="toc-list">
-    <li>Executive Summary</li>
-    <li>Business Entities & Domain Model
-      <ol>
-        <li>Order / OrderItem</li>
-        <li>Commodity / CommodityType / OrderType</li>
-        <li>Employee / Attendance</li>
-        <li>Logs: BackupLog / ErrorLog / PriceChangeLog</li>
-        <li>Aggregates: DailyData / OrderDiscount / CustomOrderName</li>
+    <!-- ═════════════════════════════════════════════════ -->
+    <!-- TABLE OF CONTENTS                                  -->
+    <!-- ═════════════════════════════════════════════════ -->
+    <div class="toc">
+      <h1>Table of Contents</h1>
+      <ol class="toc-list">
+        <li>Executive Summary</li>
+        <li>
+          Business Entities & Domain Model
+          <ol>
+            <li>Order / OrderItem</li>
+            <li>Commodity / CommodityType / OrderType</li>
+            <li>Employee / Attendance</li>
+            <li>Logs: BackupLog / ErrorLog / PriceChangeLog</li>
+            <li>Aggregates: DailyData / OrderDiscount / CustomOrderName</li>
+          </ol>
+        </li>
+        <li>
+          Operational Flows (15 end-to-end sequences)
+          <ol>
+            <li>Bootstrap / Cold Start</li>
+            <li>Order Entry & Submission</li>
+            <li>Order Edit</li>
+            <li>Order Served Marking</li>
+            <li>Clock-In / Clock-Out</li>
+            <li>Product Management & Price Edit</li>
+            <li>Analytics Page</li>
+            <li>Manual Backup</li>
+            <li>Automatic Backup</li>
+            <li>Cloud Restore</li>
+            <li>V1 → V2 Legacy Import</li>
+            <li>Staff Management</li>
+            <li>Google OAuth Binding</li>
+            <li>Error Handling & Recovery</li>
+            <li>PWA Update & Installation</li>
+          </ol>
+        </li>
+        <li>Business Rules & Invariants (13 rules)</li>
+        <li>External Integrations</li>
+        <li>Architecture Overview</li>
+        <li>Domain Vocabulary (zh-TW ↔ en Glossary)</li>
       </ol>
-    </li>
-    <li>Operational Flows (15 end-to-end sequences)
-      <ol>
-        <li>Bootstrap / Cold Start</li>
-        <li>Order Entry & Submission</li>
-        <li>Order Edit</li>
-        <li>Order Served Marking</li>
-        <li>Clock-In / Clock-Out</li>
-        <li>Product Management & Price Edit</li>
-        <li>Analytics Page</li>
-        <li>Manual Backup</li>
-        <li>Automatic Backup</li>
-        <li>Cloud Restore</li>
-        <li>V1 → V2 Legacy Import</li>
-        <li>Staff Management</li>
-        <li>Google OAuth Binding</li>
-        <li>Error Handling & Recovery</li>
-        <li>PWA Update & Installation</li>
-      </ol>
-    </li>
-    <li>Business Rules & Invariants (13 rules)</li>
-    <li>External Integrations</li>
-    <li>Architecture Overview</li>
-    <li>Domain Vocabulary (zh-TW ↔ en Glossary)</li>
-  </ol>
-</div>
+    </div>
 
-<!-- ═════════════════════════════════════════════════ -->
-<!-- §1 EXECUTIVE SUMMARY                               -->
-<!-- ═════════════════════════════════════════════════ -->
-<h1 class="section">1. Executive Summary</h1>
+    <!-- ═════════════════════════════════════════════════ -->
+    <!-- §1 EXECUTIVE SUMMARY                               -->
+    <!-- ═════════════════════════════════════════════════ -->
+    <h1 class="section">1. Executive Summary</h1>
 
-<p>Tianwen is a <strong>Progressive Web App (PWA) restaurant POS system</strong> designed for small-to-medium dining operations in Taiwan. The app enables <strong>offline-first</strong> order management, employee time tracking, and cloud-based backup with real-time analytics.</p>
+    <p>
+      Tianwen is a
+      <strong>Progressive Web App (PWA) restaurant POS system</strong> designed
+      for small-to-medium dining operations in Taiwan. The app enables
+      <strong>offline-first</strong> order management, employee time tracking,
+      and cloud-based backup with real-time analytics.
+    </p>
 
-<table>
-  <thead>
-    <tr><th style="width:28%">Dimension</th><th>Description</th></tr>
-  </thead>
-  <tbody>
-    <tr><td><strong>Value Proposition</strong></td><td>Offline-capable ordering; Cloudflare R2 cloud backup; multi-device sync; analytics dashboard with daily/product-level KPIs</td></tr>
-    <tr><td><strong>Operational Modes</strong></td><td>Order entry (POS), clock-in / clock-out, attendance records, product & category config, analytics</td></tr>
-    <tr><td><strong>Tech Foundation</strong></td><td>React 19 · SQLite WASM (OPFS) · Zustand · TanStack Query + Router · Vercel Serverless · Cloudflare R2</td></tr>
-    <tr><td><strong>Persistence</strong></td><td>SQLite WASM in OPFS for offline; Vercel Functions as API; Cloudflare R2 for versioned backups</td></tr>
-    <tr><td><strong>Device Support</strong></td><td>iPad 10 (2022) and later; portrait orientation enforced for touch usability</td></tr>
-    <tr><td><strong>i18n</strong></td><td>Traditional Chinese (zh-TW) primary; English (en) secondary</td></tr>
-    <tr><td><strong>User Roles</strong></td><td>Operator (order entry), Manager (employee/product admin), System Admin (backup/settings)</td></tr>
-    <tr><td><strong>Backup Policy</strong></td><td>Manual + automatic (daily/weekly schedule); max 30 backups retained per device; gzip compression</td></tr>
-    <tr><td><strong>Error Handling</strong></td><td>Multi-layer error boundaries, error overlay UI, SQLite-persisted error logs, user-facing recovery prompts</td></tr>
-    <tr><td><strong>Auth Strategy</strong></td><td>Google OAuth for staff management binding only; no global user login required (device-based operation)</td></tr>
-  </tbody>
-</table>
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 28%">Dimension</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Value Proposition</strong></td>
+          <td>
+            Offline-capable ordering; Cloudflare R2 cloud backup; multi-device
+            sync; analytics dashboard with daily/product-level KPIs
+          </td>
+        </tr>
+        <tr>
+          <td><strong>Operational Modes</strong></td>
+          <td>
+            Order entry (POS), clock-in / clock-out, attendance records, product
+            & category config, analytics
+          </td>
+        </tr>
+        <tr>
+          <td><strong>Tech Foundation</strong></td>
+          <td>
+            React 19 · SQLite WASM (OPFS) · Zustand · TanStack Query + Router ·
+            Vercel Serverless · Cloudflare R2
+          </td>
+        </tr>
+        <tr>
+          <td><strong>Persistence</strong></td>
+          <td>
+            SQLite WASM in OPFS for offline; Vercel Functions as API; Cloudflare
+            R2 for versioned backups
+          </td>
+        </tr>
+        <tr>
+          <td><strong>Device Support</strong></td>
+          <td>
+            iPad 10 (2022) and later; portrait orientation enforced for touch
+            usability
+          </td>
+        </tr>
+        <tr>
+          <td><strong>i18n</strong></td>
+          <td>Traditional Chinese (zh-TW) primary; English (en) secondary</td>
+        </tr>
+        <tr>
+          <td><strong>User Roles</strong></td>
+          <td>
+            Operator (order entry), Manager (employee/product admin), System
+            Admin (backup/settings)
+          </td>
+        </tr>
+        <tr>
+          <td><strong>Backup Policy</strong></td>
+          <td>
+            Manual + automatic (daily/weekly schedule); max 30 backups retained
+            per device; gzip compression
+          </td>
+        </tr>
+        <tr>
+          <td><strong>Error Handling</strong></td>
+          <td>
+            Multi-layer error boundaries, error overlay UI, SQLite-persisted
+            error logs, user-facing recovery prompts
+          </td>
+        </tr>
+        <tr>
+          <td><strong>Auth Strategy</strong></td>
+          <td>
+            Google OAuth for staff management binding only; no global user login
+            required (device-based operation)
+          </td>
+        </tr>
+      </tbody>
+    </table>
 
-<!-- ═════════════════════════════════════════════════ -->
-<!-- §2 ENTITIES                                        -->
-<!-- ═════════════════════════════════════════════════ -->
-<h1 class="section">2. Business Entities & Domain Model</h1>
+    <!-- ═════════════════════════════════════════════════ -->
+    <!-- §2 ENTITIES                                        -->
+    <!-- ═════════════════════════════════════════════════ -->
+    <h1 class="section">2. Business Entities & Domain Model</h1>
 
-<p>The domain is modelled as 13 SQLite tables. The table below summarises each entity's purpose and role; detailed field definitions live in <code>src/lib/schema.ts</code> and <code>src/lib/repositories/*</code>.</p>
+    <p>
+      The domain is modelled as 13 SQLite tables. The table below summarises
+      each entity's purpose and role; detailed field definitions live in
+      <code>src/lib/schema.ts</code> and <code>src/lib/repositories/*</code>.
+    </p>
 
-<table>
-  <thead>
-    <tr><th style="width:14%">#</th><th style="width:22%">Entity</th><th style="width:22%">Table</th><th>Purpose</th></tr>
-  </thead>
-  <tbody>
-    <tr><td>2.1</td><td><strong>Order</strong></td><td><code>orders</code></td><td>Core transaction record — single customer order with items, discounts, fulfillment state, operator identity</td></tr>
-    <tr><td>2.2</td><td><strong>OrderItem</strong></td><td><code>order_items</code></td><td>Normalized line item — single commodity on an order, captures <strong>snapshot price</strong> (immune to later price edits)</td></tr>
-    <tr><td>2.3</td><td><strong>Commodity</strong></td><td><code>commodities</code></td><td>Menu item definition — product sold by the restaurant (bento, drink, stall item, …)</td></tr>
-    <tr><td>2.4</td><td><strong>CommodityType</strong></td><td><code>commodity_types</code></td><td>Product category (攤位, 餐盒, 單點, 飲料, 水餃) — groups commodities and drives stall auto-memo rule</td></tr>
-    <tr><td>2.5</td><td><strong>Employee</strong></td><td><code>employees</code></td><td>Staff record — operator identity for order entry, clock-in, admin privileges, Google OAuth binding</td></tr>
-    <tr><td>2.6</td><td><strong>Attendance</strong></td><td><code>attendances</code></td><td>Daily time record — clock-in, clock-out, leave/vacation type per employee per day</td></tr>
-    <tr><td>2.7</td><td><strong>OrderDiscount</strong></td><td><code>order_discounts</code></td><td>Discount line — promotional credit applied to an order (label + amount)</td></tr>
-    <tr><td>2.8</td><td><strong>BackupLog</strong></td><td><code>backup_logs</code></td><td>Audit trail for all backup operations — success/failure, filename, size, duration, type (manual/auto/v1-import)</td></tr>
-    <tr><td>2.9</td><td><strong>ErrorLog</strong></td><td><code>error_logs</code></td><td>Runtime error persistence — message, stack, source, timestamp for post-mortem diagnostics</td></tr>
-    <tr><td>2.10</td><td><strong>PriceChangeLog</strong></td><td><code>price_change_logs</code></td><td>Price history — records every commodity price edit for audit and analytics</td></tr>
-    <tr><td>2.11</td><td><strong>DailyData</strong></td><td><code>daily_data</code></td><td>Pre-computed daily revenue aggregation — fast analytics queries without scanning full <code>orders</code></td></tr>
-    <tr><td>2.12</td><td><strong>OrderType</strong></td><td><code>order_types</code></td><td>Order classification — fulfillment mode (stall, delivery, pick-up, …)</td></tr>
-    <tr><td>2.13</td><td><strong>CustomOrderName</strong></td><td><code>custom_order_names</code></td><td>User-defined item names from Calculator overlay for fast re-use on future orders</td></tr>
-  </tbody>
-</table>
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 14%">#</th>
+          <th style="width: 22%">Entity</th>
+          <th style="width: 22%">Table</th>
+          <th>Purpose</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>2.1</td>
+          <td><strong>Order</strong></td>
+          <td><code>orders</code></td>
+          <td>
+            Core transaction record — single customer order with items,
+            discounts, fulfillment state, operator identity
+          </td>
+        </tr>
+        <tr>
+          <td>2.2</td>
+          <td><strong>OrderItem</strong></td>
+          <td><code>order_items</code></td>
+          <td>
+            Normalized line item — single commodity on an order, captures
+            <strong>snapshot price</strong> (immune to later price edits)
+          </td>
+        </tr>
+        <tr>
+          <td>2.3</td>
+          <td><strong>Commodity</strong></td>
+          <td><code>commodities</code></td>
+          <td>
+            Menu item definition — product sold by the restaurant (bento, drink,
+            stall item, …)
+          </td>
+        </tr>
+        <tr>
+          <td>2.4</td>
+          <td><strong>CommodityType</strong></td>
+          <td><code>commodity_types</code></td>
+          <td>
+            Product category (攤位, 餐盒, 單點, 飲料, 水餃) — groups commodities
+            and drives stall auto-memo rule
+          </td>
+        </tr>
+        <tr>
+          <td>2.5</td>
+          <td><strong>Employee</strong></td>
+          <td><code>employees</code></td>
+          <td>
+            Staff record — operator identity for order entry, clock-in, admin
+            privileges, Google OAuth binding
+          </td>
+        </tr>
+        <tr>
+          <td>2.6</td>
+          <td><strong>Attendance</strong></td>
+          <td><code>attendances</code></td>
+          <td>
+            Daily time record — clock-in, clock-out, leave/vacation type per
+            employee per day
+          </td>
+        </tr>
+        <tr>
+          <td>2.7</td>
+          <td><strong>OrderDiscount</strong></td>
+          <td><code>order_discounts</code></td>
+          <td>
+            Discount line — promotional credit applied to an order (label +
+            amount)
+          </td>
+        </tr>
+        <tr>
+          <td>2.8</td>
+          <td><strong>BackupLog</strong></td>
+          <td><code>backup_logs</code></td>
+          <td>
+            Audit trail for all backup operations — success/failure, filename,
+            size, duration, type (manual/auto/v1-import)
+          </td>
+        </tr>
+        <tr>
+          <td>2.9</td>
+          <td><strong>ErrorLog</strong></td>
+          <td><code>error_logs</code></td>
+          <td>
+            Runtime error persistence — message, stack, source, timestamp for
+            post-mortem diagnostics
+          </td>
+        </tr>
+        <tr>
+          <td>2.10</td>
+          <td><strong>PriceChangeLog</strong></td>
+          <td><code>price_change_logs</code></td>
+          <td>
+            Price history — records every commodity price edit for audit and
+            analytics
+          </td>
+        </tr>
+        <tr>
+          <td>2.11</td>
+          <td><strong>DailyData</strong></td>
+          <td><code>daily_data</code></td>
+          <td>
+            Pre-computed daily revenue aggregation — fast analytics queries
+            without scanning full <code>orders</code>
+          </td>
+        </tr>
+        <tr>
+          <td>2.12</td>
+          <td><strong>OrderType</strong></td>
+          <td><code>order_types</code></td>
+          <td>
+            Order classification — fulfillment mode (stall, delivery, pick-up,
+            …)
+          </td>
+        </tr>
+        <tr>
+          <td>2.13</td>
+          <td><strong>CustomOrderName</strong></td>
+          <td><code>custom_order_names</code></td>
+          <td>
+            User-defined item names from Calculator overlay for fast re-use on
+            future orders
+          </td>
+        </tr>
+      </tbody>
+    </table>
 
-<h3>Core relationships</h3>
-<div class="mermaid">
-erDiagram
-  ORDER ||--o{ ORDER_ITEM : contains
-  ORDER ||--o{ ORDER_DISCOUNT : has
-  ORDER }o--|| EMPLOYEE : "operator"
-  ORDER_ITEM }o--|| COMMODITY : references
-  COMMODITY }o--|| COMMODITY_TYPE : categorized
-  EMPLOYEE ||--o{ ATTENDANCE : records
-  COMMODITY ||--o{ PRICE_CHANGE_LOG : audits
-  ORDER ||--o{ DAILY_DATA : aggregated
-</div>
+    <h3>Core relationships</h3>
+    <div class="mermaid">
+      erDiagram ORDER ||--o{ ORDER_ITEM : contains ORDER ||--o{ ORDER_DISCOUNT :
+      has ORDER }o--|| EMPLOYEE : "operator" ORDER_ITEM }o--|| COMMODITY :
+      references COMMODITY }o--|| COMMODITY_TYPE : categorized EMPLOYEE ||--o{
+      ATTENDANCE : records COMMODITY ||--o{ PRICE_CHANGE_LOG : audits ORDER
+      ||--o{ DAILY_DATA : aggregated
+    </div>
 
-<!-- ═════════════════════════════════════════════════ -->
-<!-- §3 OPERATIONAL FLOWS                               -->
-<!-- ═════════════════════════════════════════════════ -->
-<h1 class="section">3. Operational Flows</h1>
+    <!-- ═════════════════════════════════════════════════ -->
+    <!-- §3 OPERATIONAL FLOWS                               -->
+    <!-- ═════════════════════════════════════════════════ -->
+    <h1 class="section">3. Operational Flows</h1>
 
-<p>15 end-to-end sequences trace how users and systems interact across the UI, state stores, repositories, and external services. Each flow below gives the entry point, key files, and a sequence or flowchart diagram.</p>
+    <p>
+      15 end-to-end sequences trace how users and systems interact across the
+      UI, state stores, repositories, and external services. Each flow below
+      gives the entry point, key files, and a sequence or flowchart diagram.
+    </p>
 
-<!-- 3.1 Bootstrap -->
-<div class="flow">
-  <h3>3.1 &nbsp; Bootstrap / Cold Start</h3>
-  <div class="flow-meta"><strong>Entry:</strong> <code>src/main.tsx</code> → <code>src/routes/route-tree.tsx</code> · <strong>Key:</strong> <code>useInitStore</code>, <code>worker-database.ts</code>, <code>schema.ts</code>, <code>default-data.ts</code></div>
-  <div class="mermaid">
-sequenceDiagram
-    autonumber
-    participant U as User
-    participant RL as RootLayout
-    participant IS as InitStore
-    participant W as Worker
-    participant DB as SQLite (OPFS)
-    participant BS as BackupStore
-    U->>RL: 開啟 App
-    RL->>IS: 顯示 InitOverlay (min 5s)
-    IS->>W: initSchema()
-    W->>DB: CREATE TABLES IF NOT EXISTS
-    W->>DB: insertDefaultData (首次啟動)
-    DB-->>W: ready
-    W-->>IS: schema ready
-    IS->>BS: hydrateBackupScheduleFromDb
-    BS->>DB: SELECT backup_schedule
-    DB-->>BS: scheduleType, lastBackupTime
-    BS->>BS: isBackupOverdue?
-    alt 備份逾期
-        BS-->>RL: useAutoBackup 啟動
-    end
-    IS-->>RL: bootstrapDone = true
-    RL-->>U: 渲染首頁 (OrderPage)
-  </div>
-</div>
+    <!-- 3.1 Bootstrap -->
+    <div class="flow">
+      <h3>3.1 &nbsp; Bootstrap / Cold Start</h3>
+      <div class="flow-meta">
+        <strong>Entry:</strong> <code>src/main.tsx</code> →
+        <code>src/routes/route-tree.tsx</code> · <strong>Key:</strong>
+        <code>useInitStore</code>, <code>worker-database.ts</code>,
+        <code>schema.ts</code>, <code>default-data.ts</code>
+      </div>
+      <div class="mermaid">
+        sequenceDiagram autonumber participant U as User participant RL as
+        RootLayout participant IS as InitStore participant W as Worker
+        participant DB as SQLite (OPFS) participant BS as BackupStore U->>RL:
+        開啟 App RL->>IS: 顯示 InitOverlay (min 5s) IS->>W: initSchema() W->>DB:
+        CREATE TABLES IF NOT EXISTS W->>DB: insertDefaultData (首次啟動)
+        DB-->>W: ready W-->>IS: schema ready IS->>BS:
+        hydrateBackupScheduleFromDb BS->>DB: SELECT backup_schedule DB-->>BS:
+        scheduleType, lastBackupTime BS->>BS: isBackupOverdue? alt 備份逾期
+        BS-->>RL: useAutoBackup 啟動 end IS-->>RL: bootstrapDone = true RL-->>U:
+        渲染首頁 (OrderPage)
+      </div>
+    </div>
 
-<!-- 3.2 Order Entry -->
-<div class="flow">
-  <h3>3.2 &nbsp; Order Entry & Submission</h3>
-  <div class="flow-meta"><strong>Entry:</strong> <code>src/pages/order</code> (OrderPage) · <strong>Key:</strong> <code>order-store.ts</code>, <code>order-repository.ts</code>, <code>daily-data-repository.ts</code></div>
-  <div class="mermaid">
-sequenceDiagram
-    autonumber
-    participant O as Operator
-    participant OS as OrderStore
-    participant OR as OrderRepo
-    participant DB as SQLite
-    O->>OS: addItem (品項)
-    Note right of OS: typeId=stall<br/>自動加「攤位」memo
-    O->>OS: updateQuantity / updateNote
-    O->>OS: addDiscount (折扣)
-    O->>OS: submitOrder(memoTags)
-    OS->>OR: create(order)
-    OR->>DB: BEGIN TRANSACTION
-    OR->>DB: INSERT orders
-    OR->>DB: INSERT order_items (snapshot price)
-    OR->>DB: INSERT order_discounts
-    OR->>DB: UPDATE daily_data (累計)
-    OR->>DB: COMMIT
-    DB-->>OR: order_id
-    OR-->>OS: success
-    OS->>OS: clearCart()
-    OS-->>O: 顯示成功
-  </div>
-</div>
+    <!-- 3.2 Order Entry -->
+    <div class="flow">
+      <h3>3.2 &nbsp; Order Entry & Submission</h3>
+      <div class="flow-meta">
+        <strong>Entry:</strong> <code>src/pages/order</code> (OrderPage) ·
+        <strong>Key:</strong> <code>order-store.ts</code>,
+        <code>order-repository.ts</code>, <code>daily-data-repository.ts</code>
+      </div>
+      <div class="mermaid">
+        sequenceDiagram autonumber participant O as Operator participant OS as
+        OrderStore participant OR as OrderRepo participant DB as SQLite O->>OS:
+        addItem (品項) Note right of OS: typeId=stall<br />自動加「攤位」memo
+        O->>OS: updateQuantity / updateNote O->>OS: addDiscount (折扣) O->>OS:
+        submitOrder(memoTags) OS->>OR: create(order) OR->>DB: BEGIN TRANSACTION
+        OR->>DB: INSERT orders OR->>DB: INSERT order_items (snapshot price)
+        OR->>DB: INSERT order_discounts OR->>DB: UPDATE daily_data (累計)
+        OR->>DB: COMMIT DB-->>OR: order_id OR-->>OS: success OS->>OS:
+        clearCart() OS-->>O: 顯示成功
+      </div>
+    </div>
 
-<!-- 3.3 Order Edit -->
-<div class="flow">
-  <h3>3.3 &nbsp; Order Edit</h3>
-  <div class="flow-meta"><strong>Entry:</strong> OrdersPage → 近期訂單 → 編輯 icon · <strong>Key:</strong> <code>order-store.startEditOrder</code>, <code>order-repository.ts</code></div>
-  <div class="mermaid">
-flowchart TD
-    A["OrdersPage 近期訂單"] --> B["點擊編輯 icon"]
-    B --> C["OrderRepo.findById"]
-    C --> D["startEditOrder: 複製到 cart state"]
-    D --> E["修改 items / discounts"]
-    E --> F["submitOrder 重新送出"]
-    F --> G["removeByOrderId (舊 items / discounts)"]
-    G --> H["create 新 rows"]
-    H --> I["保留 original_total (audit trail)"]
-    style A fill:#f3d98f,stroke:#7f956a
-    style I fill:#e8f0dc,stroke:#7f956a
-  </div>
-</div>
+    <!-- 3.3 Order Edit -->
+    <div class="flow">
+      <h3>3.3 &nbsp; Order Edit</h3>
+      <div class="flow-meta">
+        <strong>Entry:</strong> OrdersPage → 近期訂單 → 編輯 icon ·
+        <strong>Key:</strong> <code>order-store.startEditOrder</code>,
+        <code>order-repository.ts</code>
+      </div>
+      <div class="mermaid">
+        flowchart TD A["OrdersPage 近期訂單"] --> B["點擊編輯 icon"] B -->
+        C["OrderRepo.findById"] C --> D["startEditOrder: 複製到 cart state"] D
+        --> E["修改 items / discounts"] E --> F["submitOrder 重新送出"] F -->
+        G["removeByOrderId (舊 items / discounts)"] G --> H["create 新 rows"] H
+        --> I["保留 original_total (audit trail)"] style A
+        fill:#f3d98f,stroke:#7f956a style I fill:#e8f0dc,stroke:#7f956a
+      </div>
+    </div>
 
-<!-- 3.4 Served Marking -->
-<div class="flow">
-  <h3>3.4 &nbsp; Order Served Marking</h3>
-  <div class="flow-meta"><strong>Entry:</strong> OrdersPage → 訂單卡片 · <strong>Key:</strong> <code>OrderRepo.toggleServed</code></div>
-  <div class="mermaid">
-sequenceDiagram
-    participant M as Manager
-    participant OP as OrdersPage
-    participant OR as OrderRepo
-    participant DB as SQLite
-    M->>OP: 點擊「送餐完成」
-    OP->>OR: toggleServed(id, true)
-    OR->>DB: UPDATE orders SET is_served=1
-    DB-->>OR: ok
-    OR-->>OP: refresh list
-    OP-->>M: 顯示已送餐狀態
-  </div>
-</div>
+    <!-- 3.4 Served Marking -->
+    <div class="flow">
+      <h3>3.4 &nbsp; Order Served Marking</h3>
+      <div class="flow-meta">
+        <strong>Entry:</strong> OrdersPage → 訂單卡片 · <strong>Key:</strong>
+        <code>OrderRepo.toggleServed</code>
+      </div>
+      <div class="mermaid">
+        sequenceDiagram participant M as Manager participant OP as OrdersPage
+        participant OR as OrderRepo participant DB as SQLite M->>OP:
+        點擊「送餐完成」 OP->>OR: toggleServed(id, true) OR->>DB: UPDATE orders
+        SET is_served=1 DB-->>OR: ok OR-->>OP: refresh list OP-->>M:
+        顯示已送餐狀態
+      </div>
+    </div>
 
-<!-- 3.5 Clock-In -->
-<div class="flow">
-  <h3>3.5 &nbsp; Clock-In / Clock-Out</h3>
-  <div class="flow-meta"><strong>Entry:</strong> <code>src/pages/clock-in</code> (ClockInPage) · <strong>Key:</strong> <code>attendance-repository.ts</code></div>
-  <div class="mermaid">
-sequenceDiagram
-    autonumber
-    participant E as Employee
-    participant CP as ClockInPage
-    participant AR as AttendanceRepo
-    participant DB as SQLite
-    E->>CP: 點擊自己的名字
-    CP->>AR: findByEmployeeAndDate
-    AR->>DB: SELECT attendances
-    alt 已存在
-        DB-->>AR: 既有紀錄
-    else 不存在
-        AR->>DB: INSERT (clockIn=null, type=regular)
-    end
-    AR-->>CP: attendance record
-    E->>CP: 打卡上班
-    CP->>AR: update(id, clockIn: now)
-    AR->>DB: UPDATE attendances
-    Note over E,DB: 下班時重複流程
-    E->>CP: 打卡下班
-    CP->>AR: update(id, clockOut: now)
-    AR->>DB: UPDATE attendances
-  </div>
-</div>
+    <!-- 3.5 Clock-In -->
+    <div class="flow">
+      <h3>3.5 &nbsp; Clock-In / Clock-Out</h3>
+      <div class="flow-meta">
+        <strong>Entry:</strong> <code>src/pages/clock-in</code> (ClockInPage) ·
+        <strong>Key:</strong> <code>attendance-repository.ts</code>
+      </div>
+      <div class="mermaid">
+        sequenceDiagram autonumber participant E as Employee participant CP as
+        ClockInPage participant AR as AttendanceRepo participant DB as SQLite
+        E->>CP: 點擊自己的名字 CP->>AR: findByEmployeeAndDate AR->>DB: SELECT
+        attendances alt 已存在 DB-->>AR: 既有紀錄 else 不存在 AR->>DB: INSERT
+        (clockIn=null, type=regular) end AR-->>CP: attendance record E->>CP:
+        打卡上班 CP->>AR: update(id, clockIn: now) AR->>DB: UPDATE attendances
+        Note over E,DB: 下班時重複流程 E->>CP: 打卡下班 CP->>AR: update(id,
+        clockOut: now) AR->>DB: UPDATE attendances
+      </div>
+    </div>
 
-<!-- 3.6 Product Mgmt -->
-<div class="flow">
-  <h3>3.6 &nbsp; Product Management & Price Edit</h3>
-  <div class="flow-meta"><strong>Entry:</strong> Settings → 商品管理 · <strong>Key:</strong> <code>commodity-repository.ts</code>, <code>price_change_logs</code></div>
-  <div class="mermaid">
-sequenceDiagram
-    autonumber
-    participant A as Admin
-    participant S as SettingsPage
-    participant CR as CommodityRepo
-    participant PCL as PriceChangeLog
-    participant DB as SQLite
-    A->>S: 進入商品管理
-    S->>CR: findAll()
-    CR->>DB: SELECT commodities
-    DB-->>S: 清單
-    A->>S: 編輯商品 (改價 100→120)
-    S->>CR: update(id, {price: 120})
-    CR->>CR: 比對舊 vs 新價格
-    alt 價格不同
-        CR->>PCL: 新增 price_change_log
-        PCL->>DB: INSERT
-    end
-    CR->>DB: UPDATE commodities
-    Note right of DB: 進行中訂單已 snapshot,<br/>不受影響 (歷史價格保護)
-  </div>
-</div>
+    <!-- 3.6 Product Mgmt -->
+    <div class="flow">
+      <h3>3.6 &nbsp; Product Management & Price Edit</h3>
+      <div class="flow-meta">
+        <strong>Entry:</strong> Settings → 商品管理 · <strong>Key:</strong>
+        <code>commodity-repository.ts</code>, <code>price_change_logs</code>
+      </div>
+      <div class="mermaid">
+        sequenceDiagram autonumber participant A as Admin participant S as
+        SettingsPage participant CR as CommodityRepo participant PCL as
+        PriceChangeLog participant DB as SQLite A->>S: 進入商品管理 S->>CR:
+        findAll() CR->>DB: SELECT commodities DB-->>S: 清單 A->>S: 編輯商品
+        (改價 100→120) S->>CR: update(id, {price: 120}) CR->>CR: 比對舊 vs
+        新價格 alt 價格不同 CR->>PCL: 新增 price_change_log PCL->>DB: INSERT end
+        CR->>DB: UPDATE commodities Note right of DB: 進行中訂單已 snapshot,<br />不受影響
+        (歷史價格保護)
+      </div>
+    </div>
 
-<!-- 3.7 Analytics -->
-<div class="flow">
-  <h3>3.7 &nbsp; Analytics Dashboard</h3>
-  <div class="flow-meta"><strong>Entry:</strong> <code>src/pages/analytics</code> · <strong>Key:</strong> <code>statistics-repository.ts</code>, Recharts</div>
-  <div class="mermaid">
-flowchart LR
-    A[AnalyticsPage] --> B[選擇日期範圍]
-    B --> C[平行查詢]
-    C --> D[Product KPI<br/>bar chart]
-    C --> E[Hourly bucket<br/>area chart]
-    C --> F[Daily revenue<br/>line chart]
-    C --> G[Staff KPI<br/>bar chart]
-    C --> H[AM/PM ratio<br/>pie chart]
-    D --> Z[Recharts 渲染]
-    E --> Z
-    F --> Z
-    G --> Z
-    H --> Z
-    Z --> R[Dashboard]
-    style A fill:#f3d98f,stroke:#7f956a
-    style R fill:#e8f0dc,stroke:#7f956a
-  </div>
-</div>
+    <!-- 3.7 Analytics -->
+    <div class="flow">
+      <h3>3.7 &nbsp; Analytics Dashboard</h3>
+      <div class="flow-meta">
+        <strong>Entry:</strong> <code>src/pages/analytics</code> ·
+        <strong>Key:</strong> <code>statistics-repository.ts</code>, Recharts
+      </div>
+      <div class="mermaid">
+        flowchart LR A[AnalyticsPage] --> B[選擇日期範圍] B --> C[平行查詢] C
+        --> D[Product KPI<br />bar chart] C --> E[Hourly bucket<br />area chart]
+        C --> F[Daily revenue<br />line chart] C --> G[Staff KPI<br />bar chart]
+        C --> H[AM/PM ratio<br />pie chart] D --> Z[Recharts 渲染] E --> Z F -->
+        Z G --> Z H --> Z Z --> R[Dashboard] style A fill:#f3d98f,stroke:#7f956a
+        style R fill:#e8f0dc,stroke:#7f956a
+      </div>
+    </div>
 
-<!-- 3.8 Manual Backup -->
-<div class="flow">
-  <h3>3.8 &nbsp; Manual Backup (to Cloudflare R2)</h3>
-  <div class="flow-meta"><strong>Entry:</strong> Settings → 雲端備份 → 立即備份 · <strong>Key:</strong> <code>backup.ts</code>, <code>api/backup/*</code>, <code>backup-store.ts</code></div>
-  <div class="mermaid">
-sequenceDiagram
-    autonumber
-    participant A as Admin
-    participant CB as CloudBackup UI
-    participant DB as SQLite
-    participant API as Vercel API
-    participant R2 as Cloudflare R2
-    participant BL as BackupLog
-    A->>CB: 點擊「立即備份」
-    CB->>DB: Database.exec (export)
-    DB-->>CB: bytes
-    CB->>CB: compress (gzip)
-    CB->>API: /api/backup/presign (upload)
-    API-->>CB: presigned URL (10 min)
-    CB->>R2: PUT .sqlite.gz
-    R2-->>CB: 200 OK
-    CB->>API: /api/backup/complete
-    API->>R2: HEAD (驗證存在)
-    API->>R2: LIST 所有備份
-    alt count > 30
-        API->>R2: DELETE 最舊檔案
-    end
-    API-->>CB: ok
-    CB->>BL: create (type=manual, success)
-    BL->>DB: INSERT backup_logs
-  </div>
-</div>
+    <!-- 3.8 Manual Backup -->
+    <div class="flow">
+      <h3>3.8 &nbsp; Manual Backup (to Cloudflare R2)</h3>
+      <div class="flow-meta">
+        <strong>Entry:</strong> Settings → 雲端備份 → 立即備份 ·
+        <strong>Key:</strong> <code>backup.ts</code>, <code>api/backup/*</code>,
+        <code>backup-store.ts</code>
+      </div>
+      <div class="mermaid">
+        sequenceDiagram autonumber participant A as Admin participant CB as
+        CloudBackup UI participant DB as SQLite participant API as Vercel API
+        participant R2 as Cloudflare R2 participant BL as BackupLog A->>CB:
+        點擊「立即備份」 CB->>DB: Database.exec (export) DB-->>CB: bytes
+        CB->>CB: compress (gzip) CB->>API: /api/backup/presign (upload)
+        API-->>CB: presigned URL (10 min) CB->>R2: PUT .sqlite.gz R2-->>CB: 200
+        OK CB->>API: /api/backup/complete API->>R2: HEAD (驗證存在) API->>R2:
+        LIST 所有備份 alt count > 30 API->>R2: DELETE 最舊檔案 end API-->>CB: ok
+        CB->>BL: create (type=manual, success) BL->>DB: INSERT backup_logs
+      </div>
+    </div>
 
-<!-- 3.9 Auto Backup -->
-<div class="flow">
-  <h3>3.9 &nbsp; Automatic Backup (on startup)</h3>
-  <div class="flow-meta"><strong>Entry:</strong> <code>useAutoBackup</code> hook in RootLayout · <strong>Key:</strong> <code>backup-schedule.ts</code> (Taiwan timezone aware)</div>
-  <div class="mermaid">
-flowchart TD
-    A[App 冷啟動] --> B[Bootstrap 完成]
-    B --> C[useAutoBackup hook 觸發]
-    C --> D[讀取 lastBackupTime from backup_logs]
-    D --> E{isBackupOverdue?}
-    E -->|daily 且 lastBackup &lt; 今日 TW| F[執行備份]
-    E -->|weekly 且 lastBackup &lt; 本週一 TW| F
-    E -->|今日已備過| G[跳過]
-    E -->|schedule=none| G
-    F --> H[跑 Manual Backup 流程<br/>type=auto, 靜默背景]
-    H --> I[更新 lastBackupTime]
-    G --> J[正常繼續]
-    I --> J
-    style F fill:#e8f0dc,stroke:#7f956a
-    style G fill:#f1ead7,stroke:#b89d5e
-  </div>
-</div>
+    <!-- 3.9 Auto Backup -->
+    <div class="flow">
+      <h3>3.9 &nbsp; Automatic Backup (on startup)</h3>
+      <div class="flow-meta">
+        <strong>Entry:</strong> <code>useAutoBackup</code> hook in RootLayout ·
+        <strong>Key:</strong> <code>backup-schedule.ts</code> (Taiwan timezone
+        aware)
+      </div>
+      <div class="mermaid">
+        flowchart TD A[App 冷啟動] --> B[Bootstrap 完成] B --> C[useAutoBackup
+        hook 觸發] C --> D[讀取 lastBackupTime from backup_logs] D -->
+        E{isBackupOverdue?} E -->|daily 且 lastBackup &lt; 今日 TW| F[執行備份]
+        E -->|weekly 且 lastBackup &lt; 本週一 TW| F E -->|今日已備過| G[跳過] E
+        -->|schedule=none| G F --> H[跑 Manual Backup 流程<br />type=auto,
+        靜默背景] H --> I[更新 lastBackupTime] G --> J[正常繼續] I --> J style F
+        fill:#e8f0dc,stroke:#7f956a style G fill:#f1ead7,stroke:#b89d5e
+      </div>
+    </div>
 
-<!-- 3.10 Cloud Restore -->
-<div class="flow">
-  <h3>3.10 &nbsp; Cloud Restore (V2 Import from R2)</h3>
-  <div class="flow-meta"><strong>Entry:</strong> Settings → 雲端備份 → 還原 · <strong>Key:</strong> <code>backup.ts::decompress</code>, <code>worker-database::importDatabase</code></div>
-  <div class="mermaid">
-sequenceDiagram
-    autonumber
-    participant A as Admin
-    participant CB as CloudBackup UI
-    participant API as Vercel API
-    participant R2 as Cloudflare R2
-    participant DB as SQLite
-    A->>CB: 點擊「從雲端還原」
-    CB->>API: /api/backup (list)
-    API->>R2: ListObjects
-    R2-->>API: .sqlite.gz 檔案列表
-    API-->>CB: 列表
-    A->>CB: 選擇一個檔案
-    CB->>API: /api/backup/presign (download)
-    API-->>CB: presigned URL
-    CB->>R2: GET compressed
-    R2-->>CB: bytes
-    CB->>CB: decompress (gzip)
-    CB->>CB: 顯示 InitOverlay (匯入中)
-    CB->>DB: close 現有連線
-    CB->>DB: importDatabase(bytes)
-    DB-->>CB: ok
-    CB->>CB: window.location.reload
-    Note over A,DB: Bootstrap 流程重新跑<br/>新資料進入 OPFS
-  </div>
-</div>
+    <!-- 3.10 Cloud Restore -->
+    <div class="flow">
+      <h3>3.10 &nbsp; Cloud Restore (V2 Import from R2)</h3>
+      <div class="flow-meta">
+        <strong>Entry:</strong> Settings → 雲端備份 → 還原 ·
+        <strong>Key:</strong> <code>backup.ts::decompress</code>,
+        <code>worker-database::importDatabase</code>
+      </div>
+      <div class="mermaid">
+        sequenceDiagram autonumber participant A as Admin participant CB as
+        CloudBackup UI participant API as Vercel API participant R2 as
+        Cloudflare R2 participant DB as SQLite A->>CB: 點擊「從雲端還原」
+        CB->>API: /api/backup (list) API->>R2: ListObjects R2-->>API: .sqlite.gz
+        檔案列表 API-->>CB: 列表 A->>CB: 選擇一個檔案 CB->>API:
+        /api/backup/presign (download) API-->>CB: presigned URL CB->>R2: GET
+        compressed R2-->>CB: bytes CB->>CB: decompress (gzip) CB->>CB: 顯示
+        InitOverlay (匯入中) CB->>DB: close 現有連線 CB->>DB:
+        importDatabase(bytes) DB-->>CB: ok CB->>CB: window.location.reload Note
+        over A,DB: Bootstrap 流程重新跑<br />新資料進入 OPFS
+      </div>
+    </div>
 
-<!-- 3.11 V1 → V2 Import -->
-<div class="flow">
-  <h3>3.11 &nbsp; V1 → V2 Legacy Data Import</h3>
-  <div class="flow-meta"><strong>Entry:</strong> 首次啟動偵測 V1 backup · <strong>Key:</strong> <code>v1-data-importer.ts</code> (INSERT OR IGNORE 保持 idempotent)</div>
-  <div class="mermaid">
-flowchart TD
-    A[偵測 localStorage v1_backup_data] --> B[顯示 V1ImportProgress overlay]
-    B --> C[downloadV1Backup]
-    C --> D[transformV1Data<br/>Dexie → V2 schema]
-    D --> E[importV1Data 迴圈]
-    E --> F["IMPORT_ORDER: orders → order_items"]
-    F --> G[buildInsertSql<br/>INSERT OR IGNORE]
-    G --> H{寫入成功?}
-    H -->|是| I[更新 phase/current/total]
-    I --> J{全部完成?}
-    J -->|否| G
-    J -->|是| K[BackupLog type=v1-import]
-    H -->|失敗| L[error_logs + 使用者重試]
-    style G fill:#f3d98f,stroke:#7f956a
-    style K fill:#e8f0dc,stroke:#7f956a
-  </div>
-</div>
+    <!-- 3.11 V1 → V2 Import -->
+    <div class="flow">
+      <h3>3.11 &nbsp; V1 → V2 Legacy Data Import</h3>
+      <div class="flow-meta">
+        <strong>Entry:</strong> 首次啟動偵測 V1 backup · <strong>Key:</strong>
+        <code>v1-data-importer.ts</code> (INSERT OR IGNORE 保持 idempotent)
+      </div>
+      <div class="mermaid">
+        flowchart TD A[偵測 localStorage v1_backup_data] --> B[顯示
+        V1ImportProgress overlay] B --> C[downloadV1Backup] C -->
+        D[transformV1Data<br />Dexie → V2 schema] D --> E[importV1Data 迴圈] E
+        --> F["IMPORT_ORDER: orders → order_items"] F --> G[buildInsertSql<br />INSERT
+        OR IGNORE] G --> H{寫入成功?} H -->|是| I[更新 phase/current/total] I
+        --> J{全部完成?} J -->|否| G J -->|是| K[BackupLog type=v1-import] H
+        -->|失敗| L[error_logs + 使用者重試] style G fill:#f3d98f,stroke:#7f956a
+        style K fill:#e8f0dc,stroke:#7f956a
+      </div>
+    </div>
 
-<!-- 3.12 Staff Mgmt -->
-<div class="flow">
-  <h3>3.12 &nbsp; Staff Management (CRUD)</h3>
-  <div class="flow-meta"><strong>Entry:</strong> Settings → Staff Admin · <strong>Key:</strong> <code>employee-repository.ts</code> (soft-delete)</div>
-  <div class="mermaid">
-flowchart TD
-    A[StaffAdmin page] --> B{操作}
-    B -->|新增| C[Form modal<br/>name, employeeNo, avatar, shiftType]
-    C --> D["EmployeeRepo.create<br/>id = nanoid()"]
-    B -->|編輯| E[pre-fill form]
-    E --> F[EmployeeRepo.update]
-    B -->|刪除| G{方式}
-    G -->|soft| H[status=inactive<br/>resignationDate=today]
-    G -->|hard| I[remove row<br/>失去 audit trail]
-    D --> J[Clock-In UI 即時顯示]
-    F --> J
-    H --> K[Clock-In UI 自動 filter]
-    I --> K
-    style H fill:#e8f0dc,stroke:#7f956a
-    style I fill:#fde8e8,stroke:#d4706e
-  </div>
-</div>
+    <!-- 3.12 Staff Mgmt -->
+    <div class="flow">
+      <h3>3.12 &nbsp; Staff Management (CRUD)</h3>
+      <div class="flow-meta">
+        <strong>Entry:</strong> Settings → Staff Admin · <strong>Key:</strong>
+        <code>employee-repository.ts</code> (soft-delete)
+      </div>
+      <div class="mermaid">
+        flowchart TD A[StaffAdmin page] --> B{操作} B -->|新增| C[Form modal<br />name,
+        employeeNo, avatar, shiftType] C --> D["EmployeeRepo.create<br />id =
+        nanoid()"] B -->|編輯| E[pre-fill form] E --> F[EmployeeRepo.update] B
+        -->|刪除| G{方式} G -->|soft| H[status=inactive<br />resignationDate=today]
+        G -->|hard| I[remove row<br />失去 audit trail] D --> J[Clock-In UI
+        即時顯示] F --> J H --> K[Clock-In UI 自動 filter] I --> K style H
+        fill:#e8f0dc,stroke:#7f956a style I fill:#fde8e8,stroke:#d4706e
+      </div>
+    </div>
 
-<!-- 3.13 OAuth Binding -->
-<div class="flow">
-  <h3>3.13 &nbsp; Google OAuth Binding (per-employee)</h3>
-  <div class="flow-meta"><strong>Entry:</strong> StaffAdmin → 員工卡片 → 連結 Google · <strong>Key:</strong> Google Identity Services</div>
-  <div class="mermaid">
-sequenceDiagram
-    autonumber
-    participant A as Admin
-    participant SA as StaffAdmin UI
-    participant G as Google Identity
-    participant ER as EmployeeRepo
-    participant DB as SQLite
-    A->>SA: 點擊「連結 Google」
-    SA->>A: 顯示確認 modal
-    A->>SA: 確認
-    SA->>G: OAuth popup
-    G-->>SA: {sub, email, name}
-    SA->>ER: update(empId, googleSub, googleEmail)
-    ER->>DB: UPDATE employees
-    DB-->>SA: ok
-    SA-->>A: 顯示已連結 user@gmail.com
-  </div>
-</div>
+    <!-- 3.13 OAuth Binding -->
+    <div class="flow">
+      <h3>3.13 &nbsp; Google OAuth Binding (per-employee)</h3>
+      <div class="flow-meta">
+        <strong>Entry:</strong> StaffAdmin → 員工卡片 → 連結 Google ·
+        <strong>Key:</strong> Google Identity Services
+      </div>
+      <div class="mermaid">
+        sequenceDiagram autonumber participant A as Admin participant SA as
+        StaffAdmin UI participant G as Google Identity participant ER as
+        EmployeeRepo participant DB as SQLite A->>SA: 點擊「連結 Google」
+        SA->>A: 顯示確認 modal A->>SA: 確認 SA->>G: OAuth popup G-->>SA: {sub,
+        email, name} SA->>ER: update(empId, googleSub, googleEmail) ER->>DB:
+        UPDATE employees DB-->>SA: ok SA-->>A: 顯示已連結 user@gmail.com
+      </div>
+    </div>
 
-<!-- 3.14 Error Handling -->
-<div class="flow">
-  <h3>3.14 &nbsp; Error Handling & Recovery</h3>
-  <div class="flow-meta"><strong>Entry:</strong> 任何 try-catch 或 error boundary · <strong>Key:</strong> <code>error-logger.ts</code>, <code>error-ui/</code>, <code>log-buffer.ts</code></div>
-  <div class="mermaid">
-flowchart TD
-    A[try-catch 或 error boundary] --> B[logError / bufferLog]
-    B --> C{DB 可寫入?}
-    C -->|是| D[error_logs 寫入 DB]
-    C -->|否 如 DB mid-swap| E[log-buffer 暫存記憶體]
-    E --> F[flushLogBuffer 之後重試]
-    D --> G[ErrorOverlay 顯示]
-    F --> G
-    G --> H{錯誤嚴重度}
-    H -->|critical 如 DB init 失敗| I[InitOverlay 顯示錯誤]
-    I --> J[使用者點擊重試]
-    J --> K[bootstrapDone=false 重跑 Bootstrap]
-    H -->|soft 如網路逾時| L[使用者可關閉]
-    L --> M[繼續操作]
-    style E fill:#fff3e0,stroke:#d4a537
-    style I fill:#fde8e8,stroke:#d4706e
-  </div>
-</div>
+    <!-- 3.14 Error Handling -->
+    <div class="flow">
+      <h3>3.14 &nbsp; Error Handling & Recovery</h3>
+      <div class="flow-meta">
+        <strong>Entry:</strong> 任何 try-catch 或 error boundary ·
+        <strong>Key:</strong> <code>error-logger.ts</code>,
+        <code>error-ui/</code>, <code>log-buffer.ts</code>
+      </div>
+      <div class="mermaid">
+        flowchart TD A[try-catch 或 error boundary] --> B[logError / bufferLog]
+        B --> C{DB 可寫入?} C -->|是| D[error_logs 寫入 DB] C -->|否 如 DB
+        mid-swap| E[log-buffer 暫存記憶體] E --> F[flushLogBuffer 之後重試] D
+        --> G[ErrorOverlay 顯示] F --> G G --> H{錯誤嚴重度} H -->|critical 如
+        DB init 失敗| I[InitOverlay 顯示錯誤] I --> J[使用者點擊重試] J -->
+        K[bootstrapDone=false 重跑 Bootstrap] H -->|soft 如網路逾時|
+        L[使用者可關閉] L --> M[繼續操作] style E fill:#fff3e0,stroke:#d4a537
+        style I fill:#fde8e8,stroke:#d4706e
+      </div>
+    </div>
 
-<!-- 3.15 PWA Update -->
-<div class="flow">
-  <h3>3.15 &nbsp; PWA Update Detection & Installation</h3>
-  <div class="flow-meta"><strong>Entry:</strong> Service Worker 偵測新版本 · <strong>Key:</strong> <code>sw.ts</code>, <code>SwUpdatePrompt</code></div>
-  <div class="mermaid">
-sequenceDiagram
-    autonumber
-    participant SW as Service Worker
-    participant App as Main Thread
-    participant UP as SwUpdatePrompt
-    participant U as User
-    SW->>SW: 定期檢查新版本
-    SW->>App: postMessage (new version)
-    App->>UP: 顯示 update modal
-    U->>UP: 點擊「立即更新」
-    UP->>App: window.location.reload
-    SW->>SW: 啟用新程式碼
-    App->>App: Bootstrap 重跑 (新 schema)
-  </div>
-</div>
+    <!-- 3.15 PWA Update -->
+    <div class="flow">
+      <h3>3.15 &nbsp; PWA Update Detection & Installation</h3>
+      <div class="flow-meta">
+        <strong>Entry:</strong> Service Worker 偵測新版本 ·
+        <strong>Key:</strong> <code>sw.ts</code>, <code>SwUpdatePrompt</code>
+      </div>
+      <div class="mermaid">
+        sequenceDiagram autonumber participant SW as Service Worker participant
+        App as Main Thread participant UP as SwUpdatePrompt participant U as
+        User SW->>SW: 定期檢查新版本 SW->>App: postMessage (new version)
+        App->>UP: 顯示 update modal U->>UP: 點擊「立即更新」 UP->>App:
+        window.location.reload SW->>SW: 啟用新程式碼 App->>App: Bootstrap 重跑
+        (新 schema)
+      </div>
+    </div>
 
-<!-- ═════════════════════════════════════════════════ -->
-<!-- §4 BUSINESS RULES                                  -->
-<!-- ═════════════════════════════════════════════════ -->
-<h1 class="section">4. Business Rules & Invariants</h1>
+    <!-- ═════════════════════════════════════════════════ -->
+    <!-- §4 BUSINESS RULES                                  -->
+    <!-- ═════════════════════════════════════════════════ -->
+    <h1 class="section">4. Business Rules & Invariants</h1>
 
-<p>The 13 rules below govern how the system behaves beyond the CRUD surface. Each rule lives in a specific place in code; edits that violate these rules should be treated as regressions.</p>
+    <p>
+      The 13 rules below govern how the system behaves beyond the CRUD surface.
+      Each rule lives in a specific place in code; edits that violate these
+      rules should be treated as regressions.
+    </p>
 
-<div class="rule">
-  <div class="rule-title">4.1 &nbsp; Stall Category Auto-Memo Tagging</div>
-  <div class="rule-desc">Any order containing commodities with <code>type_id = "stall"</code> automatically receives a memo tag <strong>「攤位」</strong>. Marks orders as containing side items for kitchen display.</div>
-  <div class="rule-loc">src/stores/order-store.ts:6–8 · submitOrder(memoTags?) line 82</div>
-</div>
+    <div class="rule">
+      <div class="rule-title">4.1 &nbsp; Stall Category Auto-Memo Tagging</div>
+      <div class="rule-desc">
+        Any order containing commodities with
+        <code>type_id = "stall"</code> automatically receives a memo tag
+        <strong>「攤位」</strong>. Marks orders as containing side items for
+        kitchen display.
+      </div>
+      <div class="rule-loc">
+        src/stores/order-store.ts:6–8 · submitOrder(memoTags?) line 82
+      </div>
+    </div>
 
-<div class="rule">
-  <div class="rule-title">4.2 &nbsp; Backup Scheduling with Taiwan Timezone Awareness</div>
-  <div class="rule-desc">Backup overdue checks must respect Taiwan timezone (UTC+8), not server time. <code>getTaiwanDayStart</code> and <code>getTaiwanWeekStart</code> compute UTC milliseconds. On Tuesday TW 14:00, if last backup was Monday TW 23:00, daily schedule is NOT overdue.</div>
-  <div class="rule-loc">src/lib/backup-schedule.ts · TAIWAN_OFFSET_MS</div>
-</div>
+    <div class="rule">
+      <div class="rule-title">
+        4.2 &nbsp; Backup Scheduling with Taiwan Timezone Awareness
+      </div>
+      <div class="rule-desc">
+        Backup overdue checks must respect Taiwan timezone (UTC+8), not server
+        time. <code>getTaiwanDayStart</code> and
+        <code>getTaiwanWeekStart</code> compute UTC milliseconds. On Tuesday TW
+        14:00, if last backup was Monday TW 23:00, daily schedule is NOT
+        overdue.
+      </div>
+      <div class="rule-loc">src/lib/backup-schedule.ts · TAIWAN_OFFSET_MS</div>
+    </div>
 
-<div class="rule">
-  <div class="rule-title">4.3 &nbsp; Backup Retention Policy (max 30 per device)</div>
-  <div class="rule-desc">After successful upload, backend lists all <code>.sqlite.gz</code>, sorts by LastModified desc, and deletes oldest if count &gt; 30. Automatic garbage collection ensures storage quota not exceeded.</div>
-  <div class="rule-loc">api/backup/complete.ts:20 · MAX_BACKUPS = 30</div>
-</div>
+    <div class="rule">
+      <div class="rule-title">
+        4.3 &nbsp; Backup Retention Policy (max 30 per device)
+      </div>
+      <div class="rule-desc">
+        After successful upload, backend lists all <code>.sqlite.gz</code>,
+        sorts by LastModified desc, and deletes oldest if count &gt; 30.
+        Automatic garbage collection ensures storage quota not exceeded.
+      </div>
+      <div class="rule-loc">api/backup/complete.ts:20 · MAX_BACKUPS = 30</div>
+    </div>
 
-<div class="rule">
-  <div class="rule-title">4.4 &nbsp; Order Snapshot Price Protection</div>
-  <div class="rule-desc">When an order is created, each item's price is captured into <code>order_items.price</code>. Subsequent price changes to commodities do NOT affect historical orders — revenue integrity and accounting are preserved.</div>
-  <div class="rule-loc">src/stores/order-store.ts:63–69 · order-item-repository.ts</div>
-</div>
+    <div class="rule">
+      <div class="rule-title">4.4 &nbsp; Order Snapshot Price Protection</div>
+      <div class="rule-desc">
+        When an order is created, each item's price is captured into
+        <code>order_items.price</code>. Subsequent price changes to commodities
+        do NOT affect historical orders — revenue integrity and accounting are
+        preserved.
+      </div>
+      <div class="rule-loc">
+        src/stores/order-store.ts:63–69 · order-item-repository.ts
+      </div>
+    </div>
 
-<div class="rule">
-  <div class="rule-title">4.5 &nbsp; V1 → V2 Migration Idempotency</div>
-  <div class="rule-desc">Legacy V1 data can be safely imported multiple times without duplication. <code>INSERT OR IGNORE</code> ensures interrupted imports can be resumed.</div>
-  <div class="rule-loc">src/lib/v1-data-importer.ts:78 · buildInsertSql</div>
-</div>
+    <div class="rule">
+      <div class="rule-title">4.5 &nbsp; V1 → V2 Migration Idempotency</div>
+      <div class="rule-desc">
+        Legacy V1 data can be safely imported multiple times without
+        duplication. <code>INSERT OR IGNORE</code> ensures interrupted imports
+        can be resumed.
+      </div>
+      <div class="rule-loc">
+        src/lib/v1-data-importer.ts:78 · buildInsertSql
+      </div>
+    </div>
 
-<div class="rule">
-  <div class="rule-title">4.6 &nbsp; Employee Termination Soft-Delete</div>
-  <div class="rule-desc">Terminated employees are not removed from the DB. <code>status</code> set to "inactive" and <code>resignation_date</code> recorded. Historical orders/attendance preserved for audit; Clock-In UI filters to active only.</div>
-  <div class="rule-loc">src/lib/schema.ts:92–93 · CHECK constraint</div>
-</div>
+    <div class="rule">
+      <div class="rule-title">4.6 &nbsp; Employee Termination Soft-Delete</div>
+      <div class="rule-desc">
+        Terminated employees are not removed from the DB.
+        <code>status</code> set to "inactive" and
+        <code>resignation_date</code> recorded. Historical orders/attendance
+        preserved for audit; Clock-In UI filters to active only.
+      </div>
+      <div class="rule-loc">src/lib/schema.ts:92–93 · CHECK constraint</div>
+    </div>
 
-<div class="rule">
-  <div class="rule-title">4.7 &nbsp; Order Number Sequence (customer-facing)</div>
-  <div class="rule-desc">Each order receives an auto-incrementing <code>number</code> field independent of its nanoid <code>id</code>, used for receipt printing and customer reference. Computed via <code>SELECT MAX(number)+1</code>.</div>
-  <div class="rule-loc">src/lib/repositories/order-repository.ts · getNextOrderNumber</div>
-</div>
+    <div class="rule">
+      <div class="rule-title">
+        4.7 &nbsp; Order Number Sequence (customer-facing)
+      </div>
+      <div class="rule-desc">
+        Each order receives an auto-incrementing <code>number</code> field
+        independent of its nanoid <code>id</code>, used for receipt printing and
+        customer reference. Computed via <code>SELECT MAX(number)+1</code>.
+      </div>
+      <div class="rule-loc">
+        src/lib/repositories/order-repository.ts · getNextOrderNumber
+      </div>
+    </div>
 
-<div class="rule">
-  <div class="rule-title">4.8 &nbsp; Minimum Init UI Display Duration (5 seconds)</div>
-  <div class="rule-desc">InitOverlay must display for at least 5 seconds even if DB is ready. Prevents jarring flash on fast machines; ensures user perceives app as "doing work".</div>
-  <div class="rule-loc">src/stores/init-store.ts:66–73 · shownAt timestamp</div>
-</div>
+    <div class="rule">
+      <div class="rule-title">
+        4.8 &nbsp; Minimum Init UI Display Duration (5 seconds)
+      </div>
+      <div class="rule-desc">
+        InitOverlay must display for at least 5 seconds even if DB is ready.
+        Prevents jarring flash on fast machines; ensures user perceives app as
+        "doing work".
+      </div>
+      <div class="rule-loc">
+        src/stores/init-store.ts:66–73 · shownAt timestamp
+      </div>
+    </div>
 
-<div class="rule">
-  <div class="rule-title">4.9 &nbsp; Portrait-Only Orientation Enforcement</div>
-  <div class="rule-desc">App locked to portrait on mobile/tablet. RootLayout detects landscape via <code>matchMedia('(orientation: portrait)')</code> and shows WaitingOverlay with rotate prompt.</div>
-  <div class="rule-loc">src/routes/route-tree.tsx:23–41 · useSyncExternalStore</div>
-</div>
+    <div class="rule">
+      <div class="rule-title">
+        4.9 &nbsp; Portrait-Only Orientation Enforcement
+      </div>
+      <div class="rule-desc">
+        App locked to portrait on mobile/tablet. RootLayout detects landscape
+        via <code>matchMedia('(orientation: portrait)')</code> and shows
+        WaitingOverlay with rotate prompt.
+      </div>
+      <div class="rule-loc">
+        src/routes/route-tree.tsx:23–41 · useSyncExternalStore
+      </div>
+    </div>
 
-<div class="rule">
-  <div class="rule-title">4.10 &nbsp; Device Identity Tracking</div>
-  <div class="rule-desc">Each browser/device has a unique DEVICE_ID persisted to localStorage. Backup filenames include device code: <code>tianwen-&lt;device&gt;-&lt;date&gt;.sqlite.gz</code> — enables per-device restore and cross-device listing.</div>
-  <div class="rule-loc">src/lib/device.ts · getDeviceId()</div>
-</div>
+    <div class="rule">
+      <div class="rule-title">4.10 &nbsp; Device Identity Tracking</div>
+      <div class="rule-desc">
+        Each browser/device has a unique DEVICE_ID persisted to localStorage.
+        Backup filenames include device code:
+        <code>tianwen-&lt;device&gt;-&lt;date&gt;.sqlite.gz</code> — enables
+        per-device restore and cross-device listing.
+      </div>
+      <div class="rule-loc">src/lib/device.ts · getDeviceId()</div>
+    </div>
 
-<div class="rule">
-  <div class="rule-title">4.11 &nbsp; No Global User Login Required</div>
-  <div class="rule-desc">App operates without a global user login for order entry. OrderPage loads directly — no operator selection step. Admin functions (staff mgmt, products, backup) are gated by <code>AuthGuard</code> + Google OAuth. The store has <code>operatorId</code> / <code>operatorName</code> fields but no UI sets them (planned feature).</div>
-  <div class="rule-loc">src/components/auth-guard/auth-guard.tsx · AuthGuard</div>
-</div>
+    <div class="rule">
+      <div class="rule-title">4.11 &nbsp; No Global User Login Required</div>
+      <div class="rule-desc">
+        App operates without a global user login for order entry. OrderPage
+        loads directly — no operator selection step. Admin functions (staff
+        mgmt, products, backup) are gated by <code>AuthGuard</code> + Google
+        OAuth. The store has <code>operatorId</code> /
+        <code>operatorName</code> fields but no UI sets them (planned feature).
+      </div>
+      <div class="rule-loc">
+        src/components/auth-guard/auth-guard.tsx · AuthGuard
+      </div>
+    </div>
 
-<div class="rule">
-  <div class="rule-title">4.12 &nbsp; Order Edit Rewrites Items (Original Total Preserved)</div>
-  <div class="rule-desc">Editing a submitted order deletes old <code>order_items</code> and <code>order_discounts</code> and inserts fresh rows. <code>original_total</code> is preserved for audit trail if edits change the total.</div>
-  <div class="rule-loc">src/stores/order-store.ts · startEditOrder + submitOrder</div>
-</div>
+    <div class="rule">
+      <div class="rule-title">
+        4.12 &nbsp; Order Edit Rewrites Items (Original Total Preserved)
+      </div>
+      <div class="rule-desc">
+        Editing a submitted order deletes old <code>order_items</code> and
+        <code>order_discounts</code> and inserts fresh rows.
+        <code>original_total</code> is preserved for audit trail if edits change
+        the total.
+      </div>
+      <div class="rule-loc">
+        src/stores/order-store.ts · startEditOrder + submitOrder
+      </div>
+    </div>
 
-<div class="rule">
-  <div class="rule-title">4.13 &nbsp; Gzip Compression for Backup Transport</div>
-  <div class="rule-desc">Database backup compressed via browser <code>CompressionStream('gzip')</code> before uploading to R2. Typical 5 MB SQLite → 1-2 MB compressed (60-80% reduction).</div>
-  <div class="rule-loc">src/lib/backup.ts:26–83 · compress / decompress</div>
-</div>
+    <div class="rule">
+      <div class="rule-title">
+        4.13 &nbsp; Gzip Compression for Backup Transport
+      </div>
+      <div class="rule-desc">
+        Database backup compressed via browser
+        <code>CompressionStream('gzip')</code> before uploading to R2. Typical 5
+        MB SQLite → 1-2 MB compressed (60-80% reduction).
+      </div>
+      <div class="rule-loc">
+        src/lib/backup.ts:26–83 · compress / decompress
+      </div>
+    </div>
 
-<!-- ═════════════════════════════════════════════════ -->
-<!-- §5 INTEGRATIONS                                    -->
-<!-- ═════════════════════════════════════════════════ -->
-<h1 class="section">5. External Integrations</h1>
+    <!-- ═════════════════════════════════════════════════ -->
+    <!-- §5 INTEGRATIONS                                    -->
+    <!-- ═════════════════════════════════════════════════ -->
+    <h1 class="section">5. External Integrations</h1>
 
-<table>
-  <thead>
-    <tr><th style="width:22%">Integration</th><th style="width:28%">Purpose</th><th>Notes · Failure Mode</th></tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><strong>Cloudflare R2</strong></td>
-      <td>S3-compatible object storage for versioned SQLite backups</td>
-      <td>Accessed via Vercel Functions with presigned URLs (10-min TTL). Frontend never has R2 credentials. Unavailable → manual export to local still works.</td>
-    </tr>
-    <tr>
-      <td><strong>Vercel Functions</strong></td>
-      <td>Serverless API layer wrapping R2</td>
-      <td>Endpoints: <code>/api/backup</code> (list), <code>/api/backup/presign</code> (upload/download URL), <code>/api/backup/complete</code> (verify + retention cleanup), <code>/api/health</code>.</td>
-    </tr>
-    <tr>
-      <td><strong>Google Identity Services</strong></td>
-      <td>OAuth for per-employee Google account binding</td>
-      <td>Loaded via <code>accounts.google.com/gsi/client</code> script in <code>index.html</code>. Not required for order entry; only for admin staff management.</td>
-    </tr>
-    <tr>
-      <td><strong>SQLite WASM + OPFS</strong></td>
-      <td>Browser-local durable storage (opfs-sahpool VFS)</td>
-      <td>Persistent via Origin Private File System. Path gotcha: SQLite normalises filenames by prepending <code>/</code>. All DB access via Web Worker to avoid blocking UI.</td>
-    </tr>
-    <tr>
-      <td><strong>TanStack Query</strong></td>
-      <td>Server-state cache for DB reads (reactive)</td>
-      <td>Keys drive invalidation on mutations. Used for DB-size queries, cloud backup list, employee list, etc.</td>
-    </tr>
-    <tr>
-      <td><strong>Zustand</strong></td>
-      <td>Client state stores (cart, init, backup, overlays)</td>
-      <td><code>order-store</code>, <code>init-store</code>, <code>backup-store</code>. Overlay registration via <code>useRegisterOverlay</code> hook with ref-count.</td>
-    </tr>
-  </tbody>
-</table>
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 22%">Integration</th>
+          <th style="width: 28%">Purpose</th>
+          <th>Notes · Failure Mode</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Cloudflare R2</strong></td>
+          <td>S3-compatible object storage for versioned SQLite backups</td>
+          <td>
+            Accessed via Vercel Functions with presigned URLs (10-min TTL).
+            Frontend never has R2 credentials. Unavailable → manual export to
+            local still works.
+          </td>
+        </tr>
+        <tr>
+          <td><strong>Vercel Functions</strong></td>
+          <td>Serverless API layer wrapping R2</td>
+          <td>
+            Endpoints: <code>/api/backup</code> (list),
+            <code>/api/backup/presign</code> (upload/download URL),
+            <code>/api/backup/complete</code> (verify + retention cleanup),
+            <code>/api/health</code>.
+          </td>
+        </tr>
+        <tr>
+          <td><strong>Google Identity Services</strong></td>
+          <td>OAuth for per-employee Google account binding</td>
+          <td>
+            Loaded via <code>accounts.google.com/gsi/client</code> script in
+            <code>index.html</code>. Not required for order entry; only for
+            admin staff management.
+          </td>
+        </tr>
+        <tr>
+          <td><strong>SQLite WASM + OPFS</strong></td>
+          <td>Browser-local durable storage (opfs-sahpool VFS)</td>
+          <td>
+            Persistent via Origin Private File System. Path gotcha: SQLite
+            normalises filenames by prepending <code>/</code>. All DB access via
+            Web Worker to avoid blocking UI.
+          </td>
+        </tr>
+        <tr>
+          <td><strong>TanStack Query</strong></td>
+          <td>Server-state cache for DB reads (reactive)</td>
+          <td>
+            Keys drive invalidation on mutations. Used for DB-size queries,
+            cloud backup list, employee list, etc.
+          </td>
+        </tr>
+        <tr>
+          <td><strong>Zustand</strong></td>
+          <td>Client state stores (cart, init, backup, overlays)</td>
+          <td>
+            <code>order-store</code>, <code>init-store</code>,
+            <code>backup-store</code>. Overlay registration via
+            <code>useRegisterOverlay</code> hook with ref-count.
+          </td>
+        </tr>
+      </tbody>
+    </table>
 
-<!-- ═════════════════════════════════════════════════ -->
-<!-- §6 ARCHITECTURE                                    -->
-<!-- ═════════════════════════════════════════════════ -->
-<h1 class="section">6. Architecture Overview</h1>
+    <!-- ═════════════════════════════════════════════════ -->
+    <!-- §6 ARCHITECTURE                                    -->
+    <!-- ═════════════════════════════════════════════════ -->
+    <h1 class="section">6. Architecture Overview</h1>
 
-<div class="mermaid">
-flowchart TB
-    subgraph UI["UI Layer"]
-      RT[route-tree.tsx<br/>RootLayout]
-      Pages[Pages: order / orders / clock-in<br/>analytics / settings / records]
-      Overlays[Overlays: Init / Error / Waiting]
-    end
-    subgraph State["State Layer — Zustand"]
-      OS[order-store]
-      IS[init-store]
-      BS[backup-store]
-    end
-    subgraph Data["Data Layer"]
-      Repos[Repositories<br/>order, employee, commodity,<br/>attendance, backup-log, error-log]
-      TQ[TanStack Query Cache]
-    end
-    subgraph Worker["Web Worker"]
-      DBW[worker-database.ts]
-      SQLite[SQLite WASM + OPFS]
-    end
-    subgraph External["External Services"]
-      VF[Vercel Functions]
-      R2[Cloudflare R2]
-      G[Google OAuth]
-    end
+    <div class="mermaid">
+      flowchart TB subgraph UI["UI Layer"] RT[route-tree.tsx<br />RootLayout]
+      Pages[Pages: order / orders / clock-in<br />analytics / settings /
+      records] Overlays[Overlays: Init / Error / Waiting] end subgraph
+      State["State Layer — Zustand"] OS[order-store] IS[init-store]
+      BS[backup-store] end subgraph Data["Data Layer"] Repos[Repositories<br />order,
+      employee, commodity,<br />attendance, backup-log, error-log] TQ[TanStack
+      Query Cache] end subgraph Worker["Web Worker"] DBW[worker-database.ts]
+      SQLite[SQLite WASM + OPFS] end subgraph External["External Services"]
+      VF[Vercel Functions] R2[Cloudflare R2] G[Google OAuth] end RT --> Pages RT
+      --> Overlays Pages --> OS Pages --> IS Pages --> BS Pages --> TQ OS -->
+      Repos BS --> Repos Repos --> DBW TQ --> DBW DBW --> SQLite BS --> VF VF
+      --> R2 Pages --> G style SQLite fill:#e8f0dc,stroke:#7f956a style R2
+      fill:#f1ead7,stroke:#b89d5e style Overlays fill:#f3d98f,stroke:#7f956a
+    </div>
 
-    RT --> Pages
-    RT --> Overlays
-    Pages --> OS
-    Pages --> IS
-    Pages --> BS
-    Pages --> TQ
-    OS --> Repos
-    BS --> Repos
-    Repos --> DBW
-    TQ --> DBW
-    DBW --> SQLite
-    BS --> VF
-    VF --> R2
-    Pages --> G
-    style SQLite fill:#e8f0dc,stroke:#7f956a
-    style R2 fill:#f1ead7,stroke:#b89d5e
-    style Overlays fill:#f3d98f,stroke:#7f956a
-</div>
+    <h3>State boundaries</h3>
+    <ul>
+      <li>
+        <strong>Zustand</strong> — ephemeral client state (cart, active
+        overlays, init progress, backup UI)
+      </li>
+      <li>
+        <strong>TanStack Query</strong> — server-state cache over DB reads;
+        invalidation on writes
+      </li>
+      <li>
+        <strong>SQLite / OPFS</strong> — durable source of truth; lives in Web
+        Worker to avoid UI blocking
+      </li>
+      <li>
+        <strong>localStorage</strong> — DEVICE_ID, v1 backup detection flag,
+        first-run markers
+      </li>
+    </ul>
 
-<h3>State boundaries</h3>
-<ul>
-  <li><strong>Zustand</strong> — ephemeral client state (cart, active overlays, init progress, backup UI)</li>
-  <li><strong>TanStack Query</strong> — server-state cache over DB reads; invalidation on writes</li>
-  <li><strong>SQLite / OPFS</strong> — durable source of truth; lives in Web Worker to avoid UI blocking</li>
-  <li><strong>localStorage</strong> — DEVICE_ID, v1 backup detection flag, first-run markers</li>
-</ul>
+    <h3>Overlay system</h3>
+    <ul>
+      <li>
+        Three overlays: <code>InitOverlay</code> (bootstrap / import),
+        <code>ErrorOverlay</code> (error animation),
+        <code>WaitingOverlay</code> (portrait rotate prompt)
+      </li>
+      <li>
+        Each uses <strong>React portal</strong> to <code>document.body</code> to
+        escape ancestor containing blocks from <code>transform</code> /
+        <code>backdrop-filter</code>
+      </li>
+      <li>
+        Registration via <code>useRegisterOverlay</code> hook (ref-counted in
+        <code>init-store.activeOverlays</code>); AppHeader auto-switches to
+        transparent + white-text styling while any overlay is active
+      </li>
+    </ul>
 
-<h3>Overlay system</h3>
-<ul>
-  <li>Three overlays: <code>InitOverlay</code> (bootstrap / import), <code>ErrorOverlay</code> (error animation), <code>WaitingOverlay</code> (portrait rotate prompt)</li>
-  <li>Each uses <strong>React portal</strong> to <code>document.body</code> to escape ancestor containing blocks from <code>transform</code> / <code>backdrop-filter</code></li>
-  <li>Registration via <code>useRegisterOverlay</code> hook (ref-counted in <code>init-store.activeOverlays</code>); AppHeader auto-switches to transparent + white-text styling while any overlay is active</li>
-</ul>
+    <!-- ═════════════════════════════════════════════════ -->
+    <!-- §7 GLOSSARY                                        -->
+    <!-- ═════════════════════════════════════════════════ -->
+    <h1 class="section">7. Domain Vocabulary (zh-TW ↔ en)</h1>
 
-<!-- ═════════════════════════════════════════════════ -->
-<!-- §7 GLOSSARY                                        -->
-<!-- ═════════════════════════════════════════════════ -->
-<h1 class="section">7. Domain Vocabulary (zh-TW ↔ en)</h1>
+    <p>
+      The domain vocabulary is the source of truth for product conversations.
+      Taiwanese restaurant terminology does not always map cleanly to English
+      equivalents.
+    </p>
 
-<p>The domain vocabulary is the source of truth for product conversations. Taiwanese restaurant terminology does not always map cleanly to English equivalents.</p>
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 16%">Category</th>
+          <th style="width: 22%">zh-TW</th>
+          <th style="width: 22%">English Key</th>
+          <th>Usage</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td rowspan="7"><strong>Navigation</strong></td>
+          <td>點餐</td>
+          <td><code>home</code></td>
+          <td>Order entry page</td>
+        </tr>
+        <tr>
+          <td>訂單</td>
+          <td><code>orders</code></td>
+          <td>Order history</td>
+        </tr>
+        <tr>
+          <td>打卡</td>
+          <td><code>clockIn</code></td>
+          <td>Staff time tracking</td>
+        </tr>
+        <tr>
+          <td>打卡記錄</td>
+          <td><code>records</code></td>
+          <td>Attendance history</td>
+        </tr>
+        <tr>
+          <td>員工管理</td>
+          <td><code>staffAdmin</code></td>
+          <td>Employee management</td>
+        </tr>
+        <tr>
+          <td>統計</td>
+          <td><code>analytics</code></td>
+          <td>Dashboard & KPIs</td>
+        </tr>
+        <tr>
+          <td>設定</td>
+          <td><code>settings</code></td>
+          <td>App settings</td>
+        </tr>
 
-<table>
-  <thead>
-    <tr><th style="width:16%">Category</th><th style="width:22%">zh-TW</th><th style="width:22%">English Key</th><th>Usage</th></tr>
-  </thead>
-  <tbody>
-    <tr><td rowspan="7"><strong>Navigation</strong></td><td>點餐</td><td><code>home</code></td><td>Order entry page</td></tr>
-    <tr><td>訂單</td><td><code>orders</code></td><td>Order history</td></tr>
-    <tr><td>打卡</td><td><code>clockIn</code></td><td>Staff time tracking</td></tr>
-    <tr><td>打卡記錄</td><td><code>records</code></td><td>Attendance history</td></tr>
-    <tr><td>員工管理</td><td><code>staffAdmin</code></td><td>Employee management</td></tr>
-    <tr><td>統計</td><td><code>analytics</code></td><td>Dashboard & KPIs</td></tr>
-    <tr><td>設定</td><td><code>settings</code></td><td>App settings</td></tr>
+        <tr>
+          <td rowspan="5"><strong>Order Entry</strong></td>
+          <td>攤位</td>
+          <td><code>categoryStall</code></td>
+          <td>Side items (auto-memo tag)</td>
+        </tr>
+        <tr>
+          <td>餐盒</td>
+          <td><code>categoryBento</code></td>
+          <td>Bento boxes</td>
+        </tr>
+        <tr>
+          <td>單點</td>
+          <td><code>categorySingle</code></td>
+          <td>À-la-carte items</td>
+        </tr>
+        <tr>
+          <td>飲料</td>
+          <td><code>categoryDrink</code></td>
+          <td>Beverages</td>
+        </tr>
+        <tr>
+          <td>水餃</td>
+          <td><code>categoryDumpling</code></td>
+          <td>Dumplings</td>
+        </tr>
 
-    <tr><td rowspan="5"><strong>Order Entry</strong></td><td>攤位</td><td><code>categoryStall</code></td><td>Side items (auto-memo tag)</td></tr>
-    <tr><td>餐盒</td><td><code>categoryBento</code></td><td>Bento boxes</td></tr>
-    <tr><td>單點</td><td><code>categorySingle</code></td><td>À-la-carte items</td></tr>
-    <tr><td>飲料</td><td><code>categoryDrink</code></td><td>Beverages</td></tr>
-    <tr><td>水餃</td><td><code>categoryDumpling</code></td><td>Dumplings</td></tr>
+        <tr>
+          <td rowspan="4"><strong>Clock-In</strong></td>
+          <td>打卡上班</td>
+          <td><code>clockIn</code></td>
+          <td>Start shift</td>
+        </tr>
+        <tr>
+          <td>打卡下班</td>
+          <td><code>clockOut</code></td>
+          <td>End shift</td>
+        </tr>
+        <tr>
+          <td>休假</td>
+          <td><code>applyVacation</code></td>
+          <td>Request leave</td>
+        </tr>
+        <tr>
+          <td>取消休假</td>
+          <td><code>cancelVacation</code></td>
+          <td>Cancel leave request</td>
+        </tr>
 
-    <tr><td rowspan="4"><strong>Clock-In</strong></td><td>打卡上班</td><td><code>clockIn</code></td><td>Start shift</td></tr>
-    <tr><td>打卡下班</td><td><code>clockOut</code></td><td>End shift</td></tr>
-    <tr><td>休假</td><td><code>applyVacation</code></td><td>Request leave</td></tr>
-    <tr><td>取消休假</td><td><code>cancelVacation</code></td><td>Cancel leave request</td></tr>
+        <tr>
+          <td rowspan="5"><strong>Staff</strong></td>
+          <td>員工編號</td>
+          <td><code>employeeNo</code></td>
+          <td>Staff ID</td>
+        </tr>
+        <tr>
+          <td>入職日期</td>
+          <td><code>hireDate</code></td>
+          <td>Start date</td>
+        </tr>
+        <tr>
+          <td>離職日期</td>
+          <td><code>resignationDate</code></td>
+          <td>End date</td>
+        </tr>
+        <tr>
+          <td>班別</td>
+          <td><code>shiftType</code></td>
+          <td>Shift type</td>
+        </tr>
+        <tr>
+          <td>管理員</td>
+          <td><code>admin</code></td>
+          <td>Administrator role</td>
+        </tr>
 
-    <tr><td rowspan="5"><strong>Staff</strong></td><td>員工編號</td><td><code>employeeNo</code></td><td>Staff ID</td></tr>
-    <tr><td>入職日期</td><td><code>hireDate</code></td><td>Start date</td></tr>
-    <tr><td>離職日期</td><td><code>resignationDate</code></td><td>End date</td></tr>
-    <tr><td>班別</td><td><code>shiftType</code></td><td>Shift type</td></tr>
-    <tr><td>管理員</td><td><code>admin</code></td><td>Administrator role</td></tr>
+        <tr>
+          <td rowspan="5"><strong>Attendance</strong></td>
+          <td>一般</td>
+          <td><code>regular</code></td>
+          <td>Normal working day</td>
+        </tr>
+        <tr>
+          <td>特休</td>
+          <td><code>paidLeave</code></td>
+          <td>Paid vacation</td>
+        </tr>
+        <tr>
+          <td>病假</td>
+          <td><code>sickLeave</code></td>
+          <td>Sick leave</td>
+        </tr>
+        <tr>
+          <td>事假</td>
+          <td><code>personalLeave</code></td>
+          <td>Personal leave</td>
+        </tr>
+        <tr>
+          <td>缺勤</td>
+          <td><code>absent</code></td>
+          <td>Absent</td>
+        </tr>
 
-    <tr><td rowspan="5"><strong>Attendance</strong></td><td>一般</td><td><code>regular</code></td><td>Normal working day</td></tr>
-    <tr><td>特休</td><td><code>paidLeave</code></td><td>Paid vacation</td></tr>
-    <tr><td>病假</td><td><code>sickLeave</code></td><td>Sick leave</td></tr>
-    <tr><td>事假</td><td><code>personalLeave</code></td><td>Personal leave</td></tr>
-    <tr><td>缺勤</td><td><code>absent</code></td><td>Absent</td></tr>
+        <tr>
+          <td rowspan="2"><strong>Backup</strong></td>
+          <td>裝置代號</td>
+          <td><code>deviceName</code></td>
+          <td>Device identifier</td>
+        </tr>
+        <tr>
+          <td>雲端備份狀態</td>
+          <td><code>cloudBackup</code></td>
+          <td>Cloud backup status</td>
+        </tr>
+      </tbody>
+    </table>
 
-    <tr><td rowspan="2"><strong>Backup</strong></td><td>裝置代號</td><td><code>deviceName</code></td><td>Device identifier</td></tr>
-    <tr><td>雲端備份狀態</td><td><code>cloudBackup</code></td><td>Cloud backup status</td></tr>
-  </tbody>
-</table>
-
-<div class="doc-footer">
-  Generated from domain discovery findings · Tianwen V2 POS v2.10.0 · 2026-04-11<br>
-  Source: <code>/tmp/tianwen-business-domain-report.md</code> · Discovery via Claude Code Explore agent
-</div>
-
-</body>
+    <div class="doc-footer">
+      Generated from domain discovery findings · Tianwen V2 POS v2.10.0 ·
+      2026-04-11<br />
+      Source: <code>/tmp/tianwen-business-domain-report.md</code> · Discovery
+      via Claude Code Explore agent
+    </div>
+  </body>
 </html>

@@ -281,5 +281,4 @@ describe('CloudBackupActions', () => {
       expect(mockSetSchedule).toHaveBeenCalledWith('none')
     })
   })
-
 })

@@ -202,7 +202,9 @@ export function AppHeader({ disabled, overlayActive }: AppHeaderProps) {
           )}
           <HeaderOrderStaff />
           <HeaderCheckout />
-          <TutorialLauncherButton overlayActive={overlayActive} />
+          {import.meta.env.DEV && (
+            <TutorialLauncherButton overlayActive={overlayActive} />
+          )}
           <NavIconLink
             to="/settings"
             ariaLabel={t('nav.settings')}

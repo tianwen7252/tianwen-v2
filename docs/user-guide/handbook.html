@@ -1,967 +1,1836 @@
 <!doctype html>
 <html lang="zh-TW">
-<head>
-<meta charset="utf-8">
-<title>天文 V2 POS 使用手冊</title>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body {
-    font-family: 'Noto Sans TC','Inter',-apple-system,sans-serif;
-    color: #1f2937;
-    line-height: 1.65;
-    font-size: 11pt;
-    -webkit-font-smoothing: antialiased;
-  }
-  @page { size: A4; margin: 16mm 18mm 18mm 18mm; }
-  @page :first { margin: 0; }
-
-  /* ─── Cover ─────────────────────────── */
-  .cover {
-    page-break-after: always;
-    min-height: 297mm;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    background: linear-gradient(135deg, #0d3b66 0%, #7f956a 55%, #f3d98f 100%);
-    color: #fff;
-    padding: 40mm 24mm;
-    position: relative;
-  }
-  .cover::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background:
-      radial-gradient(circle at 80% 20%, rgba(243,217,143,0.35), transparent 50%),
-      radial-gradient(circle at 20% 80%, rgba(127,149,106,0.5), transparent 55%);
-    pointer-events: none;
-  }
-  .cover-header { position: relative; font-size: 11pt; letter-spacing: 4pt; opacity: 0.85; text-transform: uppercase; }
-  .cover-title { position: relative; }
-  .cover-title h1 { font-size: 52pt; font-weight: 700; letter-spacing: -1pt; line-height: 1.1; margin-bottom: 8pt; }
-  .cover-title .sub { font-size: 20pt; font-weight: 300; opacity: 0.92; letter-spacing: 2pt; }
-  .cover-title .tagline { margin-top: 20pt; font-size: 13pt; font-weight: 300; max-width: 420pt; line-height: 1.6; opacity: 0.82; }
-  .cover-meta { position: relative; display: flex; justify-content: space-between; font-size: 10pt; opacity: 0.8; letter-spacing: 1pt; border-top: 1pt solid rgba(255,255,255,0.35); padding-top: 12pt; }
-  .cover-meta strong { font-weight: 600; letter-spacing: 0; }
-
-  /* ─── Typography ────────────────────── */
-  h1.section {
-    font-size: 24pt; font-weight: 700; color: #0d3b66;
-    border-bottom: 2pt solid #7f956a; padding-bottom: 10pt;
-    margin-top: 0; margin-bottom: 14pt;
-    page-break-before: always; page-break-after: avoid;
-  }
-  h2 {
-    font-size: 15pt; font-weight: 600; color: #0d3b66;
-    margin-top: 18pt; margin-bottom: 8pt;
-    page-break-after: avoid;
-  }
-  h3 {
-    font-size: 11pt; font-weight: 600; color: #5a7048;
-    margin-top: 12pt; margin-bottom: 5pt;
-    page-break-after: avoid;
-  }
-  p { margin-bottom: 7pt; }
-  strong { color: #0d3b66; font-weight: 600; }
-  code {
-    font-family: 'SFMono-Regular','Menlo',monospace;
-    font-size: 9pt; background: #f1ead7; color: #0d3b66;
-    padding: 1pt 4pt; border-radius: 2pt;
-  }
-  ul, ol { margin-left: 16pt; margin-bottom: 7pt; }
-  li { margin-bottom: 3pt; }
-  hr { border: none; border-top: 0.5pt solid #e5e7eb; margin: 10pt 0; }
-
-  /* ─── Tables ────────────────────────── */
-  table { width: 100%; border-collapse: collapse; margin: 8pt 0 14pt 0; font-size: 10pt; page-break-inside: avoid; }
-  th { background: #0d3b66; color: #fff; padding: 6pt 10pt; text-align: left; font-weight: 600; font-size: 9.5pt; }
-  td { padding: 5pt 10pt; border-bottom: 0.5pt solid #e5e7eb; vertical-align: top; }
-  tr:nth-child(even) td { background: #fafaf9; }
-
-  /* ─── TOC ───────────────────────────── */
-  .toc { page-break-after: always; padding-top: 36pt; }
-  .toc h1 { font-size: 24pt; font-weight: 700; color: #0d3b66; margin-bottom: 24pt; border-bottom: 2pt solid #7f956a; padding-bottom: 10pt; }
-  .toc-entry { display: flex; justify-content: space-between; align-items: baseline; padding: 10pt 0; border-bottom: 1pt dotted #d1d5db; }
-  .toc-entry:last-child { border-bottom: none; }
-  .toc-chapter { font-size: 13pt; font-weight: 600; color: #0d3b66; }
-  .toc-desc { font-size: 10pt; color: #6b7280; margin-left: 12pt; flex-shrink: 1; }
-  .toc-audience { font-size: 9pt; color: #7f956a; white-space: nowrap; margin-left: 10pt; }
-
-  /* ─── Step Numbers ──────────────────── */
-  .step-num {
-    display: inline-flex; align-items: center; justify-content: center;
-    width: 24pt; height: 24pt; border-radius: 50%;
-    background: #7f956a; color: #fff;
-    font-size: 12pt; font-weight: 700;
-    margin-right: 6pt; flex-shrink: 0;
-  }
-  .step-heading {
-    display: flex; align-items: center;
-    margin-top: 14pt; margin-bottom: 5pt;
-    page-break-after: avoid;
-  }
-  .step-heading h3 { margin: 0; font-size: 12pt; font-weight: 600; color: #0d3b66; }
-
-  /* ─── Full-Width Screenshots ────────── */
-  .screenshot {
-    margin: 8pt 0 12pt 0;
-    text-align: center;
-  }
-  .screenshot img {
-    width: 100%;
-    max-width: 100%;
-    border-radius: 6pt;
-    border: 0.5pt solid #d1d5db;
-    box-shadow: 0 2pt 8pt rgba(0,0,0,0.10);
-    display: block;
-    margin: 0 auto;
-  }
-
-  /* ─── Callout Boxes ─────────────────── */
-  .callout { page-break-inside: avoid; padding: 8pt 12pt; margin: 10pt 0; border-radius: 5pt; font-size: 10pt; line-height: 1.6; }
-  .callout-tip { background: #f0f7e8; border-left: 4pt solid #7f956a; }
-  .callout-tip .ct { color: #5a7048; font-weight: 600; margin-bottom: 4pt; font-size: 11pt; }
-  .callout-warning { background: #fef7e0; border-left: 4pt solid #f3d98f; }
-  .callout-warning .ct { color: #92730b; font-weight: 600; margin-bottom: 4pt; font-size: 11pt; }
-
-  /* ─── Troubleshoot Card ─────────────── */
-  .tc { page-break-inside: avoid; padding: 8pt 12pt; margin: 8pt 0; background: #fafaf9; border-left: 3pt solid #e7c45f; border-radius: 0 4pt 4pt 0; }
-  .tc h3 { margin-top: 0; margin-bottom: 4pt; color: #0d3b66; font-size: 11pt; }
-
-  /* ─── QA ─────────────────────────────── */
-  .qq { font-weight: 600; color: #0d3b66; margin-bottom: 2pt; font-size: 10pt; }
-  .qa { color: #374151; margin-bottom: 8pt; padding-left: 14pt; font-size: 10pt; }
-
-  /* ─── Section intro ─────────────────── */
-  .si-intro { font-size: 10.5pt; color: #374151; background: #f9fafb; padding: 8pt 12pt; border-radius: 4pt; margin-bottom: 10pt; border-left: 3pt solid #0d3b66; }
-
-  /* ─── Info box (blockquote) ─────────── */
-  .info-box { page-break-inside: avoid; padding: 8pt 12pt; margin: 10pt 0; border-radius: 5pt; background: #f0f4fa; border-left: 4pt solid #0d3b66; font-size: 10pt; }
-  .info-box strong { color: #0d3b66; }
-
-  /* ─── Footer ────────────────────────── */
-  .doc-footer { margin-top: 24pt; padding-top: 10pt; border-top: 0.5pt solid #d1d5db; font-size: 9pt; color: #9ca3af; text-align: center; }
-</style>
-</head>
-<body>
-
-<!-- ═══════════════════════════════════════ COVER ═══════════════════════════════════════ -->
-<div class="cover">
-  <div class="cover-header">天文精緻便當</div>
-  <div class="cover-title">
-    <h1>天文 V2 POS<br>使用手冊</h1>
-    <div class="sub">Training Manual</div>
-    <div class="tagline">從首次設定到日常操作，本手冊將協助您快速上手天文 V2 POS 系統的所有功能 — 點餐下單、員工打卡、營收統計、雲端備份，一冊在手，輕鬆上手。</div>
-  </div>
-  <div class="cover-meta">
-    <span>版本 <strong>v2.10.0</strong></span>
-    <span>最後更新 <strong>2026-04-14</strong></span>
-    <span>適用裝置 <strong>iPad 10+ / iPad 11+</strong></span>
-  </div>
-</div>
-
-<!-- ═══════════════════════════════════════ TOC ═══════════════════════════════════════ -->
-<div class="toc">
-  <h1>目錄</h1>
-  <div class="toc-entry"><span class="toc-chapter">00 — 首次設定</span><span class="toc-desc">安裝 PWA、初次啟動、認識介面</span><span class="toc-audience">所有人</span></div>
-  <div class="toc-entry"><span class="toc-chapter">10 — 點餐操作</span><span class="toc-desc">選商品、加備註、折扣、送出訂單、編輯訂單</span><span class="toc-audience">所有人</span></div>
-  <div class="toc-entry"><span class="toc-chapter">20 — 打卡與出勤</span><span class="toc-desc">上下班打卡、休假申請、出勤記錄</span><span class="toc-audience">所有人</span></div>
-  <div class="toc-entry"><span class="toc-chapter">30 — 管理功能</span><span class="toc-desc">員工管理、商品管理、營收統計</span><span class="toc-audience">管理員</span></div>
-  <div class="toc-entry"><span class="toc-chapter">40 — 雲端備份</span><span class="toc-desc">備份排程、手動備份、還原、V1 匯入</span><span class="toc-audience">管理員</span></div>
-  <div class="toc-entry"><span class="toc-chapter">90 — 疑難排解</span><span class="toc-desc">錯誤畫面、載入過久、備份失敗等常見問題</span><span class="toc-audience">所有人</span></div>
-</div>
-
-<!-- ═══════════════════════════════════════ SECTION 00 ═══════════════════════════════════════ -->
-<h1 class="section">00 — 首次設定</h1>
-<p class="si-intro">本章節將帶您完成天文 V2 POS 的安裝與初次設定，認識應用程式的主要介面。</p>
-
-<h2>安裝 PWA 到 iPad 主畫面</h2>
-<p>天文 V2 是一個 PWA（Progressive Web App），可以像一般 App 一樣安裝在 iPad 主畫面上。</p>
-
-<div class="step-heading"><span class="step-num">1</span><h3>開啟 Safari 瀏覽器</h3></div>
-<p>在 iPad 上打開 Safari，輸入天文 V2 的網址。</p>
-
-<div class="step-heading"><span class="step-num">2</span><h3>點擊分享按鈕</h3></div>
-<p>點擊 Safari 底部工具列的「分享」圖示（方框加上箭頭的圖示）。</p>
-
-<div class="step-heading"><span class="step-num">3</span><h3>選擇「加入主畫面」</h3></div>
-<p>在彈出的選單中，向下滑動找到「加入主畫面」，點擊後確認名稱，再點「新增」。完成後，iPad 主畫面上會出現天文便當的圖示，以後直接點擊即可開啟。</p>
-<hr>
-
-<h2>第一次啟動</h2>
-
-<div class="step-heading"><span class="step-num">1</span><h3>等待系統初始化</h3></div>
-<p>第一次開啟應用程式時，系統會進行資料庫初始化。畫面上會出現初始化動畫，請耐心等待約 3-5 秒。</p>
-<div class="screenshot"><img src="screenshots/00/00-01.png" alt="初始化畫面"></div>
-<p>系統正在建立本機資料庫，這個過程只有第一次使用時會出現。</p>
-
-<div class="step-heading"><span class="step-num">2</span><h3>進入主畫面</h3></div>
-<p>初始化完成後，會自動進入點餐頁面。左側是商品列表區，右側是訂單面板。</p>
-<div class="screenshot"><img src="screenshots/00/00-02.png" alt="點餐主畫面"></div>
-<p>這就是您每天最常使用的點餐介面。</p>
-<hr>
-
-<h2>認識導覽列</h2>
-<p>畫面頂部的導覽列是切換各功能模組的入口。</p>
-<div class="screenshot"><img src="screenshots/00/00-03.png" alt="導覽列說明"></div>
-
-<table>
-  <thead><tr><th>分頁</th><th>功能</th><th>說明</th></tr></thead>
-  <tbody>
-    <tr><td>點餐</td><td>日常點餐下單</td><td>預設首頁，選商品送出訂單</td></tr>
-    <tr><td>打卡</td><td>員工上下班打卡</td><td>每天上班、下班時使用</td></tr>
-    <tr><td>訂單</td><td>查看歷史訂單</td><td>依日期瀏覽所有訂單</td></tr>
-    <tr><td>統計</td><td>營收與績效分析</td><td>查看銷售數據和圖表</td></tr>
-    <tr><td>設定</td><td>系統管理功能</td><td>員工管理、商品管理、備份等</td></tr>
-  </tbody>
-</table>
-<hr>
-
-<h2>右上角選單</h2>
-<p>點擊右上角的使用者圖示，可以看到更多選項。</p>
-<div class="screenshot"><img src="screenshots/00/00-04.png" alt="右上角選單"></div>
-<p>管理員可以在此處使用 Google 帳號登入，解鎖員工管理、商品管理、雲端備份等進階功能。</p>
-<hr>
-
-<h2>設定頁面</h2>
-<p>進入設定頁面後，可以看到五個分頁標籤。</p>
-<div class="screenshot"><img src="screenshots/00/00-05.png" alt="設定頁面"></div>
-
-<table>
-  <thead><tr><th>分頁</th><th>說明</th><th>需要權限</th></tr></thead>
-  <tbody>
-    <tr><td>系統資訊</td><td>查看應用版本、資料庫狀態</td><td>不需要</td></tr>
-    <tr><td>打卡記錄</td><td>查看出勤歷史</td><td>不需要</td></tr>
-    <tr><td>員工管理</td><td>新增、編輯、停用員工</td><td>需管理員登入</td></tr>
-    <tr><td>商品管理</td><td>編輯商品價格、上下架</td><td>需管理員登入</td></tr>
-    <tr><td>雲端備份</td><td>備份還原、排程設定</td><td>需管理員登入</td></tr>
-  </tbody>
-</table>
-<p>標示鎖頭圖示的分頁需要管理員權限才能操作。</p>
-<hr>
-
-<h2>打卡頁面概覽</h2>
-<p>切換到「打卡」分頁，可以看到所有員工的卡片。</p>
-<div class="screenshot"><img src="screenshots/00/00-06.png" alt="打卡頁面"></div>
-<p>每張卡片顯示員工的名字和目前出勤狀態。預設的員工名單包含：Eric、妞妞、阿吉、豬、阿草、草嵋、小映、秋敏。</p>
-
-<div class="callout callout-tip">
-  <div class="ct">💡 小提醒</div>
-  <ul>
-    <li>安裝到主畫面後，開啟速度會比從 Safari 打開更快</li>
-    <li>第一次初始化後，之後開啟都不會再出現等待畫面（除非重新安裝）</li>
-    <li>應用程式只支援直式（直向）模式，如果把 iPad 轉成橫的會出現提醒</li>
-    <li>如果開啟後畫面一片空白，請檢查網路連線後重新整理</li>
-  </ul>
-</div>
-
-<div class="callout callout-warning">
-  <div class="ct">⚠️ 常見問題</div>
-  <p class="qq">Q：安裝後在主畫面找不到圖示？</p>
-  <p class="qa">A：請確認在 Safari 的分享選單中選擇的是「加入主畫面」而非「加入書籤」。</p>
-  <p class="qq">Q：初始化畫面停留超過 30 秒？</p>
-  <p class="qa">A：請關閉應用程式後重新開啟。如果問題持續，請參考疑難排解章節。</p>
-  <p class="qq">Q：畫面顯示「請將裝置轉為直向」？</p>
-  <p class="qa">A：請將 iPad 轉為直式（Home 鍵在下方）使用，本應用不支援橫向操作。</p>
-</div>
-
-
-<!-- ═══════════════════════════════════════ SECTION 10 ═══════════════════════════════════════ -->
-<h1 class="section">10 — 點餐操作</h1>
-<p class="si-intro">本章節說明從選擇商品到送出訂單的完整流程，以及如何修改已送出的訂單。</p>
-
-<h2>瀏覽商品與分類</h2>
-
-<div class="step-heading"><span class="step-num">1</span><h3>認識點餐頁面</h3></div>
-<p>點餐頁面分為左右兩個區域：左側（約 65%）是商品列表，右側（約 35%）是訂單面板。</p>
-<div class="screenshot"><img src="screenshots/10/10-01.png" alt="點餐頁面主畫面"></div>
-<p>商品列表上方有分類標籤，可以快速切換不同類別的商品。</p>
-
-<div class="step-heading"><span class="step-num">2</span><h3>切換商品分類</h3></div>
-<p><strong>點擊</strong>上方的分類標籤，切換顯示不同類別的商品。</p>
-<div class="screenshot"><img src="screenshots/10/10-02.png" alt="分類標籤切換"></div>
-
-<table>
-  <thead><tr><th>分類</th><th>說明</th><th>標示顏色</th></tr></thead>
-  <tbody>
-    <tr><td>攤位</td><td>攤位現做品項</td><td>深藍色</td></tr>
-    <tr><td>餐盒</td><td>各式便當餐盒</td><td>綠色</td></tr>
-    <tr><td>單點</td><td>單點小菜配料</td><td>金棕色</td></tr>
-    <tr><td>飲料</td><td>各式冷熱飲品</td><td>藍色</td></tr>
-    <tr><td>水餃</td><td>各種水餃品項</td><td>紫色</td></tr>
-  </tbody>
-</table>
-<hr>
-
-<h2>加入品項到訂單</h2>
-
-<div class="step-heading"><span class="step-num">3</span><h3>選擇商品</h3></div>
-<p><strong>點擊</strong>左側商品列表中想要加入的品項卡片。</p>
-<div class="screenshot"><img src="screenshots/10/10-03.png" alt="選擇商品"></div>
-<p>品項會自動以數量 1 加入右側的訂單面板。</p>
-
-<div class="step-heading"><span class="step-num">4</span><h3>調整數量</h3></div>
-<p>如果需要多份，可以在訂單面板中使用 +/- 按鈕調整數量。</p>
-<div class="screenshot"><img src="screenshots/10/10-04.png" alt="調整數量"></div>
-<p>將數量減為 0 即可移除該品項。</p>
-<hr>
-
-<h2>多品項購物車</h2>
-
-<div class="step-heading"><span class="step-num">5</span><h3>檢視購物車</h3></div>
-<p>持續點選商品，所有品項會依序列在訂單面板中，並即時計算小計與總金額。</p>
-<div class="screenshot"><img src="screenshots/10/10-05.png" alt="多品項購物車"></div>
-<p>訂單面板會顯示每個品項的名稱、數量和金額，底部顯示總計。</p>
-<hr>
-
-<h2>品項備註</h2>
-
-<div class="step-heading"><span class="step-num">6</span><h3>為品項加上備註</h3></div>
-<p>如果客人有特殊要求，可以為品項加上備註標籤。</p>
-<div class="screenshot"><img src="screenshots/10/10-06.png" alt="品項備註"></div>
-<p>可以選擇預設的備註標籤，或手動輸入自訂備註。含有「攤位」分類品項的訂單會自動加上「攤位」備註標記。</p>
-<hr>
-
-<h2>使用計算機（自訂品項或折扣）</h2>
-
-<div class="step-heading"><span class="step-num">7</span><h3>開啟計算機</h3></div>
-<p>需要輸入自訂金額時，可以使用計算機功能。</p>
-<div class="screenshot"><img src="screenshots/10/10-07.png" alt="計算機輸入"></div>
-<p>在計算機介面中輸入品項名稱和金額。</p>
-
-<div class="step-heading"><span class="step-num">8</span><h3>確認自訂品項</h3></div>
-<p>確認輸入的品項和金額無誤後，加入訂單。</p>
-<div class="screenshot"><img src="screenshots/10/10-08.png" alt="計算機確認"></div>
-<p>自訂品項會和其他商品一起顯示在訂單面板中。</p>
-<hr>
-
-<h2>折扣處理</h2>
-
-<div class="step-heading"><span class="step-num">9</span><h3>套用折扣</h3></div>
-<p>在訂單面板的折扣區域，可以選擇或輸入折扣。</p>
-<div class="screenshot"><img src="screenshots/10/10-09.png" alt="折扣顯示"></div>
-<p>折扣金額會從總金額中扣除，畫面上會清楚顯示原價、折扣金額和折後總價。</p>
-<hr>
-
-<h2>送出訂單</h2>
-
-<div class="step-heading"><span class="step-num">10</span><h3>檢視訂單總金額</h3></div>
-<p>確認所有品項和折扣都正確後，檢查畫面底部的總金額。</p>
-<div class="screenshot"><img src="screenshots/10/10-10.png" alt="訂單總金額"></div>
-<p>確認無誤後，點擊「送出訂單」按鈕。</p>
-
-<div class="step-heading"><span class="step-num">11</span><h3>送出訂單</h3></div>
-<p>系統預設使用<strong>快速模式</strong>，點擊「送出訂單」後會直接送出，不會跳出確認視窗。</p>
-<div class="screenshot"><img src="screenshots/10/10-11.png" alt="訂單送出成功"></div>
-
-<div class="info-box">
-  <p><strong>快速模式 vs 標準模式</strong></p>
-  <table>
-    <thead><tr><th>模式</th><th>行為</th><th>適合</th></tr></thead>
-    <tbody>
-      <tr><td>快速模式（預設）</td><td>點擊送出後直接完成，不跳確認視窗</td><td>熟練的操作人員，加快出單速度</td></tr>
-      <tr><td>標準模式</td><td>點擊送出後先顯示訂單摘要確認視窗，再點確認才送出</td><td>新手操作人員，避免送錯單</td></tr>
-    </tbody>
-  </table>
-  <p>模式切換可在右側訂單面板的設定中調整。</p>
-</div>
-<hr>
-
-<h2>近期訂單</h2>
-
-<div class="step-heading"><span class="step-num">12</span><h3>查看近期訂單</h3></div>
-<p>訂單送出成功後，可以在右側面板切換到「近期訂單」分頁，查看剛剛送出的訂單。</p>
-<div class="screenshot"><img src="screenshots/10/10-12.png" alt="近期訂單"></div>
-<p>近期訂單列表會顯示今天所有已送出的訂單，包含訂單編號、品項摘要和金額。</p>
-<hr>
-
-<h2>編輯已送出訂單</h2>
-
-<div class="step-heading"><span class="step-num">13</span><h3>修改訂單</h3></div>
-<p>如果發現訂單有誤，在近期訂單列表中可以編輯訂單。</p>
-<div class="screenshot"><img src="screenshots/10/10-13.png" alt="編輯訂單"></div>
-<p>在訂單項目上向左滑動，會出現編輯和刪除的操作按鈕。點擊「編輯」即可修改品項數量或刪除品項。</p>
-<hr>
-
-<h2>送餐完成</h2>
-
-<div class="step-heading"><span class="step-num">14</span><h3>標記已送餐</h3></div>
-<p>當餐點已送達客人手中，可以將訂單標記為「已送餐」。</p>
-<div class="screenshot"><img src="screenshots/10/10-14.png" alt="送餐完成"></div>
-<p>標記後訂單會顯示已送餐的狀態標記，方便追蹤出餐進度。</p>
-<hr>
-
-<h2>如果做錯了</h2>
-<table>
-  <thead><tr><th>狀況</th><th>處理方式</th></tr></thead>
-  <tbody>
-    <tr><td>送錯訂單</td><td>在近期訂單中找到該筆訂單，左滑點「編輯」進行修改</td></tr>
-    <tr><td>加錯品項</td><td>在購物車中將該品項數量減為 0，或直接刪除</td></tr>
-    <tr><td>數量不對</td><td>在購物車中用 +/- 按鈕調整正確數量</td></tr>
-    <tr><td>價格不對</td><td>已送出的訂單價格無法更改（快照定價機制）。如需修改商品價格，請管理員到「商品管理」調整，但修改後只影響新的訂單</td></tr>
-    <tr><td>忘了打折</td><td>編輯已送出的訂單，重新加入折扣</td></tr>
-  </tbody>
-</table>
-
-<div class="callout callout-tip">
-  <div class="ct">💡 小提醒</div>
-  <ul>
-    <li>點選商品後會立即加入購物車，不需要額外確認</li>
-    <li>「攤位」分類的商品加入訂單時，系統會自動在備註加上「攤位」標記</li>
-    <li>每筆訂單的價格在送出時就已固定，之後修改商品售價不會影響已送出的訂單</li>
-    <li>訂單編號是按照當天送出的順序自動編號（1、2、3...）</li>
-  </ul>
-</div>
-
-<div class="callout callout-warning">
-  <div class="ct">⚠️ 常見問題</div>
-  <p class="qq">Q：商品列表是空的？</p>
-  <p class="qa">A：請確認是否選擇了正確的分類標籤。如果所有分類都沒有商品，請聯繫管理員確認商品是否已上架。</p>
-  <p class="qq">Q：送出訂單後想取消？</p>
-  <p class="qa">A：目前沒有取消訂單的功能，但可以透過「編輯」移除所有品項。</p>
-  <p class="qq">Q：折扣按鈕在哪裡？</p>
-  <p class="qa">A：折扣區域在訂單面板的小計金額下方。向下滑動即可看到。</p>
-</div>
-
-
-<!-- ═══════════════════════════════════════ SECTION 20 ═══════════════════════════════════════ -->
-<h1 class="section">20 — 打卡與出勤</h1>
-<p class="si-intro">本章節說明員工如何使用打卡功能記錄上下班時間，以及如何申請休假和查看出勤記錄。</p>
-
-<h2>進入打卡頁面</h2>
-
-<div class="step-heading"><span class="step-num">1</span><h3>切換到打卡分頁</h3></div>
-<p><strong>點擊</strong>導覽列上的「打卡」分頁，進入打卡頁面。</p>
-<div class="screenshot"><img src="screenshots/20/20-01.png" alt="打卡頁面"></div>
-<p>頁面上會顯示所有員工的卡片，每張卡片上有員工的名字和目前的出勤狀態。</p>
-<hr>
-
-<h2>打卡上班</h2>
-
-<div class="step-heading"><span class="step-num">2</span><h3>點擊自己的名字</h3></div>
-<p>找到自己的員工卡片，<strong>點擊</strong>該卡片。</p>
-<div class="screenshot"><img src="screenshots/20/20-02.png" alt="打卡確認視窗"></div>
-<p>系統會跳出確認視窗，顯示您的名字和目前時間，並提供「打卡上班」、「休假」和「取消」三個按鈕。</p>
-
-<div class="step-heading"><span class="step-num">3</span><h3>確認打卡</h3></div>
-<p><strong>點擊</strong>「打卡上班」按鈕完成打卡。</p>
-<div class="screenshot"><img src="screenshots/20/20-03.png" alt="打卡上班確認"></div>
-<p>系統會記錄您的上班時間。</p>
-
-<div class="step-heading"><span class="step-num">4</span><h3>確認打卡成功</h3></div>
-<p>打卡成功後，您的員工卡片狀態會更新為「正在上班」，並顯示打卡時間。</p>
-<div class="screenshot"><img src="screenshots/20/20-04.png" alt="已打卡狀態"></div>
-<p>卡片上的狀態指示會從「未打卡」變成「正在上班」，方便所有人確認。</p>
-<hr>
-
-<h2>打卡下班</h2>
-
-<div class="step-heading"><span class="step-num">5</span><h3>下班打卡</h3></div>
-<p>下班時，再次<strong>點擊</strong>自己的員工卡片。</p>
-<div class="screenshot"><img src="screenshots/20/20-05.png" alt="打卡下班"></div>
-<p>確認視窗會顯示「打卡下班」按鈕和已上班的時數。<strong>點擊</strong>「打卡下班」完成下班打卡。系統會自動計算您今天的工作時數。</p>
-<hr>
-
-<h2>申請休假</h2>
-
-<div class="step-heading"><span class="step-num">6</span><h3>申請休假</h3></div>
-<p>如果今天要休假，在打卡確認視窗中<strong>點擊</strong>「休假」按鈕。</p>
-<div class="screenshot"><img src="screenshots/20/20-06.png" alt="申請休假"></div>
-<p>系統會記錄當天為休假狀態。如果需要取消休假，再次點擊自己的卡片，選擇「取消休假」即可。</p>
-<hr>
-
-<h2>查看打卡記錄</h2>
-
-<div class="step-heading"><span class="step-num">7</span><h3>進入打卡記錄</h3></div>
-<p>在「設定」分頁中，切換到「打卡記錄」標籤頁，可以查看所有員工的出勤記錄。</p>
-<div class="screenshot"><img src="screenshots/20/20-07.png" alt="打卡記錄"></div>
-<p>頁面會按日期列出打卡記錄，包含上班時間、下班時間和工時。可以使用日期導航按鈕切換不同日期或週期。</p>
-
-<div class="step-heading"><span class="step-num">8</span><h3>查看個別員工記錄</h3></div>
-<p><strong>點擊</strong>特定日期的記錄，可以展開查看該員工的詳細出勤資訊。</p>
-<div class="screenshot"><img src="screenshots/20/20-08.png" alt="個別員工記錄"></div>
-<p>詳細資訊包含：員工姓名、班別、打卡上班時間、打卡下班時間、總工時。</p>
-
-<div class="callout callout-tip">
-  <div class="ct">💡 小提醒</div>
-  <ul>
-    <li>打卡時間是以台灣時區（UTC+8）記錄的</li>
-    <li>每天只需打卡一次上班、一次下班</li>
-    <li>打卡記錄會永久保存，不會因為備份還原而遺失</li>
-    <li>如果需要查看某段期間的出勤統計，可以到「統計」頁面的員工績效分頁</li>
-  </ul>
-</div>
-
-<div class="callout callout-warning">
-  <div class="ct">⚠️ 常見問題</div>
-  <p class="qq">Q：忘記打卡上班怎麼辦？</p>
-  <p class="qa">A：請告知管理員。目前系統沒有補卡功能，但管理員可以在記錄中做備註說明。建議養成到店就打卡的習慣。</p>
-  <p class="qq">Q：打卡後發現打錯人了？</p>
-  <p class="qa">A：打卡記錄目前無法刪除或修改，請告知管理員做記錄。</p>
-  <p class="qq">Q：休假申請送出後可以取消嗎？</p>
-  <p class="qa">A：可以，再次點擊自己的卡片，選擇「取消休假」即可。</p>
-  <p class="qq">Q：「缺勤」狀態是什麼意思？</p>
-  <p class="qa">A：如果當天既沒有打卡也沒有申請休假，系統會自動記錄為「缺勤」狀態。</p>
-  <p class="qq">Q：打卡記錄在哪裡看？</p>
-  <p class="qa">A：進入「設定」→「打卡記錄」分頁即可查看。</p>
-</div>
-
-
-<!-- ═══════════════════════════════════════ SECTION 30 ═══════════════════════════════════════ -->
-<h1 class="section">30 — 管理功能</h1>
-<p class="si-intro">本章節說明需要管理員權限的進階功能，包含員工管理、商品管理和營收統計。</p>
-
-<div class="callout callout-warning">
-  <div class="ct">⚠️ 注意</div>
-  <p>本章節的所有操作都需要先使用 Google 帳號登入。</p>
-</div>
-
-<h2>管理員登入</h2>
-<p>要使用員工管理、商品管理或雲端備份功能，需要先以管理員身份登入。</p>
-<p><strong>點擊</strong>導覽列右上角的使用者圖示，選擇「使用 Google 帳號登入」。登入成功後，受保護的分頁上的鎖頭圖示會消失，代表已經可以操作。</p>
-<hr>
-
-<h2>系統資訊</h2>
-
-<div class="step-heading"><span class="step-num">1</span><h3>查看系統資訊</h3></div>
-<p>進入「設定」分頁，預設顯示的就是「系統資訊」頁面。</p>
-<div class="screenshot"><img src="screenshots/30/30-01.png" alt="系統資訊頁面"></div>
-
-<table>
-  <thead><tr><th>項目</th><th>說明</th></tr></thead>
-  <tbody>
-    <tr><td>應用程式版本</td><td>目前安裝的版本號碼</td></tr>
-    <tr><td>資料庫大小</td><td>本機 SQLite 資料庫的檔案大小</td></tr>
-    <tr><td>最後備份時間</td><td>上次成功備份的時間</td></tr>
-    <tr><td>裝置代號</td><td>此台 iPad 的識別名稱</td></tr>
-  </tbody>
-</table>
-<hr>
-
-<h2>員工管理</h2>
-
-<div class="step-heading"><span class="step-num">2</span><h3>查看員工列表</h3></div>
-<p><strong>點擊</strong>「員工管理」分頁標籤，進入員工管理頁面。</p>
-<div class="screenshot"><img src="screenshots/30/30-02.png" alt="員工列表"></div>
-<p>頁面顯示所有員工的清單，每位員工會顯示頭像、姓名、員工編號、班別和目前狀態（上班/離職）。</p>
-
-<div class="step-heading"><span class="step-num">3</span><h3>新增員工</h3></div>
-<p><strong>點擊</strong>頁面上方的「新增員工」按鈕。</p>
-<div class="screenshot"><img src="screenshots/30/30-03.png" alt="新增員工"></div>
-<p>填寫表單中的必要資訊：</p>
-<ul>
-  <li>員工姓名</li>
-  <li>虛擬角色（選擇動物頭像）</li>
-  <li>班別（常日班或排班）</li>
-  <li>入職日期</li>
-  <li>是否為管理員</li>
-</ul>
-<p>填寫完成後<strong>點擊</strong>「儲存」。</p>
-
-<div class="step-heading"><span class="step-num">4</span><h3>編輯員工資料</h3></div>
-<p>在員工列表中，<strong>點擊</strong>要修改的員工旁邊的編輯圖示。</p>
-<div class="screenshot"><img src="screenshots/30/30-04.png" alt="編輯員工"></div>
-<p>表單會自動帶入該員工的現有資料，修改需要的欄位後<strong>點擊</strong>「儲存」。</p>
-
-<div class="step-heading"><span class="step-num">5</span><h3>停用員工</h3></div>
-<p>如果員工離職，可以將帳號設為「離職」狀態。</p>
-<div class="screenshot"><img src="screenshots/30/30-05.png" alt="停用員工"></div>
-<p>系統使用軟刪除機制，停用後該員工不會出現在打卡頁面，但歷史記錄會保留。如有需要可以重新啟用。</p>
-
-<div class="step-heading"><span class="step-num">6</span><h3>連結 Google 帳號</h3></div>
-<p>如果需要讓員工以管理員身份登入，<strong>點擊</strong>員工資料中的「連結 Google 帳號」按鈕。</p>
-<div class="screenshot"><img src="screenshots/30/30-06.png" alt="連結 Google"></div>
-<p>連結後，該員工可以使用自己的 Google 帳號登入管理功能。</p>
-<hr>
-
-<h2>商品管理</h2>
-
-<div class="step-heading"><span class="step-num">7</span><h3>查看商品列表</h3></div>
-<p><strong>點擊</strong>「商品管理」分頁標籤。</p>
-<div class="screenshot"><img src="screenshots/30/30-07.png" alt="商品列表"></div>
-<p>商品按照分類（攤位、餐盒、單點、飲料、水餃）分組顯示。每個商品卡片上有名稱、售價和操作按鈕。</p>
-
-<div class="step-heading"><span class="step-num">8</span><h3>編輯商品</h3></div>
-<p><strong>點擊</strong>商品卡片上的編輯圖示，開啟編輯表單。</p>
-<div class="screenshot"><img src="screenshots/30/30-08.png" alt="編輯商品"></div>
-<p>可以修改商品的名稱和售價。修改完成後<strong>點擊</strong>「儲存」。</p>
-
-<div class="step-heading"><span class="step-num">9</span><h3>價格變更記錄</h3></div>
-<p>每次修改商品價格，系統都會自動留下記錄。</p>
-<div class="screenshot"><img src="screenshots/30/30-09.png" alt="改價說明"></div>
-<p>價格變更記錄包含：商品名稱、修改前價格、修改後價格、修改者和修改時間。</p>
-
-<div class="callout callout-warning">
-  <div class="ct">⚠️ 重要</div>
-  <p>修改商品價格只會影響之後的新訂單。已經送出的訂單金額不會改變，因為系統使用「快照定價」機制 — 訂單送出時的價格就會被鎖定。</p>
-</div>
-<hr>
-
-<h2>營收統計</h2>
-
-<div class="step-heading"><span class="step-num">10</span><h3>查看統計總覽</h3></div>
-<p><strong>點擊</strong>導覽列的「統計」分頁，進入營收統計頁面。</p>
-<div class="screenshot"><img src="screenshots/30/30-10.png" alt="Dashboard 總覽"></div>
-<p>統計頁面上方顯示關鍵指標（KPI），包含總營收、日平均營收、上午營收和下午營收。</p>
-
-<div class="step-heading"><span class="step-num">11</span><h3>選擇日期範圍</h3></div>
-<p>使用日期範圍選擇器，可以查看特定期間的統計資料。</p>
-<div class="screenshot"><img src="screenshots/30/30-11.png" alt="日期範圍"></div>
-<p>可以選擇「今天」、「本週」、「本月」或自訂日期範圍。</p>
-
-<div class="step-heading"><span class="step-num">12</span><h3>圖表分析</h3></div>
-<p>頁面下方提供多種圖表，協助您了解銷售趨勢。</p>
-<div class="screenshot"><img src="screenshots/30/30-12.png" alt="圖表說明"></div>
-
-<table>
-  <thead><tr><th>圖表</th><th>內容</th></tr></thead>
-  <tbody>
-    <tr><td>營收趨勢</td><td>按日期顯示每天的營收變化</td></tr>
-    <tr><td>商品銷售排名</td><td>顯示銷售數量前幾名的商品</td></tr>
-    <tr><td>分類銷售分布</td><td>各分類的營收佔比</td></tr>
-    <tr><td>員工績效</td><td>每位員工的訂單數和接單金額</td></tr>
-  </tbody>
-</table>
-
-<div class="callout callout-tip">
-  <div class="ct">💡 小提醒</div>
-  <ul>
-    <li>管理員登入狀態會保持一段時間，不需要每次都重新登入</li>
-    <li>員工停用後可以隨時重新啟用，不需要重新建立</li>
-    <li>商品改價前，建議先確認是否有未完成的訂單</li>
-    <li>統計頁面的數據是即時計算的，新送出的訂單馬上就會反映在統計中</li>
-    <li>時段營收（上午/下午）的分界點是中午 12 點</li>
-  </ul>
-</div>
-
-<div class="callout callout-warning">
-  <div class="ct">⚠️ 常見問題</div>
-  <p class="qq">Q：忘記管理員密碼？</p>
-  <p class="qa">A：管理員使用 Google 帳號登入，不需要記密碼。如果 Google 帳號有問題，請洽 Google 帳號支援。</p>
-  <p class="qq">Q：可以刪除商品嗎？</p>
-  <p class="qa">A：商品無法直接刪除，以確保歷史訂單中的資料完整保留。如需調整商品，請修改商品名稱或售價。</p>
-  <p class="qq">Q：統計數據和實際金額不一致？</p>
-  <p class="qa">A：請確認日期範圍是否正確，以及是否有編輯過訂單。如果問題持續，請嘗試重新整理頁面。</p>
-  <p class="qq">Q：商品改價後舊訂單也跟著變了？</p>
-  <p class="qa">A：不會。天文 V2 使用快照定價機制，每筆訂單在送出時就鎖定了當時的價格，之後的價格修改不會影響已送出的訂單。</p>
-</div>
-
-
-<!-- ═══════════════════════════════════════ SECTION 40 ═══════════════════════════════════════ -->
-<h1 class="section">40 — 雲端備份</h1>
-<p class="si-intro">本章節說明如何使用雲端備份功能保護您的資料，包含自動備份排程、手動備份、還原和 V1 資料匯入。</p>
-
-<div class="callout callout-warning">
-  <div class="ct">⚠️ 注意</div>
-  <p>本章節的所有操作都需要先使用 Google 帳號登入管理員身份。</p>
-</div>
-
-<h2>雲端備份概覽</h2>
-
-<div class="step-heading"><span class="step-num">1</span><h3>進入雲端備份頁面</h3></div>
-<p>進入「設定」→「雲端備份」分頁，查看目前的備份狀態。</p>
-<div class="screenshot"><img src="screenshots/40/40-01.png" alt="雲端備份概覽"></div>
-
-<table>
-  <thead><tr><th>項目</th><th>說明</th></tr></thead>
-  <tbody>
-    <tr><td>最後備份時間</td><td>上次成功備份的日期和時間</td></tr>
-    <tr><td>雲端資料大小</td><td>備份檔案在雲端佔用的空間</td></tr>
-    <tr><td>備份狀態</td><td>上次備份是否成功</td></tr>
-    <tr><td>下次自動備份</td><td>預計的下一次自動備份時間</td></tr>
-  </tbody>
-</table>
-<hr>
-
-<h2>備份排程設定</h2>
-
-<div class="step-heading"><span class="step-num">2</span><h3>設定自動備份</h3></div>
-<p>在備份設定區域，可以選擇自動備份的頻率。</p>
-<div class="screenshot"><img src="screenshots/40/40-02.png" alt="備份排程設定"></div>
-
-<table>
-  <thead><tr><th>選項</th><th>說明</th></tr></thead>
-  <tbody>
-    <tr><td>不備份</td><td>關閉自動備份（不建議）</td></tr>
-    <tr><td>每日備份</td><td>每天凌晨自動備份一次</td></tr>
-    <tr><td>每週備份</td><td>每週一自動備份一次</td></tr>
-  </tbody>
-</table>
-<p>建議選擇「每日備份」，確保資料安全。自動備份會在每天凌晨（台灣時間）自動執行，不需要手動操作。</p>
-<hr>
-
-<h2>手動備份</h2>
-
-<div class="step-heading"><span class="step-num">3</span><h3>執行手動備份</h3></div>
-<p>如果需要立即備份，<strong>點擊</strong>「立即備份」按鈕。</p>
-<div class="screenshot"><img src="screenshots/40/40-03.png" alt="手動備份按鈕"></div>
-
-<div class="step-heading"><span class="step-num">4</span><h3>等待備份完成</h3></div>
-<p>點擊後系統會開始壓縮並上傳資料庫。</p>
-<div class="screenshot"><img src="screenshots/40/40-04.png" alt="備份進行中"></div>
-<p>備份過程通常需要 10-30 秒，取決於資料量大小。完成後會顯示成功訊息，備份狀態也會更新。</p>
-<hr>
-
-<h2>備份歷史</h2>
-
-<div class="step-heading"><span class="step-num">5</span><h3>查看備份記錄</h3></div>
-<p>向下滑動可以看到過去的備份歷史記錄。</p>
-<div class="screenshot"><img src="screenshots/40/40-05.png" alt="備份歷史"></div>
-<p>每筆記錄顯示：備份時間、備份類型（手動/自動）、狀態（成功/失敗）和檔案大小。系統最多保留 30 筆備份記錄。</p>
-<hr>
-
-<h2>從雲端還原</h2>
-
-<div class="step-heading"><span class="step-num">6</span><h3>選擇要還原的備份檔案</h3></div>
-<p>如果需要還原資料，<strong>點擊</strong>「從雲端復原」按鈕，選擇想要還原的備份版本。</p>
-<div class="screenshot"><img src="screenshots/40/40-06.png" alt="選擇還原檔案"></div>
-<p>系統會列出雲端上的所有備份檔案，按時間排序。選擇一個備份版本後，<strong>點擊</strong>「復原」。</p>
-
-<div class="step-heading"><span class="step-num">7</span><h3>等待還原完成</h3></div>
-<p>系統會下載並解壓縮備份檔案，然後取代目前的本機資料庫。</p>
-<div class="screenshot"><img src="screenshots/40/40-07.png" alt="還原進行中"></div>
-<p>還原過程中請不要關閉應用程式或切換頁面。完成後系統會自動重新載入。</p>
-
-<div class="callout callout-warning">
-  <div class="ct">⚠️ 注意</div>
-  <p>還原操作會覆蓋目前本機的所有資料，請確認這是您想要的操作。</p>
-</div>
-<hr>
-
-<h2>本機資料庫資訊</h2>
-
-<div class="step-heading"><span class="step-num">8</span><h3>查看本機資料庫</h3></div>
-<p>在雲端備份頁面中，可以查看本機資料庫的詳細資訊。</p>
-<div class="screenshot"><img src="screenshots/40/40-08.png" alt="本機資料庫資訊"></div>
-<p>顯示內容包含本機資料庫的大小（原始和壓縮後），以及上一版本資料庫的資訊。</p>
-
-<div class="step-heading"><span class="step-num">9</span><h3>展開資料表清單</h3></div>
-<p><strong>點擊</strong>「查看全部」可以展開完整的資料表列表，查看每個表格的資料筆數。</p>
-<div class="screenshot"><img src="screenshots/40/40-09.png" alt="資料表清單"></div>
-<p>這可以幫助您了解目前系統中有多少訂單、員工、商品等資料。</p>
-<hr>
-
-<h2>上一版本資料庫</h2>
-
-<div class="step-heading"><span class="step-num">10</span><h3>刪除上一版本</h3></div>
-<p>系統會保留上一次備份還原前的資料庫副本。如果確認不需要，可以刪除以釋放空間。</p>
-<div class="screenshot"><img src="screenshots/40/40-10.png" alt="刪除上一版本"></div>
-<p><strong>點擊</strong>刪除按鈕後，系統會顯示確認提示。確認後即會永久刪除。</p>
-
-<div class="step-heading"><span class="step-num">11</span><h3>還原上一版本</h3></div>
-<p>如果發現還原後的資料不正確，可以回復到上一版本。</p>
-<div class="screenshot"><img src="screenshots/40/40-11.png" alt="還原上一版本"></div>
-<p><strong>點擊</strong>「還原上一版本」按鈕，系統會將資料庫回復到還原操作之前的狀態。</p>
-<hr>
-
-<h2>V1 資料匯入</h2>
-
-<div class="step-heading"><span class="step-num">12</span><h3>匯入舊版資料</h3></div>
-<p>如果之前使用的是天文 V1，可以匯入舊版的訂單、商品和員工資料。</p>
-<div class="screenshot"><img src="screenshots/40/40-12.png" alt="V1 匯入"></div>
-<p><strong>點擊</strong>「匯入 V1 資料」按鈕，選擇 V1 資料庫檔案後開始匯入。匯入過程會顯示進度，完成後會列出匯入的資料筆數。</p>
-<p>匯入採用防重複機制，相同的資料不會被重複匯入。</p>
-
-<div class="callout callout-tip">
-  <div class="ct">💡 小提醒</div>
-  <ul>
-    <li>建議每天至少備份一次，選擇「每日備份」排程是最安全的設定</li>
-    <li>備份檔案儲存在 Cloudflare R2 雲端空間，即使 iPad 損壞也能從其他裝置還原</li>
-    <li>備份檔案名稱格式為：<code>tianwen-{裝置代號}-{日期時間}.sqlite.gz</code></li>
-    <li>自動備份在每天凌晨（台灣時間）執行，不會影響營業時間的使用</li>
-    <li>V1 匯入只需要執行一次，重複匯入不會產生重複資料</li>
-  </ul>
-</div>
-
-<div class="callout callout-warning">
-  <div class="ct">⚠️ 常見問題</div>
-  <p class="qq">Q：備份失敗怎麼辦？</p>
-  <p class="qa">A：請先檢查 iPad 的網路連線是否正常。確認網路沒問題後，重新嘗試手動備份。如果持續失敗，請參考疑難排解章節。</p>
-  <p class="qq">Q：還原後資料正確嗎？</p>
-  <p class="qa">A：還原會完整復原所選備份時間點的所有資料，包含訂單、員工、商品和設定。還原後建議檢查幾筆訂單和員工資料確認無誤。</p>
-  <p class="qq">Q：自動備份是什麼時候執行的？</p>
-  <p class="qa">A：自動備份在每天凌晨（台灣時間 UTC+8）執行。另外，每次開啟應用程式時，系統也會檢查是否需要備份，如果已逾期則會自動補備份。</p>
-  <p class="qq">Q：可以在不同 iPad 之間同步資料嗎？</p>
-  <p class="qa">A：可以。在一台 iPad 上備份後，在另一台上使用「從雲端復原」選擇該備份檔案即可。但請注意，這會覆蓋目標 iPad 上的現有資料。</p>
-  <p class="qq">Q：備份空間有限制嗎？</p>
-  <p class="qa">A：系統最多保留 30 筆備份記錄。超過時會自動刪除最舊的備份。</p>
-</div>
-
-
-<!-- ═══════════════════════════════════════ SECTION 90 ═══════════════════════════════════════ -->
-<h1 class="section">90 — 疑難排解</h1>
-<p class="si-intro">本章節列出使用過程中可能遇到的問題和解決方法。如果遇到下列畫面，請依照對應的處理步驟操作。</p>
-
-<h2>錯誤畫面（系統錯誤）</h2>
-<h3>畫面說明</h3>
-<p>如果看到帶有動畫效果的錯誤畫面（Event Horizon 動畫），代表系統發生了非預期的錯誤。</p>
-<div class="screenshot"><img src="screenshots/90/90-01.png" alt="錯誤畫面"></div>
-
-<div class="tc">
-  <h3>處理步驟</h3>
-  <ol>
-    <li><strong>不要緊張</strong>，您的資料都安全保存在本機資料庫中</li>
-    <li><strong>點擊</strong>畫面上的「重新載入」或「回首頁」按鈕</li>
-    <li>如果按鈕沒有反應，請直接<strong>關閉應用程式</strong>後重新開啟</li>
-    <li>如果問題持續發生，請記錄畫面上顯示的錯誤訊息，並通知管理員</li>
-  </ol>
-</div>
-<hr>
-
-<h2>找不到頁面（404）</h2>
-<h3>畫面說明</h3>
-<p>如果看到「找不到頁面」的提示，代表您嘗試訪問的網址不存在。</p>
-<div class="screenshot"><img src="screenshots/90/90-02.png" alt="404 頁面"></div>
-
-<div class="tc">
-  <h3>處理步驟</h3>
-  <ol>
-    <li><strong>點擊</strong>「回首頁」按鈕，返回點餐主頁面</li>
-    <li>如果是從書籤或連結進入的，請確認網址是否正確</li>
-    <li>通常這是因為手動輸入了錯誤的網址，從導覽列選擇正確的頁面即可</li>
-  </ol>
-</div>
-<hr>
-
-<h2>載入畫面停留過久</h2>
-<h3>畫面說明</h3>
-<p>開啟應用程式時，初始化畫面通常只會顯示 3-5 秒。如果超過 30 秒仍停留在載入畫面，可能是系統初始化遇到問題。</p>
-<div class="screenshot"><img src="screenshots/90/90-03.png" alt="載入畫面"></div>
-
-<div class="tc">
-  <h3>處理步驟</h3>
-  <ol>
-    <li><strong>等待至少 30 秒</strong>，有時候第一次啟動或資料較多時會需要較長時間</li>
-    <li>如果超過 30 秒，<strong>關閉應用程式</strong>後重新開啟</li>
-    <li>如果重新開啟後仍然卡住：
+  <head>
+    <meta charset="utf-8" />
+    <title>天文 V2 POS 使用手冊</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html,
+      body {
+        font-family:
+          'Noto Sans TC',
+          'Inter',
+          -apple-system,
+          sans-serif;
+        color: #1f2937;
+        line-height: 1.65;
+        font-size: 11pt;
+        -webkit-font-smoothing: antialiased;
+      }
+      @page {
+        size: A4;
+        margin: 16mm 18mm 18mm 18mm;
+      }
+      @page :first {
+        margin: 0;
+      }
+
+      /* ─── Cover ─────────────────────────── */
+      .cover {
+        page-break-after: always;
+        min-height: 297mm;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        background: linear-gradient(
+          135deg,
+          #0d3b66 0%,
+          #7f956a 55%,
+          #f3d98f 100%
+        );
+        color: #fff;
+        padding: 40mm 24mm;
+        position: relative;
+      }
+      .cover::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background:
+          radial-gradient(
+            circle at 80% 20%,
+            rgba(243, 217, 143, 0.35),
+            transparent 50%
+          ),
+          radial-gradient(
+            circle at 20% 80%,
+            rgba(127, 149, 106, 0.5),
+            transparent 55%
+          );
+        pointer-events: none;
+      }
+      .cover-header {
+        position: relative;
+        font-size: 11pt;
+        letter-spacing: 4pt;
+        opacity: 0.85;
+        text-transform: uppercase;
+      }
+      .cover-title {
+        position: relative;
+      }
+      .cover-title h1 {
+        font-size: 52pt;
+        font-weight: 700;
+        letter-spacing: -1pt;
+        line-height: 1.1;
+        margin-bottom: 8pt;
+      }
+      .cover-title .sub {
+        font-size: 20pt;
+        font-weight: 300;
+        opacity: 0.92;
+        letter-spacing: 2pt;
+      }
+      .cover-title .tagline {
+        margin-top: 20pt;
+        font-size: 13pt;
+        font-weight: 300;
+        max-width: 420pt;
+        line-height: 1.6;
+        opacity: 0.82;
+      }
+      .cover-meta {
+        position: relative;
+        display: flex;
+        justify-content: space-between;
+        font-size: 10pt;
+        opacity: 0.8;
+        letter-spacing: 1pt;
+        border-top: 1pt solid rgba(255, 255, 255, 0.35);
+        padding-top: 12pt;
+      }
+      .cover-meta strong {
+        font-weight: 600;
+        letter-spacing: 0;
+      }
+
+      /* ─── Typography ────────────────────── */
+      h1.section {
+        font-size: 24pt;
+        font-weight: 700;
+        color: #0d3b66;
+        border-bottom: 2pt solid #7f956a;
+        padding-bottom: 10pt;
+        margin-top: 0;
+        margin-bottom: 14pt;
+        page-break-before: always;
+        page-break-after: avoid;
+      }
+      h2 {
+        font-size: 15pt;
+        font-weight: 600;
+        color: #0d3b66;
+        margin-top: 18pt;
+        margin-bottom: 8pt;
+        page-break-after: avoid;
+      }
+      h3 {
+        font-size: 11pt;
+        font-weight: 600;
+        color: #5a7048;
+        margin-top: 12pt;
+        margin-bottom: 5pt;
+        page-break-after: avoid;
+      }
+      p {
+        margin-bottom: 7pt;
+      }
+      strong {
+        color: #0d3b66;
+        font-weight: 600;
+      }
+      code {
+        font-family: 'SFMono-Regular', 'Menlo', monospace;
+        font-size: 9pt;
+        background: #f1ead7;
+        color: #0d3b66;
+        padding: 1pt 4pt;
+        border-radius: 2pt;
+      }
+      ul,
+      ol {
+        margin-left: 16pt;
+        margin-bottom: 7pt;
+      }
+      li {
+        margin-bottom: 3pt;
+      }
+      hr {
+        border: none;
+        border-top: 0.5pt solid #e5e7eb;
+        margin: 10pt 0;
+      }
+
+      /* ─── Tables ────────────────────────── */
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 8pt 0 14pt 0;
+        font-size: 10pt;
+        page-break-inside: avoid;
+      }
+      th {
+        background: #0d3b66;
+        color: #fff;
+        padding: 6pt 10pt;
+        text-align: left;
+        font-weight: 600;
+        font-size: 9.5pt;
+      }
+      td {
+        padding: 5pt 10pt;
+        border-bottom: 0.5pt solid #e5e7eb;
+        vertical-align: top;
+      }
+      tr:nth-child(even) td {
+        background: #fafaf9;
+      }
+
+      /* ─── TOC ───────────────────────────── */
+      .toc {
+        page-break-after: always;
+        padding-top: 36pt;
+      }
+      .toc h1 {
+        font-size: 24pt;
+        font-weight: 700;
+        color: #0d3b66;
+        margin-bottom: 24pt;
+        border-bottom: 2pt solid #7f956a;
+        padding-bottom: 10pt;
+      }
+      .toc-entry {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        padding: 10pt 0;
+        border-bottom: 1pt dotted #d1d5db;
+      }
+      .toc-entry:last-child {
+        border-bottom: none;
+      }
+      .toc-chapter {
+        font-size: 13pt;
+        font-weight: 600;
+        color: #0d3b66;
+      }
+      .toc-desc {
+        font-size: 10pt;
+        color: #6b7280;
+        margin-left: 12pt;
+        flex-shrink: 1;
+      }
+      .toc-audience {
+        font-size: 9pt;
+        color: #7f956a;
+        white-space: nowrap;
+        margin-left: 10pt;
+      }
+
+      /* ─── Step Numbers ──────────────────── */
+      .step-num {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 24pt;
+        height: 24pt;
+        border-radius: 50%;
+        background: #7f956a;
+        color: #fff;
+        font-size: 12pt;
+        font-weight: 700;
+        margin-right: 6pt;
+        flex-shrink: 0;
+      }
+      .step-heading {
+        display: flex;
+        align-items: center;
+        margin-top: 14pt;
+        margin-bottom: 5pt;
+        page-break-after: avoid;
+      }
+      .step-heading h3 {
+        margin: 0;
+        font-size: 12pt;
+        font-weight: 600;
+        color: #0d3b66;
+      }
+
+      /* ─── Full-Width Screenshots ────────── */
+      .screenshot {
+        margin: 8pt 0 12pt 0;
+        text-align: center;
+      }
+      .screenshot img {
+        width: 100%;
+        max-width: 100%;
+        border-radius: 6pt;
+        border: 0.5pt solid #d1d5db;
+        box-shadow: 0 2pt 8pt rgba(0, 0, 0, 0.1);
+        display: block;
+        margin: 0 auto;
+      }
+
+      /* ─── Callout Boxes ─────────────────── */
+      .callout {
+        page-break-inside: avoid;
+        padding: 8pt 12pt;
+        margin: 10pt 0;
+        border-radius: 5pt;
+        font-size: 10pt;
+        line-height: 1.6;
+      }
+      .callout-tip {
+        background: #f0f7e8;
+        border-left: 4pt solid #7f956a;
+      }
+      .callout-tip .ct {
+        color: #5a7048;
+        font-weight: 600;
+        margin-bottom: 4pt;
+        font-size: 11pt;
+      }
+      .callout-warning {
+        background: #fef7e0;
+        border-left: 4pt solid #f3d98f;
+      }
+      .callout-warning .ct {
+        color: #92730b;
+        font-weight: 600;
+        margin-bottom: 4pt;
+        font-size: 11pt;
+      }
+
+      /* ─── Troubleshoot Card ─────────────── */
+      .tc {
+        page-break-inside: avoid;
+        padding: 8pt 12pt;
+        margin: 8pt 0;
+        background: #fafaf9;
+        border-left: 3pt solid #e7c45f;
+        border-radius: 0 4pt 4pt 0;
+      }
+      .tc h3 {
+        margin-top: 0;
+        margin-bottom: 4pt;
+        color: #0d3b66;
+        font-size: 11pt;
+      }
+
+      /* ─── QA ─────────────────────────────── */
+      .qq {
+        font-weight: 600;
+        color: #0d3b66;
+        margin-bottom: 2pt;
+        font-size: 10pt;
+      }
+      .qa {
+        color: #374151;
+        margin-bottom: 8pt;
+        padding-left: 14pt;
+        font-size: 10pt;
+      }
+
+      /* ─── Section intro ─────────────────── */
+      .si-intro {
+        font-size: 10.5pt;
+        color: #374151;
+        background: #f9fafb;
+        padding: 8pt 12pt;
+        border-radius: 4pt;
+        margin-bottom: 10pt;
+        border-left: 3pt solid #0d3b66;
+      }
+
+      /* ─── Info box (blockquote) ─────────── */
+      .info-box {
+        page-break-inside: avoid;
+        padding: 8pt 12pt;
+        margin: 10pt 0;
+        border-radius: 5pt;
+        background: #f0f4fa;
+        border-left: 4pt solid #0d3b66;
+        font-size: 10pt;
+      }
+      .info-box strong {
+        color: #0d3b66;
+      }
+
+      /* ─── Footer ────────────────────────── */
+      .doc-footer {
+        margin-top: 24pt;
+        padding-top: 10pt;
+        border-top: 0.5pt solid #d1d5db;
+        font-size: 9pt;
+        color: #9ca3af;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- ═══════════════════════════════════════ COVER ═══════════════════════════════════════ -->
+    <div class="cover">
+      <div class="cover-header">天文精緻便當</div>
+      <div class="cover-title">
+        <h1>天文 V2 POS<br />使用手冊</h1>
+        <div class="sub">Training Manual</div>
+        <div class="tagline">
+          從首次設定到日常操作，本手冊將協助您快速上手天文 V2 POS 系統的所有功能
+          — 點餐下單、員工打卡、營收統計、雲端備份，一冊在手，輕鬆上手。
+        </div>
+      </div>
+      <div class="cover-meta">
+        <span>版本 <strong>v2.10.0</strong></span>
+        <span>最後更新 <strong>2026-04-14</strong></span>
+        <span>適用裝置 <strong>iPad 10+ / iPad 11+</strong></span>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════ TOC ═══════════════════════════════════════ -->
+    <div class="toc">
+      <h1>目錄</h1>
+      <div class="toc-entry">
+        <span class="toc-chapter">00 — 首次設定</span
+        ><span class="toc-desc">安裝 PWA、初次啟動、認識介面</span
+        ><span class="toc-audience">所有人</span>
+      </div>
+      <div class="toc-entry">
+        <span class="toc-chapter">10 — 點餐操作</span
+        ><span class="toc-desc">選商品、加備註、折扣、送出訂單、編輯訂單</span
+        ><span class="toc-audience">所有人</span>
+      </div>
+      <div class="toc-entry">
+        <span class="toc-chapter">20 — 打卡與出勤</span
+        ><span class="toc-desc">上下班打卡、休假申請、出勤記錄</span
+        ><span class="toc-audience">所有人</span>
+      </div>
+      <div class="toc-entry">
+        <span class="toc-chapter">30 — 管理功能</span
+        ><span class="toc-desc">員工管理、商品管理、營收統計</span
+        ><span class="toc-audience">管理員</span>
+      </div>
+      <div class="toc-entry">
+        <span class="toc-chapter">40 — 雲端備份</span
+        ><span class="toc-desc">備份排程、手動備份、還原、V1 匯入</span
+        ><span class="toc-audience">管理員</span>
+      </div>
+      <div class="toc-entry">
+        <span class="toc-chapter">90 — 疑難排解</span
+        ><span class="toc-desc">錯誤畫面、載入過久、備份失敗等常見問題</span
+        ><span class="toc-audience">所有人</span>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════ SECTION 00 ═══════════════════════════════════════ -->
+    <h1 class="section">00 — 首次設定</h1>
+    <p class="si-intro">
+      本章節將帶您完成天文 V2 POS 的安裝與初次設定，認識應用程式的主要介面。
+    </p>
+
+    <h2>安裝 PWA 到 iPad 主畫面</h2>
+    <p>
+      天文 V2 是一個 PWA（Progressive Web App），可以像一般 App 一樣安裝在 iPad
+      主畫面上。
+    </p>
+
+    <div class="step-heading">
+      <span class="step-num">1</span>
+      <h3>開啟 Safari 瀏覽器</h3>
+    </div>
+    <p>在 iPad 上打開 Safari，輸入天文 V2 的網址。</p>
+
+    <div class="step-heading">
+      <span class="step-num">2</span>
+      <h3>點擊分享按鈕</h3>
+    </div>
+    <p>點擊 Safari 底部工具列的「分享」圖示（方框加上箭頭的圖示）。</p>
+
+    <div class="step-heading">
+      <span class="step-num">3</span>
+      <h3>選擇「加入主畫面」</h3>
+    </div>
+    <p>
+      在彈出的選單中，向下滑動找到「加入主畫面」，點擊後確認名稱，再點「新增」。完成後，iPad
+      主畫面上會出現天文便當的圖示，以後直接點擊即可開啟。
+    </p>
+    <hr />
+
+    <h2>第一次啟動</h2>
+
+    <div class="step-heading">
+      <span class="step-num">1</span>
+      <h3>等待系統初始化</h3>
+    </div>
+    <p>
+      第一次開啟應用程式時，系統會進行資料庫初始化。畫面上會出現初始化動畫，請耐心等待約
+      3-5 秒。
+    </p>
+    <div class="screenshot">
+      <img src="screenshots/00/00-01.png" alt="初始化畫面" />
+    </div>
+    <p>系統正在建立本機資料庫，這個過程只有第一次使用時會出現。</p>
+
+    <div class="step-heading">
+      <span class="step-num">2</span>
+      <h3>進入主畫面</h3>
+    </div>
+    <p>初始化完成後，會自動進入點餐頁面。左側是商品列表區，右側是訂單面板。</p>
+    <div class="screenshot">
+      <img src="screenshots/00/00-02.png" alt="點餐主畫面" />
+    </div>
+    <p>這就是您每天最常使用的點餐介面。</p>
+    <hr />
+
+    <h2>認識導覽列</h2>
+    <p>畫面頂部的導覽列是切換各功能模組的入口。</p>
+    <div class="screenshot">
+      <img src="screenshots/00/00-03.png" alt="導覽列說明" />
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>分頁</th>
+          <th>功能</th>
+          <th>說明</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>點餐</td>
+          <td>日常點餐下單</td>
+          <td>預設首頁，選商品送出訂單</td>
+        </tr>
+        <tr>
+          <td>打卡</td>
+          <td>員工上下班打卡</td>
+          <td>每天上班、下班時使用</td>
+        </tr>
+        <tr>
+          <td>訂單</td>
+          <td>查看歷史訂單</td>
+          <td>依日期瀏覽所有訂單</td>
+        </tr>
+        <tr>
+          <td>統計</td>
+          <td>營收與績效分析</td>
+          <td>查看銷售數據和圖表</td>
+        </tr>
+        <tr>
+          <td>設定</td>
+          <td>系統管理功能</td>
+          <td>員工管理、商品管理、備份等</td>
+        </tr>
+      </tbody>
+    </table>
+    <hr />
+
+    <h2>右上角選單</h2>
+    <p>點擊右上角的使用者圖示，可以看到更多選項。</p>
+    <div class="screenshot">
+      <img src="screenshots/00/00-04.png" alt="右上角選單" />
+    </div>
+    <p>
+      管理員可以在此處使用 Google
+      帳號登入，解鎖員工管理、商品管理、雲端備份等進階功能。
+    </p>
+    <hr />
+
+    <h2>設定頁面</h2>
+    <p>進入設定頁面後，可以看到五個分頁標籤。</p>
+    <div class="screenshot">
+      <img src="screenshots/00/00-05.png" alt="設定頁面" />
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>分頁</th>
+          <th>說明</th>
+          <th>需要權限</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>系統資訊</td>
+          <td>查看應用版本、資料庫狀態</td>
+          <td>不需要</td>
+        </tr>
+        <tr>
+          <td>打卡記錄</td>
+          <td>查看出勤歷史</td>
+          <td>不需要</td>
+        </tr>
+        <tr>
+          <td>員工管理</td>
+          <td>新增、編輯、停用員工</td>
+          <td>需管理員登入</td>
+        </tr>
+        <tr>
+          <td>商品管理</td>
+          <td>編輯商品價格、上下架</td>
+          <td>需管理員登入</td>
+        </tr>
+        <tr>
+          <td>雲端備份</td>
+          <td>備份還原、排程設定</td>
+          <td>需管理員登入</td>
+        </tr>
+      </tbody>
+    </table>
+    <p>標示鎖頭圖示的分頁需要管理員權限才能操作。</p>
+    <hr />
+
+    <h2>打卡頁面概覽</h2>
+    <p>切換到「打卡」分頁，可以看到所有員工的卡片。</p>
+    <div class="screenshot">
+      <img src="screenshots/00/00-06.png" alt="打卡頁面" />
+    </div>
+    <p>
+      每張卡片顯示員工的名字和目前出勤狀態。預設的員工名單包含：Eric、妞妞、阿吉、豬、阿草、草嵋、小映、秋敏。
+    </p>
+
+    <div class="callout callout-tip">
+      <div class="ct">💡 小提醒</div>
       <ul>
-        <li>確認 iPad 有足夠的儲存空間</li>
+        <li>安裝到主畫面後，開啟速度會比從 Safari 打開更快</li>
+        <li>第一次初始化後，之後開啟都不會再出現等待畫面（除非重新安裝）</li>
+        <li>應用程式只支援直式（直向）模式，如果把 iPad 轉成橫的會出現提醒</li>
+        <li>如果開啟後畫面一片空白，請檢查網路連線後重新整理</li>
+      </ul>
+    </div>
+
+    <div class="callout callout-warning">
+      <div class="ct">⚠️ 常見問題</div>
+      <p class="qq">Q：安裝後在主畫面找不到圖示？</p>
+      <p class="qa">
+        A：請確認在 Safari 的分享選單中選擇的是「加入主畫面」而非「加入書籤」。
+      </p>
+      <p class="qq">Q：初始化畫面停留超過 30 秒？</p>
+      <p class="qa">
+        A：請關閉應用程式後重新開啟。如果問題持續，請參考疑難排解章節。
+      </p>
+      <p class="qq">Q：畫面顯示「請將裝置轉為直向」？</p>
+      <p class="qa">
+        A：請將 iPad 轉為直式（Home 鍵在下方）使用，本應用不支援橫向操作。
+      </p>
+    </div>
+
+    <!-- ═══════════════════════════════════════ SECTION 10 ═══════════════════════════════════════ -->
+    <h1 class="section">10 — 點餐操作</h1>
+    <p class="si-intro">
+      本章節說明從選擇商品到送出訂單的完整流程，以及如何修改已送出的訂單。
+    </p>
+
+    <h2>瀏覽商品與分類</h2>
+
+    <div class="step-heading">
+      <span class="step-num">1</span>
+      <h3>認識點餐頁面</h3>
+    </div>
+    <p>
+      點餐頁面分為左右兩個區域：左側（約 65%）是商品列表，右側（約
+      35%）是訂單面板。
+    </p>
+    <div class="screenshot">
+      <img src="screenshots/10/10-01.png" alt="點餐頁面主畫面" />
+    </div>
+    <p>商品列表上方有分類標籤，可以快速切換不同類別的商品。</p>
+
+    <div class="step-heading">
+      <span class="step-num">2</span>
+      <h3>切換商品分類</h3>
+    </div>
+    <p><strong>點擊</strong>上方的分類標籤，切換顯示不同類別的商品。</p>
+    <div class="screenshot">
+      <img src="screenshots/10/10-02.png" alt="分類標籤切換" />
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>分類</th>
+          <th>說明</th>
+          <th>標示顏色</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>攤位</td>
+          <td>攤位現做品項</td>
+          <td>深藍色</td>
+        </tr>
+        <tr>
+          <td>餐盒</td>
+          <td>各式便當餐盒</td>
+          <td>綠色</td>
+        </tr>
+        <tr>
+          <td>單點</td>
+          <td>單點小菜配料</td>
+          <td>金棕色</td>
+        </tr>
+        <tr>
+          <td>飲料</td>
+          <td>各式冷熱飲品</td>
+          <td>藍色</td>
+        </tr>
+        <tr>
+          <td>水餃</td>
+          <td>各種水餃品項</td>
+          <td>紫色</td>
+        </tr>
+      </tbody>
+    </table>
+    <hr />
+
+    <h2>加入品項到訂單</h2>
+
+    <div class="step-heading">
+      <span class="step-num">3</span>
+      <h3>選擇商品</h3>
+    </div>
+    <p><strong>點擊</strong>左側商品列表中想要加入的品項卡片。</p>
+    <div class="screenshot">
+      <img src="screenshots/10/10-03.png" alt="選擇商品" />
+    </div>
+    <p>品項會自動以數量 1 加入右側的訂單面板。</p>
+
+    <div class="step-heading">
+      <span class="step-num">4</span>
+      <h3>調整數量</h3>
+    </div>
+    <p>如果需要多份，可以在訂單面板中使用 +/- 按鈕調整數量。</p>
+    <div class="screenshot">
+      <img src="screenshots/10/10-04.png" alt="調整數量" />
+    </div>
+    <p>將數量減為 0 即可移除該品項。</p>
+    <hr />
+
+    <h2>多品項購物車</h2>
+
+    <div class="step-heading">
+      <span class="step-num">5</span>
+      <h3>檢視購物車</h3>
+    </div>
+    <p>持續點選商品，所有品項會依序列在訂單面板中，並即時計算小計與總金額。</p>
+    <div class="screenshot">
+      <img src="screenshots/10/10-05.png" alt="多品項購物車" />
+    </div>
+    <p>訂單面板會顯示每個品項的名稱、數量和金額，底部顯示總計。</p>
+    <hr />
+
+    <h2>品項備註</h2>
+
+    <div class="step-heading">
+      <span class="step-num">6</span>
+      <h3>為品項加上備註</h3>
+    </div>
+    <p>如果客人有特殊要求，可以為品項加上備註標籤。</p>
+    <div class="screenshot">
+      <img src="screenshots/10/10-06.png" alt="品項備註" />
+    </div>
+    <p>
+      可以選擇預設的備註標籤，或手動輸入自訂備註。含有「攤位」分類品項的訂單會自動加上「攤位」備註標記。
+    </p>
+    <hr />
+
+    <h2>使用計算機（自訂品項或折扣）</h2>
+
+    <div class="step-heading">
+      <span class="step-num">7</span>
+      <h3>開啟計算機</h3>
+    </div>
+    <p>需要輸入自訂金額時，可以使用計算機功能。</p>
+    <div class="screenshot">
+      <img src="screenshots/10/10-07.png" alt="計算機輸入" />
+    </div>
+    <p>在計算機介面中輸入品項名稱和金額。</p>
+
+    <div class="step-heading">
+      <span class="step-num">8</span>
+      <h3>確認自訂品項</h3>
+    </div>
+    <p>確認輸入的品項和金額無誤後，加入訂單。</p>
+    <div class="screenshot">
+      <img src="screenshots/10/10-08.png" alt="計算機確認" />
+    </div>
+    <p>自訂品項會和其他商品一起顯示在訂單面板中。</p>
+    <hr />
+
+    <h2>折扣處理</h2>
+
+    <div class="step-heading">
+      <span class="step-num">9</span>
+      <h3>套用折扣</h3>
+    </div>
+    <p>在訂單面板的折扣區域，可以選擇或輸入折扣。</p>
+    <div class="screenshot">
+      <img src="screenshots/10/10-09.png" alt="折扣顯示" />
+    </div>
+    <p>折扣金額會從總金額中扣除，畫面上會清楚顯示原價、折扣金額和折後總價。</p>
+    <hr />
+
+    <h2>送出訂單</h2>
+
+    <div class="step-heading">
+      <span class="step-num">10</span>
+      <h3>檢視訂單總金額</h3>
+    </div>
+    <p>確認所有品項和折扣都正確後，檢查畫面底部的總金額。</p>
+    <div class="screenshot">
+      <img src="screenshots/10/10-10.png" alt="訂單總金額" />
+    </div>
+    <p>確認無誤後，點擊「送出訂單」按鈕。</p>
+
+    <div class="step-heading">
+      <span class="step-num">11</span>
+      <h3>送出訂單</h3>
+    </div>
+    <p>
+      系統預設使用<strong>快速模式</strong>，點擊「送出訂單」後會直接送出，不會跳出確認視窗。
+    </p>
+    <div class="screenshot">
+      <img src="screenshots/10/10-11.png" alt="訂單送出成功" />
+    </div>
+
+    <div class="info-box">
+      <p><strong>快速模式 vs 標準模式</strong></p>
+      <table>
+        <thead>
+          <tr>
+            <th>模式</th>
+            <th>行為</th>
+            <th>適合</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>快速模式（預設）</td>
+            <td>點擊送出後直接完成，不跳確認視窗</td>
+            <td>熟練的操作人員，加快出單速度</td>
+          </tr>
+          <tr>
+            <td>標準模式</td>
+            <td>點擊送出後先顯示訂單摘要確認視窗，再點確認才送出</td>
+            <td>新手操作人員，避免送錯單</td>
+          </tr>
+        </tbody>
+      </table>
+      <p>模式切換可在右側訂單面板的設定中調整。</p>
+    </div>
+    <hr />
+
+    <h2>近期訂單</h2>
+
+    <div class="step-heading">
+      <span class="step-num">12</span>
+      <h3>查看近期訂單</h3>
+    </div>
+    <p>
+      訂單送出成功後，可以在右側面板切換到「近期訂單」分頁，查看剛剛送出的訂單。
+    </p>
+    <div class="screenshot">
+      <img src="screenshots/10/10-12.png" alt="近期訂單" />
+    </div>
+    <p>
+      近期訂單列表會顯示今天所有已送出的訂單，包含訂單編號、品項摘要和金額。
+    </p>
+    <hr />
+
+    <h2>編輯已送出訂單</h2>
+
+    <div class="step-heading">
+      <span class="step-num">13</span>
+      <h3>修改訂單</h3>
+    </div>
+    <p>如果發現訂單有誤，在近期訂單列表中可以編輯訂單。</p>
+    <div class="screenshot">
+      <img src="screenshots/10/10-13.png" alt="編輯訂單" />
+    </div>
+    <p>
+      在訂單項目上向左滑動，會出現編輯和刪除的操作按鈕。點擊「編輯」即可修改品項數量或刪除品項。
+    </p>
+    <hr />
+
+    <h2>送餐完成</h2>
+
+    <div class="step-heading">
+      <span class="step-num">14</span>
+      <h3>標記已送餐</h3>
+    </div>
+    <p>當餐點已送達客人手中，可以將訂單標記為「已送餐」。</p>
+    <div class="screenshot">
+      <img src="screenshots/10/10-14.png" alt="送餐完成" />
+    </div>
+    <p>標記後訂單會顯示已送餐的狀態標記，方便追蹤出餐進度。</p>
+    <hr />
+
+    <h2>如果做錯了</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>狀況</th>
+          <th>處理方式</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>送錯訂單</td>
+          <td>在近期訂單中找到該筆訂單，左滑點「編輯」進行修改</td>
+        </tr>
+        <tr>
+          <td>加錯品項</td>
+          <td>在購物車中將該品項數量減為 0，或直接刪除</td>
+        </tr>
+        <tr>
+          <td>數量不對</td>
+          <td>在購物車中用 +/- 按鈕調整正確數量</td>
+        </tr>
+        <tr>
+          <td>價格不對</td>
+          <td>
+            已送出的訂單價格無法更改（快照定價機制）。如需修改商品價格，請管理員到「商品管理」調整，但修改後只影響新的訂單
+          </td>
+        </tr>
+        <tr>
+          <td>忘了打折</td>
+          <td>編輯已送出的訂單，重新加入折扣</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout callout-tip">
+      <div class="ct">💡 小提醒</div>
+      <ul>
+        <li>點選商品後會立即加入購物車，不需要額外確認</li>
+        <li>「攤位」分類的商品加入訂單時，系統會自動在備註加上「攤位」標記</li>
+        <li>
+          每筆訂單的價格在送出時就已固定，之後修改商品售價不會影響已送出的訂單
+        </li>
+        <li>訂單編號是按照當天送出的順序自動編號（1、2、3...）</li>
+      </ul>
+    </div>
+
+    <div class="callout callout-warning">
+      <div class="ct">⚠️ 常見問題</div>
+      <p class="qq">Q：商品列表是空的？</p>
+      <p class="qa">
+        A：請確認是否選擇了正確的分類標籤。如果所有分類都沒有商品，請聯繫管理員確認商品是否已上架。
+      </p>
+      <p class="qq">Q：送出訂單後想取消？</p>
+      <p class="qa">
+        A：目前沒有取消訂單的功能，但可以透過「編輯」移除所有品項。
+      </p>
+      <p class="qq">Q：折扣按鈕在哪裡？</p>
+      <p class="qa">A：折扣區域在訂單面板的小計金額下方。向下滑動即可看到。</p>
+    </div>
+
+    <!-- ═══════════════════════════════════════ SECTION 20 ═══════════════════════════════════════ -->
+    <h1 class="section">20 — 打卡與出勤</h1>
+    <p class="si-intro">
+      本章節說明員工如何使用打卡功能記錄上下班時間，以及如何申請休假和查看出勤記錄。
+    </p>
+
+    <h2>進入打卡頁面</h2>
+
+    <div class="step-heading">
+      <span class="step-num">1</span>
+      <h3>切換到打卡分頁</h3>
+    </div>
+    <p><strong>點擊</strong>導覽列上的「打卡」分頁，進入打卡頁面。</p>
+    <div class="screenshot">
+      <img src="screenshots/20/20-01.png" alt="打卡頁面" />
+    </div>
+    <p>頁面上會顯示所有員工的卡片，每張卡片上有員工的名字和目前的出勤狀態。</p>
+    <hr />
+
+    <h2>打卡上班</h2>
+
+    <div class="step-heading">
+      <span class="step-num">2</span>
+      <h3>點擊自己的名字</h3>
+    </div>
+    <p>找到自己的員工卡片，<strong>點擊</strong>該卡片。</p>
+    <div class="screenshot">
+      <img src="screenshots/20/20-02.png" alt="打卡確認視窗" />
+    </div>
+    <p>
+      系統會跳出確認視窗，顯示您的名字和目前時間，並提供「打卡上班」、「休假」和「取消」三個按鈕。
+    </p>
+
+    <div class="step-heading">
+      <span class="step-num">3</span>
+      <h3>確認打卡</h3>
+    </div>
+    <p><strong>點擊</strong>「打卡上班」按鈕完成打卡。</p>
+    <div class="screenshot">
+      <img src="screenshots/20/20-03.png" alt="打卡上班確認" />
+    </div>
+    <p>系統會記錄您的上班時間。</p>
+
+    <div class="step-heading">
+      <span class="step-num">4</span>
+      <h3>確認打卡成功</h3>
+    </div>
+    <p>打卡成功後，您的員工卡片狀態會更新為「正在上班」，並顯示打卡時間。</p>
+    <div class="screenshot">
+      <img src="screenshots/20/20-04.png" alt="已打卡狀態" />
+    </div>
+    <p>卡片上的狀態指示會從「未打卡」變成「正在上班」，方便所有人確認。</p>
+    <hr />
+
+    <h2>打卡下班</h2>
+
+    <div class="step-heading">
+      <span class="step-num">5</span>
+      <h3>下班打卡</h3>
+    </div>
+    <p>下班時，再次<strong>點擊</strong>自己的員工卡片。</p>
+    <div class="screenshot">
+      <img src="screenshots/20/20-05.png" alt="打卡下班" />
+    </div>
+    <p>
+      確認視窗會顯示「打卡下班」按鈕和已上班的時數。<strong>點擊</strong>「打卡下班」完成下班打卡。系統會自動計算您今天的工作時數。
+    </p>
+    <hr />
+
+    <h2>申請休假</h2>
+
+    <div class="step-heading">
+      <span class="step-num">6</span>
+      <h3>申請休假</h3>
+    </div>
+    <p>如果今天要休假，在打卡確認視窗中<strong>點擊</strong>「休假」按鈕。</p>
+    <div class="screenshot">
+      <img src="screenshots/20/20-06.png" alt="申請休假" />
+    </div>
+    <p>
+      系統會記錄當天為休假狀態。如果需要取消休假，再次點擊自己的卡片，選擇「取消休假」即可。
+    </p>
+    <hr />
+
+    <h2>查看打卡記錄</h2>
+
+    <div class="step-heading">
+      <span class="step-num">7</span>
+      <h3>進入打卡記錄</h3>
+    </div>
+    <p>
+      在「設定」分頁中，切換到「打卡記錄」標籤頁，可以查看所有員工的出勤記錄。
+    </p>
+    <div class="screenshot">
+      <img src="screenshots/20/20-07.png" alt="打卡記錄" />
+    </div>
+    <p>
+      頁面會按日期列出打卡記錄，包含上班時間、下班時間和工時。可以使用日期導航按鈕切換不同日期或週期。
+    </p>
+
+    <div class="step-heading">
+      <span class="step-num">8</span>
+      <h3>查看個別員工記錄</h3>
+    </div>
+    <p>
+      <strong>點擊</strong>特定日期的記錄，可以展開查看該員工的詳細出勤資訊。
+    </p>
+    <div class="screenshot">
+      <img src="screenshots/20/20-08.png" alt="個別員工記錄" />
+    </div>
+    <p>詳細資訊包含：員工姓名、班別、打卡上班時間、打卡下班時間、總工時。</p>
+
+    <div class="callout callout-tip">
+      <div class="ct">💡 小提醒</div>
+      <ul>
+        <li>打卡時間是以台灣時區（UTC+8）記錄的</li>
+        <li>每天只需打卡一次上班、一次下班</li>
+        <li>打卡記錄會永久保存，不會因為備份還原而遺失</li>
+        <li>
+          如果需要查看某段期間的出勤統計，可以到「統計」頁面的員工績效分頁
+        </li>
+      </ul>
+    </div>
+
+    <div class="callout callout-warning">
+      <div class="ct">⚠️ 常見問題</div>
+      <p class="qq">Q：忘記打卡上班怎麼辦？</p>
+      <p class="qa">
+        A：請告知管理員。目前系統沒有補卡功能，但管理員可以在記錄中做備註說明。建議養成到店就打卡的習慣。
+      </p>
+      <p class="qq">Q：打卡後發現打錯人了？</p>
+      <p class="qa">A：打卡記錄目前無法刪除或修改，請告知管理員做記錄。</p>
+      <p class="qq">Q：休假申請送出後可以取消嗎？</p>
+      <p class="qa">A：可以，再次點擊自己的卡片，選擇「取消休假」即可。</p>
+      <p class="qq">Q：「缺勤」狀態是什麼意思？</p>
+      <p class="qa">
+        A：如果當天既沒有打卡也沒有申請休假，系統會自動記錄為「缺勤」狀態。
+      </p>
+      <p class="qq">Q：打卡記錄在哪裡看？</p>
+      <p class="qa">A：進入「設定」→「打卡記錄」分頁即可查看。</p>
+    </div>
+
+    <!-- ═══════════════════════════════════════ SECTION 30 ═══════════════════════════════════════ -->
+    <h1 class="section">30 — 管理功能</h1>
+    <p class="si-intro">
+      本章節說明需要管理員權限的進階功能，包含員工管理、商品管理和營收統計。
+    </p>
+
+    <div class="callout callout-warning">
+      <div class="ct">⚠️ 注意</div>
+      <p>本章節的所有操作都需要先使用 Google 帳號登入。</p>
+    </div>
+
+    <h2>管理員登入</h2>
+    <p>要使用員工管理、商品管理或雲端備份功能，需要先以管理員身份登入。</p>
+    <p>
+      <strong>點擊</strong>導覽列右上角的使用者圖示，選擇「使用 Google
+      帳號登入」。登入成功後，受保護的分頁上的鎖頭圖示會消失，代表已經可以操作。
+    </p>
+    <hr />
+
+    <h2>系統資訊</h2>
+
+    <div class="step-heading">
+      <span class="step-num">1</span>
+      <h3>查看系統資訊</h3>
+    </div>
+    <p>進入「設定」分頁，預設顯示的就是「系統資訊」頁面。</p>
+    <div class="screenshot">
+      <img src="screenshots/30/30-01.png" alt="系統資訊頁面" />
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>項目</th>
+          <th>說明</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>應用程式版本</td>
+          <td>目前安裝的版本號碼</td>
+        </tr>
+        <tr>
+          <td>資料庫大小</td>
+          <td>本機 SQLite 資料庫的檔案大小</td>
+        </tr>
+        <tr>
+          <td>最後備份時間</td>
+          <td>上次成功備份的時間</td>
+        </tr>
+        <tr>
+          <td>裝置代號</td>
+          <td>此台 iPad 的識別名稱</td>
+        </tr>
+      </tbody>
+    </table>
+    <hr />
+
+    <h2>員工管理</h2>
+
+    <div class="step-heading">
+      <span class="step-num">2</span>
+      <h3>查看員工列表</h3>
+    </div>
+    <p><strong>點擊</strong>「員工管理」分頁標籤，進入員工管理頁面。</p>
+    <div class="screenshot">
+      <img src="screenshots/30/30-02.png" alt="員工列表" />
+    </div>
+    <p>
+      頁面顯示所有員工的清單，每位員工會顯示頭像、姓名、員工編號、班別和目前狀態（上班/離職）。
+    </p>
+
+    <div class="step-heading">
+      <span class="step-num">3</span>
+      <h3>新增員工</h3>
+    </div>
+    <p><strong>點擊</strong>頁面上方的「新增員工」按鈕。</p>
+    <div class="screenshot">
+      <img src="screenshots/30/30-03.png" alt="新增員工" />
+    </div>
+    <p>填寫表單中的必要資訊：</p>
+    <ul>
+      <li>員工姓名</li>
+      <li>虛擬角色（選擇動物頭像）</li>
+      <li>班別（常日班或排班）</li>
+      <li>入職日期</li>
+      <li>是否為管理員</li>
+    </ul>
+    <p>填寫完成後<strong>點擊</strong>「儲存」。</p>
+
+    <div class="step-heading">
+      <span class="step-num">4</span>
+      <h3>編輯員工資料</h3>
+    </div>
+    <p>在員工列表中，<strong>點擊</strong>要修改的員工旁邊的編輯圖示。</p>
+    <div class="screenshot">
+      <img src="screenshots/30/30-04.png" alt="編輯員工" />
+    </div>
+    <p>
+      表單會自動帶入該員工的現有資料，修改需要的欄位後<strong>點擊</strong>「儲存」。
+    </p>
+
+    <div class="step-heading">
+      <span class="step-num">5</span>
+      <h3>停用員工</h3>
+    </div>
+    <p>如果員工離職，可以將帳號設為「離職」狀態。</p>
+    <div class="screenshot">
+      <img src="screenshots/30/30-05.png" alt="停用員工" />
+    </div>
+    <p>
+      系統使用軟刪除機制，停用後該員工不會出現在打卡頁面，但歷史記錄會保留。如有需要可以重新啟用。
+    </p>
+
+    <div class="step-heading">
+      <span class="step-num">6</span>
+      <h3>連結 Google 帳號</h3>
+    </div>
+    <p>
+      如果需要讓員工以管理員身份登入，<strong>點擊</strong>員工資料中的「連結
+      Google 帳號」按鈕。
+    </p>
+    <div class="screenshot">
+      <img src="screenshots/30/30-06.png" alt="連結 Google" />
+    </div>
+    <p>連結後，該員工可以使用自己的 Google 帳號登入管理功能。</p>
+    <hr />
+
+    <h2>商品管理</h2>
+
+    <div class="step-heading">
+      <span class="step-num">7</span>
+      <h3>查看商品列表</h3>
+    </div>
+    <p><strong>點擊</strong>「商品管理」分頁標籤。</p>
+    <div class="screenshot">
+      <img src="screenshots/30/30-07.png" alt="商品列表" />
+    </div>
+    <p>
+      商品按照分類（攤位、餐盒、單點、飲料、水餃）分組顯示。每個商品卡片上有名稱、售價和操作按鈕。
+    </p>
+
+    <div class="step-heading">
+      <span class="step-num">8</span>
+      <h3>編輯商品</h3>
+    </div>
+    <p><strong>點擊</strong>商品卡片上的編輯圖示，開啟編輯表單。</p>
+    <div class="screenshot">
+      <img src="screenshots/30/30-08.png" alt="編輯商品" />
+    </div>
+    <p>可以修改商品的名稱和售價。修改完成後<strong>點擊</strong>「儲存」。</p>
+
+    <div class="step-heading">
+      <span class="step-num">9</span>
+      <h3>價格變更記錄</h3>
+    </div>
+    <p>每次修改商品價格，系統都會自動留下記錄。</p>
+    <div class="screenshot">
+      <img src="screenshots/30/30-09.png" alt="改價說明" />
+    </div>
+    <p>
+      價格變更記錄包含：商品名稱、修改前價格、修改後價格、修改者和修改時間。
+    </p>
+
+    <div class="callout callout-warning">
+      <div class="ct">⚠️ 重要</div>
+      <p>
+        修改商品價格只會影響之後的新訂單。已經送出的訂單金額不會改變，因為系統使用「快照定價」機制
+        — 訂單送出時的價格就會被鎖定。
+      </p>
+    </div>
+    <hr />
+
+    <h2>營收統計</h2>
+
+    <div class="step-heading">
+      <span class="step-num">10</span>
+      <h3>查看統計總覽</h3>
+    </div>
+    <p><strong>點擊</strong>導覽列的「統計」分頁，進入營收統計頁面。</p>
+    <div class="screenshot">
+      <img src="screenshots/30/30-10.png" alt="Dashboard 總覽" />
+    </div>
+    <p>
+      統計頁面上方顯示關鍵指標（KPI），包含總營收、日平均營收、上午營收和下午營收。
+    </p>
+
+    <div class="step-heading">
+      <span class="step-num">11</span>
+      <h3>選擇日期範圍</h3>
+    </div>
+    <p>使用日期範圍選擇器，可以查看特定期間的統計資料。</p>
+    <div class="screenshot">
+      <img src="screenshots/30/30-11.png" alt="日期範圍" />
+    </div>
+    <p>可以選擇「今天」、「本週」、「本月」或自訂日期範圍。</p>
+
+    <div class="step-heading">
+      <span class="step-num">12</span>
+      <h3>圖表分析</h3>
+    </div>
+    <p>頁面下方提供多種圖表，協助您了解銷售趨勢。</p>
+    <div class="screenshot">
+      <img src="screenshots/30/30-12.png" alt="圖表說明" />
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>圖表</th>
+          <th>內容</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>營收趨勢</td>
+          <td>按日期顯示每天的營收變化</td>
+        </tr>
+        <tr>
+          <td>商品銷售排名</td>
+          <td>顯示銷售數量前幾名的商品</td>
+        </tr>
+        <tr>
+          <td>分類銷售分布</td>
+          <td>各分類的營收佔比</td>
+        </tr>
+        <tr>
+          <td>員工績效</td>
+          <td>每位員工的訂單數和接單金額</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout callout-tip">
+      <div class="ct">💡 小提醒</div>
+      <ul>
+        <li>管理員登入狀態會保持一段時間，不需要每次都重新登入</li>
+        <li>員工停用後可以隨時重新啟用，不需要重新建立</li>
+        <li>商品改價前，建議先確認是否有未完成的訂單</li>
+        <li>統計頁面的數據是即時計算的，新送出的訂單馬上就會反映在統計中</li>
+        <li>時段營收（上午/下午）的分界點是中午 12 點</li>
+      </ul>
+    </div>
+
+    <div class="callout callout-warning">
+      <div class="ct">⚠️ 常見問題</div>
+      <p class="qq">Q：忘記管理員密碼？</p>
+      <p class="qa">
+        A：管理員使用 Google 帳號登入，不需要記密碼。如果 Google
+        帳號有問題，請洽 Google 帳號支援。
+      </p>
+      <p class="qq">Q：可以刪除商品嗎？</p>
+      <p class="qa">
+        A：商品無法直接刪除，以確保歷史訂單中的資料完整保留。如需調整商品，請修改商品名稱或售價。
+      </p>
+      <p class="qq">Q：統計數據和實際金額不一致？</p>
+      <p class="qa">
+        A：請確認日期範圍是否正確，以及是否有編輯過訂單。如果問題持續，請嘗試重新整理頁面。
+      </p>
+      <p class="qq">Q：商品改價後舊訂單也跟著變了？</p>
+      <p class="qa">
+        A：不會。天文 V2
+        使用快照定價機制，每筆訂單在送出時就鎖定了當時的價格，之後的價格修改不會影響已送出的訂單。
+      </p>
+    </div>
+
+    <!-- ═══════════════════════════════════════ SECTION 40 ═══════════════════════════════════════ -->
+    <h1 class="section">40 — 雲端備份</h1>
+    <p class="si-intro">
+      本章節說明如何使用雲端備份功能保護您的資料，包含自動備份排程、手動備份、還原和
+      V1 資料匯入。
+    </p>
+
+    <div class="callout callout-warning">
+      <div class="ct">⚠️ 注意</div>
+      <p>本章節的所有操作都需要先使用 Google 帳號登入管理員身份。</p>
+    </div>
+
+    <h2>雲端備份概覽</h2>
+
+    <div class="step-heading">
+      <span class="step-num">1</span>
+      <h3>進入雲端備份頁面</h3>
+    </div>
+    <p>進入「設定」→「雲端備份」分頁，查看目前的備份狀態。</p>
+    <div class="screenshot">
+      <img src="screenshots/40/40-01.png" alt="雲端備份概覽" />
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>項目</th>
+          <th>說明</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>最後備份時間</td>
+          <td>上次成功備份的日期和時間</td>
+        </tr>
+        <tr>
+          <td>雲端資料大小</td>
+          <td>備份檔案在雲端佔用的空間</td>
+        </tr>
+        <tr>
+          <td>備份狀態</td>
+          <td>上次備份是否成功</td>
+        </tr>
+        <tr>
+          <td>下次自動備份</td>
+          <td>預計的下一次自動備份時間</td>
+        </tr>
+      </tbody>
+    </table>
+    <hr />
+
+    <h2>備份排程設定</h2>
+
+    <div class="step-heading">
+      <span class="step-num">2</span>
+      <h3>設定自動備份</h3>
+    </div>
+    <p>在備份設定區域，可以選擇自動備份的頻率。</p>
+    <div class="screenshot">
+      <img src="screenshots/40/40-02.png" alt="備份排程設定" />
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>選項</th>
+          <th>說明</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>不備份</td>
+          <td>關閉自動備份（不建議）</td>
+        </tr>
+        <tr>
+          <td>每日備份</td>
+          <td>每天凌晨自動備份一次</td>
+        </tr>
+        <tr>
+          <td>每週備份</td>
+          <td>每週一自動備份一次</td>
+        </tr>
+      </tbody>
+    </table>
+    <p>
+      建議選擇「每日備份」，確保資料安全。自動備份會在每天凌晨（台灣時間）自動執行，不需要手動操作。
+    </p>
+    <hr />
+
+    <h2>手動備份</h2>
+
+    <div class="step-heading">
+      <span class="step-num">3</span>
+      <h3>執行手動備份</h3>
+    </div>
+    <p>如果需要立即備份，<strong>點擊</strong>「立即備份」按鈕。</p>
+    <div class="screenshot">
+      <img src="screenshots/40/40-03.png" alt="手動備份按鈕" />
+    </div>
+
+    <div class="step-heading">
+      <span class="step-num">4</span>
+      <h3>等待備份完成</h3>
+    </div>
+    <p>點擊後系統會開始壓縮並上傳資料庫。</p>
+    <div class="screenshot">
+      <img src="screenshots/40/40-04.png" alt="備份進行中" />
+    </div>
+    <p>
+      備份過程通常需要 10-30
+      秒，取決於資料量大小。完成後會顯示成功訊息，備份狀態也會更新。
+    </p>
+    <hr />
+
+    <h2>備份歷史</h2>
+
+    <div class="step-heading">
+      <span class="step-num">5</span>
+      <h3>查看備份記錄</h3>
+    </div>
+    <p>向下滑動可以看到過去的備份歷史記錄。</p>
+    <div class="screenshot">
+      <img src="screenshots/40/40-05.png" alt="備份歷史" />
+    </div>
+    <p>
+      每筆記錄顯示：備份時間、備份類型（手動/自動）、狀態（成功/失敗）和檔案大小。系統最多保留
+      30 筆備份記錄。
+    </p>
+    <hr />
+
+    <h2>從雲端還原</h2>
+
+    <div class="step-heading">
+      <span class="step-num">6</span>
+      <h3>選擇要還原的備份檔案</h3>
+    </div>
+    <p>
+      如果需要還原資料，<strong>點擊</strong>「從雲端復原」按鈕，選擇想要還原的備份版本。
+    </p>
+    <div class="screenshot">
+      <img src="screenshots/40/40-06.png" alt="選擇還原檔案" />
+    </div>
+    <p>
+      系統會列出雲端上的所有備份檔案，按時間排序。選擇一個備份版本後，<strong>點擊</strong>「復原」。
+    </p>
+
+    <div class="step-heading">
+      <span class="step-num">7</span>
+      <h3>等待還原完成</h3>
+    </div>
+    <p>系統會下載並解壓縮備份檔案，然後取代目前的本機資料庫。</p>
+    <div class="screenshot">
+      <img src="screenshots/40/40-07.png" alt="還原進行中" />
+    </div>
+    <p>還原過程中請不要關閉應用程式或切換頁面。完成後系統會自動重新載入。</p>
+
+    <div class="callout callout-warning">
+      <div class="ct">⚠️ 注意</div>
+      <p>還原操作會覆蓋目前本機的所有資料，請確認這是您想要的操作。</p>
+    </div>
+    <hr />
+
+    <h2>本機資料庫資訊</h2>
+
+    <div class="step-heading">
+      <span class="step-num">8</span>
+      <h3>查看本機資料庫</h3>
+    </div>
+    <p>在雲端備份頁面中，可以查看本機資料庫的詳細資訊。</p>
+    <div class="screenshot">
+      <img src="screenshots/40/40-08.png" alt="本機資料庫資訊" />
+    </div>
+    <p>
+      顯示內容包含本機資料庫的大小（原始和壓縮後），以及上一版本資料庫的資訊。
+    </p>
+
+    <div class="step-heading">
+      <span class="step-num">9</span>
+      <h3>展開資料表清單</h3>
+    </div>
+    <p>
+      <strong>點擊</strong
+      >「查看全部」可以展開完整的資料表列表，查看每個表格的資料筆數。
+    </p>
+    <div class="screenshot">
+      <img src="screenshots/40/40-09.png" alt="資料表清單" />
+    </div>
+    <p>這可以幫助您了解目前系統中有多少訂單、員工、商品等資料。</p>
+    <hr />
+
+    <h2>上一版本資料庫</h2>
+
+    <div class="step-heading">
+      <span class="step-num">10</span>
+      <h3>刪除上一版本</h3>
+    </div>
+    <p>
+      系統會保留上一次備份還原前的資料庫副本。如果確認不需要，可以刪除以釋放空間。
+    </p>
+    <div class="screenshot">
+      <img src="screenshots/40/40-10.png" alt="刪除上一版本" />
+    </div>
+    <p>
+      <strong>點擊</strong>刪除按鈕後，系統會顯示確認提示。確認後即會永久刪除。
+    </p>
+
+    <div class="step-heading">
+      <span class="step-num">11</span>
+      <h3>還原上一版本</h3>
+    </div>
+    <p>如果發現還原後的資料不正確，可以回復到上一版本。</p>
+    <div class="screenshot">
+      <img src="screenshots/40/40-11.png" alt="還原上一版本" />
+    </div>
+    <p>
+      <strong>點擊</strong
+      >「還原上一版本」按鈕，系統會將資料庫回復到還原操作之前的狀態。
+    </p>
+    <hr />
+
+    <h2>V1 資料匯入</h2>
+
+    <div class="step-heading">
+      <span class="step-num">12</span>
+      <h3>匯入舊版資料</h3>
+    </div>
+    <p>如果之前使用的是天文 V1，可以匯入舊版的訂單、商品和員工資料。</p>
+    <div class="screenshot">
+      <img src="screenshots/40/40-12.png" alt="V1 匯入" />
+    </div>
+    <p>
+      <strong>點擊</strong>「匯入 V1 資料」按鈕，選擇 V1
+      資料庫檔案後開始匯入。匯入過程會顯示進度，完成後會列出匯入的資料筆數。
+    </p>
+    <p>匯入採用防重複機制，相同的資料不會被重複匯入。</p>
+
+    <div class="callout callout-tip">
+      <div class="ct">💡 小提醒</div>
+      <ul>
+        <li>建議每天至少備份一次，選擇「每日備份」排程是最安全的設定</li>
+        <li>
+          備份檔案儲存在 Cloudflare R2 雲端空間，即使 iPad
+          損壞也能從其他裝置還原
+        </li>
+        <li>
+          備份檔案名稱格式為：<code
+            >tianwen-{裝置代號}-{日期時間}.sqlite.gz</code
+          >
+        </li>
+        <li>自動備份在每天凌晨（台灣時間）執行，不會影響營業時間的使用</li>
+        <li>V1 匯入只需要執行一次，重複匯入不會產生重複資料</li>
+      </ul>
+    </div>
+
+    <div class="callout callout-warning">
+      <div class="ct">⚠️ 常見問題</div>
+      <p class="qq">Q：備份失敗怎麼辦？</p>
+      <p class="qa">
+        A：請先檢查 iPad
+        的網路連線是否正常。確認網路沒問題後，重新嘗試手動備份。如果持續失敗，請參考疑難排解章節。
+      </p>
+      <p class="qq">Q：還原後資料正確嗎？</p>
+      <p class="qa">
+        A：還原會完整復原所選備份時間點的所有資料，包含訂單、員工、商品和設定。還原後建議檢查幾筆訂單和員工資料確認無誤。
+      </p>
+      <p class="qq">Q：自動備份是什麼時候執行的？</p>
+      <p class="qa">
+        A：自動備份在每天凌晨（台灣時間
+        UTC+8）執行。另外，每次開啟應用程式時，系統也會檢查是否需要備份，如果已逾期則會自動補備份。
+      </p>
+      <p class="qq">Q：可以在不同 iPad 之間同步資料嗎？</p>
+      <p class="qa">
+        A：可以。在一台 iPad
+        上備份後，在另一台上使用「從雲端復原」選擇該備份檔案即可。但請注意，這會覆蓋目標
+        iPad 上的現有資料。
+      </p>
+      <p class="qq">Q：備份空間有限制嗎？</p>
+      <p class="qa">
+        A：系統最多保留 30 筆備份記錄。超過時會自動刪除最舊的備份。
+      </p>
+    </div>
+
+    <!-- ═══════════════════════════════════════ SECTION 90 ═══════════════════════════════════════ -->
+    <h1 class="section">90 — 疑難排解</h1>
+    <p class="si-intro">
+      本章節列出使用過程中可能遇到的問題和解決方法。如果遇到下列畫面，請依照對應的處理步驟操作。
+    </p>
+
+    <h2>錯誤畫面（系統錯誤）</h2>
+    <h3>畫面說明</h3>
+    <p>
+      如果看到帶有動畫效果的錯誤畫面（Event Horizon
+      動畫），代表系統發生了非預期的錯誤。
+    </p>
+    <div class="screenshot">
+      <img src="screenshots/90/90-01.png" alt="錯誤畫面" />
+    </div>
+
+    <div class="tc">
+      <h3>處理步驟</h3>
+      <ol>
+        <li><strong>不要緊張</strong>，您的資料都安全保存在本機資料庫中</li>
+        <li><strong>點擊</strong>畫面上的「重新載入」或「回首頁」按鈕</li>
+        <li>如果按鈕沒有反應，請直接<strong>關閉應用程式</strong>後重新開啟</li>
+        <li>如果問題持續發生，請記錄畫面上顯示的錯誤訊息，並通知管理員</li>
+      </ol>
+    </div>
+    <hr />
+
+    <h2>找不到頁面（404）</h2>
+    <h3>畫面說明</h3>
+    <p>如果看到「找不到頁面」的提示，代表您嘗試訪問的網址不存在。</p>
+    <div class="screenshot">
+      <img src="screenshots/90/90-02.png" alt="404 頁面" />
+    </div>
+
+    <div class="tc">
+      <h3>處理步驟</h3>
+      <ol>
+        <li><strong>點擊</strong>「回首頁」按鈕，返回點餐主頁面</li>
+        <li>如果是從書籤或連結進入的，請確認網址是否正確</li>
+        <li>通常這是因為手動輸入了錯誤的網址，從導覽列選擇正確的頁面即可</li>
+      </ol>
+    </div>
+    <hr />
+
+    <h2>載入畫面停留過久</h2>
+    <h3>畫面說明</h3>
+    <p>
+      開啟應用程式時，初始化畫面通常只會顯示 3-5 秒。如果超過 30
+      秒仍停留在載入畫面，可能是系統初始化遇到問題。
+    </p>
+    <div class="screenshot">
+      <img src="screenshots/90/90-03.png" alt="載入畫面" />
+    </div>
+
+    <div class="tc">
+      <h3>處理步驟</h3>
+      <ol>
+        <li>
+          <strong>等待至少 30 秒</strong
+          >，有時候第一次啟動或資料較多時會需要較長時間
+        </li>
+        <li>如果超過 30 秒，<strong>關閉應用程式</strong>後重新開啟</li>
+        <li>
+          如果重新開啟後仍然卡住：
+          <ul>
+            <li>確認 iPad 有足夠的儲存空間</li>
+            <li>確認網路連線正常</li>
+            <li>嘗試在 Safari 中清除網站資料後重新開啟</li>
+          </ul>
+        </li>
+        <li>如果問題持續，請通知管理員</li>
+      </ol>
+    </div>
+    <hr />
+
+    <h2>新版本通知</h2>
+    <h3>畫面說明</h3>
+    <p>當系統有新版本可用時，畫面上會出現更新通知。</p>
+    <div class="screenshot">
+      <img src="screenshots/90/90-04.png" alt="新版本通知" />
+    </div>
+
+    <div class="tc">
+      <h3>處理步驟</h3>
+      <ol>
+        <li>看到「更新」按鈕時，請直接<strong>點擊</strong>更新</li>
+        <li>系統會自動重新載入並套用新版本</li>
+        <li>更新過程通常只需幾秒鐘，不會影響已儲存的資料</li>
+        <li>如果選擇「稍後」，下次開啟應用程式時會再次提醒</li>
+      </ol>
+    </div>
+    <p>建議盡快更新，新版本通常包含功能改善和問題修正。</p>
+    <hr />
+
+    <h2>備份失敗</h2>
+    <h3>畫面說明</h3>
+    <p>執行備份時如果出現錯誤訊息，通常是網路連線問題。</p>
+    <div class="screenshot">
+      <img src="screenshots/90/90-05.png" alt="備份失敗" />
+    </div>
+
+    <div class="tc">
+      <h3>處理步驟</h3>
+      <ol>
+        <li><strong>檢查網路連線</strong> — 確認 iPad 的 Wi-Fi 是否正常連線</li>
+        <li>
+          <strong>重新嘗試</strong> — 點擊「重試」按鈕或再次點擊「立即備份」
+        </li>
+        <li>
+          如果持續失敗：
+          <ul>
+            <li>確認 Wi-Fi 網路是否穩定（嘗試開啟其他網頁測試）</li>
+            <li>確認不是在備份正在進行中又重複點擊</li>
+            <li>等待幾分鐘後再試</li>
+          </ul>
+        </li>
+        <li>如果問題超過一天無法解決，請通知管理員</li>
+      </ol>
+    </div>
+    <p>
+      <strong>您的資料安全嗎？</strong>
+      備份失敗不會影響本機資料，所有訂單和記錄都安全保存在 iPad
+      上。只是這些資料尚未上傳到雲端。
+    </p>
+    <hr />
+
+    <h2>請將裝置轉為直向</h2>
+    <h3>畫面說明</h3>
+    <p>當 iPad 被轉為橫向（橫式）時，畫面會出現提示要求轉回直向。</p>
+    <div class="screenshot">
+      <img src="screenshots/90/90-06.png" alt="轉向提示" />
+    </div>
+
+    <div class="tc">
+      <h3>處理步驟</h3>
+      <ol>
+        <li><strong>將 iPad 轉為直式</strong>（Home 鍵或底部邊框朝下）</li>
+        <li>提示畫面會自動消失，回到正常操作介面</li>
+        <li>如果已經是直式但仍顯示提示，請嘗試將 iPad 先轉一圈再轉回來</li>
+      </ol>
+    </div>
+    <p>天文 V2 僅支援直向模式，這是為了確保點餐介面的最佳使用體驗。</p>
+    <hr />
+
+    <h2>其他常見問題</h2>
+
+    <div class="tc">
+      <h3>應用程式反應很慢</h3>
+      <ul>
+        <li>關閉其他正在使用的應用程式，釋放記憶體</li>
+        <li>確認 iPad 的儲存空間還有剩餘</li>
+        <li>重新開啟天文 V2 應用程式</li>
+      </ul>
+    </div>
+
+    <div class="tc">
+      <h3>商品圖片沒有顯示</h3>
+      <ul>
         <li>確認網路連線正常</li>
-        <li>嘗試在 Safari 中清除網站資料後重新開啟</li>
+        <li>重新整理頁面</li>
+        <li>如果特定商品一直沒有圖片，請通知管理員檢查商品設定</li>
       </ul>
-    </li>
-    <li>如果問題持續，請通知管理員</li>
-  </ol>
-</div>
-<hr>
+    </div>
 
-<h2>新版本通知</h2>
-<h3>畫面說明</h3>
-<p>當系統有新版本可用時，畫面上會出現更新通知。</p>
-<div class="screenshot"><img src="screenshots/90/90-04.png" alt="新版本通知"></div>
-
-<div class="tc">
-  <h3>處理步驟</h3>
-  <ol>
-    <li>看到「更新」按鈕時，請直接<strong>點擊</strong>更新</li>
-    <li>系統會自動重新載入並套用新版本</li>
-    <li>更新過程通常只需幾秒鐘，不會影響已儲存的資料</li>
-    <li>如果選擇「稍後」，下次開啟應用程式時會再次提醒</li>
-  </ol>
-</div>
-<p>建議盡快更新，新版本通常包含功能改善和問題修正。</p>
-<hr>
-
-<h2>備份失敗</h2>
-<h3>畫面說明</h3>
-<p>執行備份時如果出現錯誤訊息，通常是網路連線問題。</p>
-<div class="screenshot"><img src="screenshots/90/90-05.png" alt="備份失敗"></div>
-
-<div class="tc">
-  <h3>處理步驟</h3>
-  <ol>
-    <li><strong>檢查網路連線</strong> — 確認 iPad 的 Wi-Fi 是否正常連線</li>
-    <li><strong>重新嘗試</strong> — 點擊「重試」按鈕或再次點擊「立即備份」</li>
-    <li>如果持續失敗：
+    <div class="tc">
+      <h3>打卡按鈕沒有反應</h3>
       <ul>
-        <li>確認 Wi-Fi 網路是否穩定（嘗試開啟其他網頁測試）</li>
-        <li>確認不是在備份正在進行中又重複點擊</li>
-        <li>等待幾分鐘後再試</li>
+        <li>確認點擊的是自己的員工卡片</li>
+        <li>等待幾秒後再試（系統可能正在處理中）</li>
+        <li>如果持續無反應，關閉應用程式後重新開啟</li>
       </ul>
-    </li>
-    <li>如果問題超過一天無法解決，請通知管理員</li>
-  </ol>
-</div>
-<p><strong>您的資料安全嗎？</strong> 備份失敗不會影響本機資料，所有訂單和記錄都安全保存在 iPad 上。只是這些資料尚未上傳到雲端。</p>
-<hr>
+    </div>
 
-<h2>請將裝置轉為直向</h2>
-<h3>畫面說明</h3>
-<p>當 iPad 被轉為橫向（橫式）時，畫面會出現提示要求轉回直向。</p>
-<div class="screenshot"><img src="screenshots/90/90-06.png" alt="轉向提示"></div>
+    <div class="tc">
+      <h3>統計數據看起來不對</h3>
+      <ul>
+        <li>確認日期範圍選擇是否正確</li>
+        <li>重新整理頁面</li>
+        <li>如果剛送出訂單，等待幾秒讓系統更新統計</li>
+      </ul>
+    </div>
 
-<div class="tc">
-  <h3>處理步驟</h3>
-  <ol>
-    <li><strong>將 iPad 轉為直式</strong>（Home 鍵或底部邊框朝下）</li>
-    <li>提示畫面會自動消失，回到正常操作介面</li>
-    <li>如果已經是直式但仍顯示提示，請嘗試將 iPad 先轉一圈再轉回來</li>
-  </ol>
-</div>
-<p>天文 V2 僅支援直向模式，這是為了確保點餐介面的最佳使用體驗。</p>
-<hr>
+    <div class="callout callout-tip">
+      <div class="ct">💡 小提醒</div>
+      <ul>
+        <li>大部分問題都可以透過「關閉後重新開啟」來解決</li>
+        <li>遇到任何錯誤畫面時，您的資料都不會遺失</li>
+        <li>建議每天使用前先確認應用程式是否有更新通知</li>
+        <li>如果問題反覆出現，請記錄發生的時間和操作步驟，方便管理員排查</li>
+      </ul>
+    </div>
 
-<h2>其他常見問題</h2>
+    <div class="callout callout-warning">
+      <div class="ct">⚠️ 需要更多幫助？</div>
+      <p>如果以上方法都無法解決您的問題，請聯繫管理員，並提供以下資訊：</p>
+      <ol>
+        <li>問題發生的時間</li>
+        <li>您正在執行什麼操作</li>
+        <li>畫面上顯示的錯誤訊息（如果有的話）</li>
+        <li>問題是否能重複發生</li>
+      </ol>
+    </div>
 
-<div class="tc">
-  <h3>應用程式反應很慢</h3>
-  <ul>
-    <li>關閉其他正在使用的應用程式，釋放記憶體</li>
-    <li>確認 iPad 的儲存空間還有剩餘</li>
-    <li>重新開啟天文 V2 應用程式</li>
-  </ul>
-</div>
-
-<div class="tc">
-  <h3>商品圖片沒有顯示</h3>
-  <ul>
-    <li>確認網路連線正常</li>
-    <li>重新整理頁面</li>
-    <li>如果特定商品一直沒有圖片，請通知管理員檢查商品設定</li>
-  </ul>
-</div>
-
-<div class="tc">
-  <h3>打卡按鈕沒有反應</h3>
-  <ul>
-    <li>確認點擊的是自己的員工卡片</li>
-    <li>等待幾秒後再試（系統可能正在處理中）</li>
-    <li>如果持續無反應，關閉應用程式後重新開啟</li>
-  </ul>
-</div>
-
-<div class="tc">
-  <h3>統計數據看起來不對</h3>
-  <ul>
-    <li>確認日期範圍選擇是否正確</li>
-    <li>重新整理頁面</li>
-    <li>如果剛送出訂單，等待幾秒讓系統更新統計</li>
-  </ul>
-</div>
-
-<div class="callout callout-tip">
-  <div class="ct">💡 小提醒</div>
-  <ul>
-    <li>大部分問題都可以透過「關閉後重新開啟」來解決</li>
-    <li>遇到任何錯誤畫面時，您的資料都不會遺失</li>
-    <li>建議每天使用前先確認應用程式是否有更新通知</li>
-    <li>如果問題反覆出現，請記錄發生的時間和操作步驟，方便管理員排查</li>
-  </ul>
-</div>
-
-<div class="callout callout-warning">
-  <div class="ct">⚠️ 需要更多幫助？</div>
-  <p>如果以上方法都無法解決您的問題，請聯繫管理員，並提供以下資訊：</p>
-  <ol>
-    <li>問題發生的時間</li>
-    <li>您正在執行什麼操作</li>
-    <li>畫面上顯示的錯誤訊息（如果有的話）</li>
-    <li>問題是否能重複發生</li>
-  </ol>
-</div>
-
-<div class="doc-footer">天文 V2 POS 使用手冊 &middot; v2.10.0 &middot; 2026-04-14 &middot; 天文精緻便當</div>
-
-</body>
+    <div class="doc-footer">
+      天文 V2 POS 使用手冊 &middot; v2.10.0 &middot; 2026-04-14 &middot;
+      天文精緻便當
+    </div>
+  </body>
 </html>

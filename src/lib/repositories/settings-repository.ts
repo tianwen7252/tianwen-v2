@@ -15,7 +15,9 @@ function settingsKey(key: string): string {
   return `setting:${key}`
 }
 
-export function createSettingsRepository(db: AsyncDatabase): SettingsRepository {
+export function createSettingsRepository(
+  db: AsyncDatabase,
+): SettingsRepository {
   return {
     async get(key: string): Promise<string | null> {
       const result = await db.exec<{ value: string }>(

@@ -42,7 +42,7 @@ export function ConfirmOrderContent({
       {/* ── Left panel: categorized items ── */}
       <ScrollArea className="flex-5" watchDeps={[groups]}>
         <div className="space-y-4 pr-5">
-          {groups.map((group) => {
+          {groups.map(group => {
             const accent = CATEGORY_ACCENT[group.key] ?? DEFAULT_ACCENT
             return (
               <div
@@ -54,7 +54,7 @@ export function ConfirmOrderContent({
                   {t(group.label)}
                 </div>
                 {/* Regular items */}
-                {group.items.map((item) => (
+                {group.items.map(item => (
                   <div
                     key={item.id}
                     className="flex items-baseline justify-between py-[5px]"
@@ -72,7 +72,7 @@ export function ConfirmOrderContent({
                   </div>
                 ))}
                 {/* Discount items */}
-                {group.discounts?.map((discount) => (
+                {group.discounts?.map(discount => (
                   <div
                     key={discount.id}
                     className="flex items-baseline justify-between py-[5px] text-[15px]"

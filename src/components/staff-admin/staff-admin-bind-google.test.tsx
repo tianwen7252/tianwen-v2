@@ -190,9 +190,7 @@ describe('StaffAdmin — Google account linking', () => {
       expect(modal).toBeTruthy()
 
       // Should show both employee name and Google account name
-      expect(
-        within(modal).getByText(/Eric/, { exact: false }),
-      ).toBeTruthy()
+      expect(within(modal).getByText(/Eric/, { exact: false })).toBeTruthy()
       expect(
         within(modal).getByText(/Admin User/, { exact: false }),
       ).toBeTruthy()
@@ -265,7 +263,9 @@ describe('StaffAdmin — Google account linking', () => {
       await user.click(within(modal).getByText('取消'))
 
       expect(bindSpy).not.toHaveBeenCalled()
-      expect(screen.queryByRole('dialog', { name: '確認連結Google帳號' })).toBeNull()
+      expect(
+        screen.queryByRole('dialog', { name: '確認連結Google帳號' }),
+      ).toBeNull()
     })
 
     it('shows warning when Google account is already linked to another employee', async () => {
@@ -275,7 +275,7 @@ describe('StaffAdmin — Google account linking', () => {
       // Pre-link Eric with the same Google sub as MOCK_GOOGLE_USER
       const repo = getEmployeeRepo()
       const employees = await repo.findAll()
-      const alex = employees.find((e) => e.name === 'Eric')!
+      const alex = employees.find(e => e.name === 'Eric')!
       await repo.bindGoogleAccount(
         alex.id,
         MOCK_GOOGLE_USER.sub,
@@ -284,13 +284,11 @@ describe('StaffAdmin — Google account linking', () => {
 
       // Now make another admin employee to try linking the same account
       const allEmployees = await repo.findAll()
-      const otherAdmin = allEmployees.find(
-        (e) => e.isAdmin && e.id !== alex.id,
-      )
+      const otherAdmin = allEmployees.find(e => e.isAdmin && e.id !== alex.id)
 
       // If no other admin exists, update one to be admin
       if (!otherAdmin) {
-        const mia = allEmployees.find((e) => e.name === '妞妞')!
+        const mia = allEmployees.find(e => e.name === '妞妞')!
         await repo.update(mia.id, { isAdmin: true })
       }
 
@@ -354,9 +352,7 @@ describe('StaffAdmin — Google account linking', () => {
 
       const modal = screen.getByRole('dialog', { name: '確認取消連結' })
       expect(modal).toBeTruthy()
-      expect(
-        within(modal).getByText(/Eric/, { exact: false }),
-      ).toBeTruthy()
+      expect(within(modal).getByText(/Eric/, { exact: false })).toBeTruthy()
     })
 
     it('calls unbindGoogleAccount after confirming unlink', async () => {

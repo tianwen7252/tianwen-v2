@@ -16,7 +16,8 @@
 
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 
-const VALID_FILENAME_RE = /^tianwen-.+-\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}\.sqlite\.gz$/
+const VALID_FILENAME_RE =
+  /^tianwen-.+-\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}\.sqlite\.gz$/
 const MAX_BACKUPS = 30
 
 export default async function handler(

@@ -96,7 +96,7 @@ export function EmployeeForm({ form, isEditing }: EmployeeFormProps) {
               {t('staff.shiftType')}
             </label>
             <div className="flex gap-4">
-              {SHIFT_TYPES.map((shift) => (
+              {SHIFT_TYPES.map(shift => (
                 <label key={shift.key} className="flex items-center gap-1.5">
                   <input
                     type="radio"
@@ -114,7 +114,7 @@ export function EmployeeForm({ form, isEditing }: EmployeeFormProps) {
             <Switch
               id="is-admin"
               checked={watch('isAdmin')}
-              onCheckedChange={(val) => setValue('isAdmin', val)}
+              onCheckedChange={val => setValue('isAdmin', val)}
               aria-label={t('staff.adminPermission')}
             />
             <label htmlFor="is-admin" className="text-foreground">
@@ -127,7 +127,7 @@ export function EmployeeForm({ form, isEditing }: EmployeeFormProps) {
             <Switch
               id="is-default-order-staff"
               checked={watch('isDefaultOrderStaff')}
-              onCheckedChange={(val) => setValue('isDefaultOrderStaff', val)}
+              onCheckedChange={val => setValue('isDefaultOrderStaff', val)}
               aria-label={t('staff.defaultOrderStaff')}
             />
             <label htmlFor="is-default-order-staff" className="text-foreground">
@@ -143,7 +143,7 @@ export function EmployeeForm({ form, isEditing }: EmployeeFormProps) {
           {t('staff.avatar')}
         </label>
         <div className="grid grid-cols-9 gap-2">
-          {ANIMAL_AVATARS.map((animal) => (
+          {ANIMAL_AVATARS.map(animal => (
             <button
               key={animal.id}
               type="button"

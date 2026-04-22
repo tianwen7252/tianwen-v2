@@ -66,9 +66,7 @@ export function CloudBackupStatus() {
           </CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col flex-1">
-          <div className="text-2xl">
-            {formatSchedule(t, scheduleType)}
-          </div>
+          <div className="text-2xl">{formatSchedule(t, scheduleType)}</div>
         </CardContent>
       </Card>
     </div>

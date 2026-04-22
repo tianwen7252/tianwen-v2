@@ -101,12 +101,12 @@ export function CloudBackupDbStats() {
   }, [tables, tablesExpanded])
 
   // Backup store state
-  const isBackingUp = useBackupStore((s) => s.isBackingUp)
-  const scheduleType = useBackupStore((s) => s.scheduleType)
-  const setSchedule = useBackupStore((s) => s.setSchedule)
-  const startBackup = useBackupStore((s) => s.startBackup)
-  const finishBackup = useBackupStore((s) => s.finishBackup)
-  const setLastBackupTime = useBackupStore((s) => s.setLastBackupTime)
+  const isBackingUp = useBackupStore(s => s.isBackingUp)
+  const scheduleType = useBackupStore(s => s.scheduleType)
+  const setSchedule = useBackupStore(s => s.setSchedule)
+  const startBackup = useBackupStore(s => s.startBackup)
+  const finishBackup = useBackupStore(s => s.finishBackup)
+  const setLastBackupTime = useBackupStore(s => s.setLastBackupTime)
 
   const handleBackupNow = useCallback(async () => {
     startBackup()
@@ -165,7 +165,7 @@ export function CloudBackupDbStats() {
     setOverlayMessage(t('backup.restoringPrevDb'))
 
     // Ensure overlay is visible for at least MIN_RESTORE_OVERLAY_MS so the animation plays
-    const minDelay = new Promise((resolve) =>
+    const minDelay = new Promise(resolve =>
       setTimeout(resolve, MIN_RESTORE_OVERLAY_MS),
     )
 
@@ -300,7 +300,7 @@ export function CloudBackupDbStats() {
                 </tr>
               </thead>
               <tbody>
-                {tables.map((table) => (
+                {tables.map(table => (
                   <tr key={table.tableName} className="border-b">
                     <td className="px-2 py-1">{table.tableName}</td>
                     <td className="px-2 py-1 text-right">
@@ -411,7 +411,7 @@ export function CloudBackupDbStats() {
               )}
             </p>
             <div className="flex gap-2">
-              {SCHEDULE_OPTIONS.map((option) => (
+              {SCHEDULE_OPTIONS.map(option => (
                 <RippleButton
                   key={option.type}
                   data-active={

@@ -13,6 +13,7 @@ This document describes the 13 core business rules and invariants that govern Ti
 **Rationale**: Kitchen staff need to quickly identify orders with side items. Auto-tagging prevents manual entry errors and ensures consistency.
 
 **Enforcement**:
+
 - Defined: `src/stores/order-store.ts:6–8` (STALL_TYPE_ID, STALL_MEMO_TAG)
 - Logic: `src/stores/order-store.ts:82–95` (submitOrder method)
   - When user taps "Submit Order", code checks if any item has `typeId === 'stall'`
@@ -20,30 +21,33 @@ This document describes the 13 core business rules and invariants that govern Ti
   - If already present, no duplicate
 
 **Code Reference**:
+
 ```typescript
 // src/stores/order-store.ts:6
-const STALL_TYPE_ID = 'stall';
-const STALL_MEMO_TAG = '攤位';
+const STALL_TYPE_ID = 'stall'
+const STALL_MEMO_TAG = '攤位'
 
 // src/stores/order-store.ts:82–95
 submitOrder: async (memoTags?: string[]) => {
   // ... auto-append stall tag if any items match
   if (items.some(item => item.typeId === STALL_TYPE_ID)) {
     if (!memoTags?.includes(STALL_MEMO_TAG)) {
-      memoTags = [...(memoTags || []), STALL_MEMO_TAG];
+      memoTags = [...(memoTags || []), STALL_MEMO_TAG]
     }
   }
   // ... create order with updated memoTags
-};
+}
 ```
 
 **Example**:
+
 - Order contains: "豬肉排便當" (bento, typeId="bento") + "蚵仔煎" (stall, typeId="stall")
 - On submit, memo automatically becomes: `["攤位"]`
 
 **Testing**: ✓ Covered in order submission tests
 
 **Related Flows**:
+
 - Order Entry & Submission (Section 4.2)
 
 ---
@@ -55,6 +59,7 @@ submitOrder: async (memoTags?: string[]) => {
 **Rationale**: Restaurant operates in Taiwan (UTC+8). "Backup due today" means today in Taiwan time, not UTC. This prevents confusion when backup window crosses midnight UTC but not Taiwan midnight.
 
 **Enforcement**:
+
 - Utility: `src/lib/backup-schedule.ts` (Taiwan timezone helpers)
 - Constants: `src/lib/backup-schedule.ts:1–4`
   - `TAIWAN_OFFSET_MS = 8 * 60 * 60 * 1000`
@@ -64,34 +69,37 @@ submitOrder: async (memoTags?: string[]) => {
   - `isBackupOverdue(scheduleType, lastBackupTime)` — checks if backup due
 
 **Logic** (src/lib/backup-schedule.ts:56–84):
+
 ```typescript
 function isBackupOverdue(scheduleType, lastBackupTime) {
-  if (scheduleType === 'none') return false; // Never overdue
-  
-  const now = Date.now();
-  const taiwanDayStart = getTaiwanDayStart(now);
-  
+  if (scheduleType === 'none') return false // Never overdue
+
+  const now = Date.now()
+  const taiwanDayStart = getTaiwanDayStart(now)
+
   if (scheduleType === 'daily') {
     // Overdue if lastBackupTime is before today (Taiwan time)
-    return lastBackupTime < taiwanDayStart;
+    return lastBackupTime < taiwanDayStart
   }
-  
+
   if (scheduleType === 'weekly') {
-    const taiwanWeekStart = getTaiwanWeekStart(now);
-    return lastBackupTime < taiwanWeekStart;
+    const taiwanWeekStart = getTaiwanWeekStart(now)
+    return lastBackupTime < taiwanWeekStart
   }
 }
 ```
 
 **Example**:
+
 - Tuesday 2026-04-07, 14:00 Taiwan time (UTC 06:00)
 - Last backup: Monday 2026-04-06, 23:00 Taiwan time
 - isBackupOverdue('daily') = false (both same day in Taiwan timezone)
 - isBackupOverdue('weekly') = false (both same week in Taiwan timezone)
 
-**Testing**: ✓ Taiwan timezone tests in src/lib/__tests__/backup-schedule.test.ts
+**Testing**: ✓ Taiwan timezone tests in src/lib/**tests**/backup-schedule.test.ts
 
 **Related Files**:
+
 - `src/lib/backup-schedule.ts` (full implementation)
 - `src/hooks/use-auto-backup.ts` (calls isBackupOverdue)
 - `src/stores/backup-store.ts` (hydrates lastBackupTime)
@@ -105,6 +113,7 @@ function isBackupOverdue(scheduleType, lastBackupTime) {
 **Rationale**: Limit cloud storage costs and prevent unbounded growth. 30 backups ≈ 1 month of daily backups or 6 months of weekly backups.
 
 **Enforcement**:
+
 - Constant: `api/backup/complete.ts:20` — `const MAX_BACKUPS = 30;`
 - Trigger: After successful presigned URL upload, backend calls cleanup logic
 - Logic: `api/backup/complete.ts` (POST endpoint)
@@ -114,22 +123,27 @@ function isBackupOverdue(scheduleType, lastBackupTime) {
   4. If count > MAX_BACKUPS, deletes oldest (count - 30) files
 
 **Code Reference**:
+
 ```typescript
 // api/backup/complete.ts
-const MAX_BACKUPS = 30;
+const MAX_BACKUPS = 30
 
 // After verifying upload:
-const files = await s3Client.listObjectsV2({ Bucket: BUCKET, Prefix: '*.sqlite.gz' });
-const sorted = files.Contents?.sort((a, b) => b.LastModified - a.LastModified);
+const files = await s3Client.listObjectsV2({
+  Bucket: BUCKET,
+  Prefix: '*.sqlite.gz',
+})
+const sorted = files.Contents?.sort((a, b) => b.LastModified - a.LastModified)
 if (sorted && sorted.length > MAX_BACKUPS) {
-  const toDelete = sorted.slice(MAX_BACKUPS);
+  const toDelete = sorted.slice(MAX_BACKUPS)
   for (const file of toDelete) {
-    await s3Client.deleteObject({ Bucket: BUCKET, Key: file.Key });
+    await s3Client.deleteObject({ Bucket: BUCKET, Key: file.Key })
   }
 }
 ```
 
 **Storage Estimate**:
+
 - Single backup: ~5MB raw SQLite → ~1–2MB gzipped
 - 30 backups: ~30–60MB max per device
 - Multiple devices: Each device scoped separately (filename includes device ID)
@@ -137,6 +151,7 @@ if (sorted && sorted.length > MAX_BACKUPS) {
 **Testing**: ✓ Covered in api/backup/complete.test.ts
 
 **Related Flows**:
+
 - Manual Backup (Section 4.8)
 - Auto-Backup (Section 4.9)
 - Cloud Restore (Section 4.10)
@@ -150,6 +165,7 @@ if (sorted && sorted.length > MAX_BACKUPS) {
 **Rationale**: Protects revenue integrity and accounting. If a manager changes bento price from $100 → $150, old orders still show $100. Prevents disputes over historical pricing.
 
 **Enforcement**:
+
 - Capture: `src/stores/order-store.ts:63–69` (addItem action)
   - When user taps commodity, extract current price from commodity object
   - Store price in CartItem
@@ -158,21 +174,23 @@ if (sorted && sorted.length > MAX_BACKUPS) {
   - Price field immutable after insert
 
 **Code Reference**:
+
 ```typescript
 // src/stores/order-store.ts:63–69
-addItem: (commodity) => {
+addItem: commodity => {
   const item = {
     commodity_id: commodity.id,
     name: commodity.name,
     price: commodity.price, // SNAPSHOT at time of add
     quantity: 1,
     includes_soup: commodity.includes_soup,
-  };
+  }
   // ... add to cart
-};
+}
 ```
 
 **Example**:
+
 - 2026-04-07: Manager edits "豬肉排便當" price from $100 → $120
 - Order created 2026-04-07 at 10:00 with item price $100 is unaffected
 - Orders created 2026-04-07 at 11:00 onward see new price $120
@@ -181,6 +199,7 @@ addItem: (commodity) => {
 **Testing**: ✓ Covered in order submission tests
 
 **Related Flows**:
+
 - Order Entry & Submission (Section 4.2)
 - Product Management & Price Edit (Section 4.6)
 - Order Edit (Section 4.3)
@@ -194,20 +213,23 @@ addItem: (commodity) => {
 **Rationale**: If import is interrupted (network error, browser crash), user can re-run import without creating duplicate orders or employees. Improves resilience.
 
 **Enforcement**:
+
 - SQL Directive: `src/lib/v1-data-importer.ts:78` — `INSERT OR IGNORE`
 - Behavior: Duplicate primary keys silently skipped; no error raised
 - Idempotency: Safe to call importV1Data() multiple times
 
 **Code Reference**:
+
 ```typescript
 // src/lib/v1-data-importer.ts:78
 function buildInsertSql(table, rows) {
-  return `INSERT OR IGNORE INTO ${table} (${columns}) VALUES (${placeholders})`;
+  return `INSERT OR IGNORE INTO ${table} (${columns}) VALUES (${placeholders})`
   // Any row with duplicate id is ignored, not errored
 }
 ```
 
 **Example**:
+
 - First import run: inserts orders 1–100 successfully
 - Network timeout; import halts at order 50
 - Second import run: SQLite ignores first 50 (duplicate ids), inserts remaining 50–100
@@ -216,6 +238,7 @@ function buildInsertSql(table, rows) {
 **Testing**: ✓ Covered in v1-data-importer tests
 
 **Related Flows**:
+
 - V1→V2 Legacy Data Import (Section 4.11)
 
 ---
@@ -227,6 +250,7 @@ function buildInsertSql(table, rows) {
 **Rationale**: Preserves audit trail. Historical records (orders attributed to terminated staff, attendance history) remain queryable. Allows manager to restore employee if needed.
 
 **Enforcement**:
+
 - Schema: `src/lib/schema.ts:92–93` (CHECK constraint)
   ```sql
   status TEXT CHECK (status IN ('active', 'inactive'))
@@ -236,11 +260,12 @@ function buildInsertSql(table, rows) {
   ```typescript
   EmployeeRepository.update(employeeId, {
     status: 'inactive',
-    resignation_date: today
-  });
+    resignation_date: today,
+  })
   ```
 
 **Code Reference**:
+
 ```typescript
 // src/lib/schema.ts:92–93
 status TEXT NOT NULL CHECK (status IN ('active', 'inactive')) DEFAULT 'active',
@@ -250,6 +275,7 @@ const activeEmployees = await EmployeeRepository.findAll({ status: 'active' });
 ```
 
 **Audit Trail Preservation**:
+
 - Order.editor field still references terminated employee (loose ref)
 - Attendance records for that employee remain in DB
 - PriceChangeLog.editor may reference terminated employee
@@ -258,6 +284,7 @@ const activeEmployees = await EmployeeRepository.findAll({ status: 'active' });
 **Testing**: ✓ Covered in employee management tests
 
 **Related Flows**:
+
 - Staff Management (Section 4.12)
 - Clock-In/Clock-Out (Section 4.5)
 
@@ -270,6 +297,7 @@ const activeEmployees = await EmployeeRepository.findAll({ status: 'active' });
 **Rationale**: Order numbers (1, 2, 3…) are user-visible and memorable. Primary keys (nanoid) are system-level and not human-friendly. Decoupling allows flexible ID strategy.
 
 **Enforcement**:
+
 - Generation: `src/lib/repositories/order-repository.ts` (getNextOrderNumber method)
   ```typescript
   async getNextOrderNumber() {
@@ -285,6 +313,7 @@ const activeEmployees = await EmployeeRepository.findAll({ status: 'active' });
   - Insert order with both id (nanoid) and number
 
 **Example**:
+
 - Order 1: id="abc123xyz", number=1
 - Order 2: id="def456uvw", number=2
 - Receipt prints: "Order #2" (human-friendly)
@@ -295,6 +324,7 @@ const activeEmployees = await EmployeeRepository.findAll({ status: 'active' });
 **Testing**: ✓ Covered in order creation tests
 
 **Related Flows**:
+
 - Order Entry & Submission (Section 4.2)
 
 ---
@@ -306,6 +336,7 @@ const activeEmployees = await EmployeeRepository.findAll({ status: 'active' });
 **Rationale**: Prevents jarring flash on fast machines. Gives user perception that app is "doing work" (loading, initializing, checking for updates). UX best practice for PWAs.
 
 **Enforcement**:
+
 - Tracking: `src/stores/init-store.ts:66–73` (setShowInitUI method)
   - Records `shownAt: Date.now()` when overlay first displayed
 - Gate: `src/components/init-ui/init-overlay.tsx`
@@ -314,17 +345,19 @@ const activeEmployees = await EmployeeRepository.findAll({ status: 'active' });
   - Allow dismiss only if `elapsed >= 5000` (5 seconds)
 
 **Code Reference**:
+
 ```typescript
 // src/stores/init-store.ts:66–73
 setShowInitUI: () => {
-  set({ showInitUI: true, shownAt: Date.now() });
-};
+  set({ showInitUI: true, shownAt: Date.now() })
+}
 
 // src/components/init-ui/init-overlay.tsx
-const canDismiss = Date.now() - store.shownAt >= 5000;
+const canDismiss = Date.now() - store.shownAt >= 5000
 ```
 
 **Scenario**:
+
 - Database init completes in 300ms (fast SSD)
 - Overlay still shown for 4.7 more seconds
 - After 5 seconds total, user can dismiss or app auto-dismisses
@@ -332,6 +365,7 @@ const canDismiss = Date.now() - store.shownAt >= 5000;
 **Testing**: ✓ Covered in init-store tests
 
 **Related Flows**:
+
 - Bootstrap (Section 4.1)
 
 ---
@@ -343,6 +377,7 @@ const canDismiss = Date.now() - store.shownAt >= 5000;
 **Rationale**: iPad order entry UI optimized for portrait. Landscape would break layout (category tabs, button spacing). Prevents user frustration from rotated device.
 
 **Enforcement**:
+
 - Detection: `src/routes/route-tree.tsx:23–41` (RootLayout component)
   - Uses `useSyncExternalStore()` with `window.matchMedia('(orientation: portrait)')`
   - Monitors orientation media query
@@ -350,6 +385,7 @@ const canDismiss = Date.now() - store.shownAt >= 5000;
 - CSS Fallback: `src/styles/global.css` hides tabs in landscape
 
 **Code Reference**:
+
 ```typescript
 // src/routes/route-tree.tsx:23–41
 const isPortrait = useSyncExternalStore(
@@ -369,6 +405,7 @@ if (!isPortrait) {
 **Testing**: ✓ Covered in layout tests with orientation mock
 
 **Related Files**:
+
 - `src/routes/route-tree.tsx` (enforcement)
 - `src/styles/global.css` (CSS fallback)
 
@@ -379,11 +416,13 @@ if (!isPortrait) {
 **Rule**: Each browser/device has a unique DEVICE_ID for backup identification and multi-device support.
 
 **Rationale**: Enables:
+
 - Per-device backup scoping (e.g., "restore backup from iPad A")
 - Backup filenames include device code for clarity
 - Multi-device deployments with separate data per device
 
 **Enforcement**:
+
 - Generation: `src/lib/device.ts` (getDeviceId function)
   - On first app load, generate random 12-character code
   - Store in localStorage under key 'DEVICE_ID'
@@ -393,26 +432,29 @@ if (!isPortrait) {
   - Example: `tianwen-iPad-AB12CD-2026-04-11_14-30-00.sqlite.gz`
 
 **Code Reference**:
+
 ```typescript
 // src/lib/device.ts
 export function getDeviceId() {
-  let deviceId = localStorage.getItem('DEVICE_ID');
+  let deviceId = localStorage.getItem('DEVICE_ID')
   if (!deviceId) {
-    deviceId = generateRandomId(12); // e.g., "A5B9C2D1E7F3"
-    localStorage.setItem('DEVICE_ID', deviceId);
+    deviceId = generateRandomId(12) // e.g., "A5B9C2D1E7F3"
+    localStorage.setItem('DEVICE_ID', deviceId)
   }
-  return deviceId;
+  return deviceId
 }
 ```
 
 **Multi-Device Scenario**:
-- iPad A (DEVICE_ID="A5B9C2D1E7F3") — stores backups prefixed "tianwen-A5B9C2D1E7F3-*"
-- iPad B (DEVICE_ID="X4Y8Z3P6Q1R5") — stores backups prefixed "tianwen-X4Y8Z3P6Q1R5-*"
+
+- iPad A (DEVICE_ID="A5B9C2D1E7F3") — stores backups prefixed "tianwen-A5B9C2D1E7F3-\*"
+- iPad B (DEVICE_ID="X4Y8Z3P6Q1R5") — stores backups prefixed "tianwen-X4Y8Z3P6Q1R5-\*"
 - Cloud restore lists all device's backups separately
 
 **Testing**: ✓ Covered in device.ts tests
 
 **Related Files**:
+
 - `src/lib/device.ts` (generation)
 - `src/lib/backup.ts` (usage in filename)
 - `api/backup/presign.ts` (REST endpoint)
@@ -426,12 +468,14 @@ export function getDeviceId() {
 **Rationale**: Reduces friction for daily order operations. Device is trusted (physical access == staff access). Only admin-level actions require authentication.
 
 **Enforcement**:
+
 - Order Entry: No login needed. OrderPage loads directly with ProductGrid + OrderPanelTabs. Anyone with device access can place orders.
 - Order Store: `src/stores/order-store.ts:41–42` has `operatorId` / `operatorName` fields, but **no UI currently sets them** — they remain `null` in production. The `setOperator()` API exists in the store but is only called from tests.
 - Admin Check: `AuthGuard` component (`src/components/auth-guard/auth-guard.tsx`) wraps Settings tabs with 3 variants: `staffAdmin`, `productAdmin`, `backup`. Requires Google OAuth login + `isAdmin` flag.
 - Non-auth state: Shows a lock screen with "請透過 header 登入" message (no redirect).
 
 **Code Reference**:
+
 ```typescript
 // src/components/auth-guard/auth-guard.tsx
 type AuthGuardVariant = 'staffAdmin' | 'backup' | 'productAdmin'
@@ -449,6 +493,7 @@ return <>{children}</>
 ```
 
 **Scenario**:
+
 - App starts (no login screen)
 - OrderPage immediately shows product grid + cart panel
 - Staff places orders without identity attribution
@@ -459,6 +504,7 @@ return <>{children}</>
 **Testing**: ✓ Covered in auth-guard tests and order-store tests
 
 **Related Flows**:
+
 - Order Entry (Section 4.2)
 - Staff Management (Section 4.12)
 - Google OAuth Binding (Section 4.13)
@@ -472,6 +518,7 @@ return <>{children}</>
 **Rationale**: Preserves audit trail. `original_total` field captures pre-edit total. Allows historical queries like "what did this order contain originally?"
 
 **Enforcement**:
+
 - Load Original: `src/lib/repositories/order-repository.ts` (findById method)
   - Queries order_items and order_discounts by order_id
   - Reconstructs full order with all relations
@@ -486,6 +533,7 @@ return <>{children}</>
   5. Update order.total and set order.original_total (if different)
 
 **Code Reference**:
+
 ```typescript
 // src/lib/repositories/order-item-repository.ts
 async removeByOrderId(orderId) {
@@ -505,6 +553,7 @@ if (editingOrderId) {
 ```
 
 **Audit Trail**:
+
 - original_total preserves pre-edit total
 - Order.updated_at updated on re-submit
 - Old items are gone (no soft-delete on order_items)
@@ -513,6 +562,7 @@ if (editingOrderId) {
 **Testing**: ✓ Covered in order edit tests
 
 **Related Flows**:
+
 - Order Entry (Section 4.2)
 - Order Edit (Section 4.3)
 
@@ -523,42 +573,46 @@ if (editingOrderId) {
 **Rule**: Database backup compressed via browser CompressionStream before uploading to R2 to minimize bandwidth.
 
 **Rationale**: Typical SQLite database:
+
 - Raw: ~5MB
 - Gzipped: ~1–2MB
 - Savings: 60–80% bandwidth reduction
 - Browser CompressionStream API: native, no library dependency
 
 **Enforcement**:
+
 - Compression: `src/lib/backup.ts:26–52` (compress function)
   ```typescript
   async function compress(data: Uint8Array) {
-    const cs = new CompressionStream('gzip');
-    const writer = cs.writable.getWriter();
-    writer.write(data);
-    writer.close();
-    return new Uint8Array(await readableStreamToArray(cs.readable));
+    const cs = new CompressionStream('gzip')
+    const writer = cs.writable.getWriter()
+    writer.write(data)
+    writer.close()
+    return new Uint8Array(await readableStreamToArray(cs.readable))
   }
   ```
 - Decompression: `src/lib/backup.ts:57–83` (decompress function)
   ```typescript
   async function decompress(data: Uint8Array) {
-    const dcs = new DecompressionStream('gzip');
-    const writer = dcs.writable.getWriter();
-    writer.write(data);
-    writer.close();
-    return new Uint8Array(await readableStreamToArray(dcs.readable));
+    const dcs = new DecompressionStream('gzip')
+    const writer = dcs.writable.getWriter()
+    writer.write(data)
+    writer.close()
+    return new Uint8Array(await readableStreamToArray(dcs.readable))
   }
   ```
 - Transport: Presigned URL upload carries `.sqlite.gz` file
 - Backup Log: BackupLogRepository.create({ size: compressedBytes })
 
 **Example**:
+
 - Raw DB export: 5,242,880 bytes (5 MB)
 - After gzip: 1,310,720 bytes (1.25 MB)
 - Savings: ~75%
 - Upload time (1 Mbps): 5s instead of 42s
 
 **Browser Support**: CompressionStream API supported in:
+
 - Chrome 80+
 - Safari 16.4+
 - Firefox (not yet; fallback to external library)
@@ -566,6 +620,7 @@ if (editingOrderId) {
 **Testing**: ✓ Covered in backup.ts tests
 
 **Related Files**:
+
 - `src/lib/backup.ts` (compression logic)
 - `src/lib/repositories/backup-log-repository.ts` (size tracking)
 - `api/backup/complete.ts` (backend verification)
@@ -574,24 +629,25 @@ if (editingOrderId) {
 
 ## Summary Table
 
-| # | Rule | Enforcement File | Key Function |
-|----|------|-----------------|----------------|
-| 1 | Stall Auto-Memo | `src/stores/order-store.ts` | submitOrder |
-| 2 | Taiwan Timezone | `src/lib/backup-schedule.ts` | isBackupOverdue |
-| 3 | Backup Retention | `api/backup/complete.ts` | deleteOldBackups |
-| 4 | Snapshot Price | `src/lib/repositories/order-item-repository.ts` | createBatch |
-| 5 | V1 Idempotency | `src/lib/v1-data-importer.ts` | buildInsertSql |
-| 6 | Employee Soft-Delete | `src/lib/schema.ts` | status CHECK constraint |
-| 7 | Order Numbering | `src/lib/repositories/order-repository.ts` | getNextOrderNumber |
-| 8 | Init UI Duration | `src/stores/init-store.ts` | setShowInitUI |
-| 9 | Portrait Orientation | `src/routes/route-tree.tsx` | useSyncExternalStore |
-| 10 | Device Identity | `src/lib/device.ts` | getDeviceId |
-| 11 | No Global Login | `src/components/auth-guard/auth-guard.tsx` | AuthGuard |
-| 12 | Order Edit | `src/lib/repositories/order-item-repository.ts` | removeByOrderId |
-| 13 | Gzip Compression | `src/lib/backup.ts` | compress |
+| #   | Rule                 | Enforcement File                                | Key Function            |
+| --- | -------------------- | ----------------------------------------------- | ----------------------- |
+| 1   | Stall Auto-Memo      | `src/stores/order-store.ts`                     | submitOrder             |
+| 2   | Taiwan Timezone      | `src/lib/backup-schedule.ts`                    | isBackupOverdue         |
+| 3   | Backup Retention     | `api/backup/complete.ts`                        | deleteOldBackups        |
+| 4   | Snapshot Price       | `src/lib/repositories/order-item-repository.ts` | createBatch             |
+| 5   | V1 Idempotency       | `src/lib/v1-data-importer.ts`                   | buildInsertSql          |
+| 6   | Employee Soft-Delete | `src/lib/schema.ts`                             | status CHECK constraint |
+| 7   | Order Numbering      | `src/lib/repositories/order-repository.ts`      | getNextOrderNumber      |
+| 8   | Init UI Duration     | `src/stores/init-store.ts`                      | setShowInitUI           |
+| 9   | Portrait Orientation | `src/routes/route-tree.tsx`                     | useSyncExternalStore    |
+| 10  | Device Identity      | `src/lib/device.ts`                             | getDeviceId             |
+| 11  | No Global Login      | `src/components/auth-guard/auth-guard.tsx`      | AuthGuard               |
+| 12  | Order Edit           | `src/lib/repositories/order-item-repository.ts` | removeByOrderId         |
+| 13  | Gzip Compression     | `src/lib/backup.ts`                             | compress                |
 
 ---
 
 **Next Steps:**
+
 - For flows that enforce these rules, see [04-operational-flows.md](04-operational-flows.md)
 - For entities affected by rules, see [02-entities.md](02-entities.md)
