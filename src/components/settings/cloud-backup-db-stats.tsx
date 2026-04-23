@@ -135,10 +135,9 @@ export function CloudBackupDbStats() {
   const finishBackup = useBackupStore(s => s.finishBackup)
   const setLastBackupTime = useBackupStore(s => s.setLastBackupTime)
 
-  // Show the skeleton during initial load, background refetches, and while
-  // a manual backup is in flight — gives immediate feedback when the user
-  // clicks "立即備份" without waiting for the post-backup refetch.
-  const showSkeleton = isLoading || isFetching || isBackingUp
+  // Show the skeleton during initial load and background refetches
+  // triggered after a successful manual backup.
+  const showSkeleton = isLoading || isFetching
 
   const handleBackupNow = useCallback(async () => {
     startBackup()

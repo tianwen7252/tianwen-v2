@@ -18,16 +18,15 @@ export function CloudBackupStatus() {
   const { t } = useTranslation()
   const lastBackupTime = useBackupStore(s => s.lastBackupTime)
   const scheduleType = useBackupStore(s => s.scheduleType) as ScheduleType
-  const isBackingUp = useBackupStore(s => s.isBackingUp)
   const { totalSize, latestBackup, isLoading, isFetching, error } =
     useCloudBackups()
 
   // Use runtime lastBackupTime if available, otherwise fall back to cloud latest
   const effectiveLastBackup = lastBackupTime ?? latestBackup?.createdAt ?? null
 
-  // Show the skeleton for initial load, background refetches, and while a
-  // manual backup is in flight so users see immediate feedback on click.
-  const showSkeleton = isLoading || isFetching || isBackingUp
+  // Show the skeleton for initial load and background refetches (e.g. after
+  // a successful manual backup triggers refetchQueries).
+  const showSkeleton = isLoading || isFetching
 
   const cloudSizeDisplay = error ? '—' : formatBytes(totalSize)
 
