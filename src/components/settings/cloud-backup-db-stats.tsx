@@ -96,9 +96,6 @@ export function CloudBackupDbStats() {
   const { tables, totalRows, isLoading: isDbStatsLoading } = useDbStats()
   const { backupCount, totalSize, latestBackup, isLoading, isFetching, error } =
     useCloudBackups()
-  // Show the skeleton during both initial load and background refetches
-  // so "立即備份" → invalidate triggers a visible loading state.
-  const showSkeleton = isLoading || isFetching
 
   // Restore state
   const [restoreConfirmOpen, setRestoreConfirmOpen] = useState(false)
@@ -138,6 +135,11 @@ export function CloudBackupDbStats() {
   const finishBackup = useBackupStore(s => s.finishBackup)
   const setLastBackupTime = useBackupStore(s => s.setLastBackupTime)
 
+  // Show the skeleton during initial load, background refetches, and while
+  // a manual backup is in flight — gives immediate feedback when the user
+  // clicks "立即備份" without waiting for the post-backup refetch.
+  const showSkeleton = isLoading || isFetching || isBackingUp
+
   const handleBackupNow = useCallback(async () => {
     startBackup()
     try {
@@ -145,6 +147,14 @@ export function CloudBackupDbStats() {
       setLastBackupTime(new Date().toISOString())
       finishBackup()
       notify.success(t('backup.backupSuccess'))
+      // Wait one tick for R2 list-objects to see the just-completed PUT,
+      // then force-refetch the cloud-backups query so every consumer
+      // (Status, DbStats, History) reflects the new file immediately.
+      await new Promise(resolve => setTimeout(resolve, 300))
+      await queryClient.refetchQueries({
+        queryKey: ['cloud-backups'],
+        type: 'all',
+      })
     } catch (error: unknown) {
       const message =
         error instanceof Error ? error.message : 'Unknown backup error'
@@ -161,7 +171,7 @@ export function CloudBackupDbStats() {
       }
       notify.error(t('backup.backupFailed'))
     }
-  }, [startBackup, finishBackup, setLastBackupTime, t])
+  }, [startBackup, finishBackup, setLastBackupTime, queryClient, t])
 
   const handleExportDb = useCallback(async () => {
     try {

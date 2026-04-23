@@ -13,6 +13,7 @@ import { ConfirmModal } from '@/components/modal/modal'
 import { notify } from '@/components/ui/sonner'
 import { InitOverlay } from '@/components/init-ui'
 import { useCloudBackups } from '@/hooks/use-cloud-backups'
+import { useBackupStore } from '@/stores/backup-store'
 import { createBackupService, decompress } from '@/lib/backup'
 import { getDatabase } from '@/lib/repositories/provider'
 import { bufferLog, flushLogBuffer } from '@/lib/log-buffer'
@@ -91,9 +92,11 @@ function HistorySkeleton() {
 export function CloudBackupHistory() {
   const { t } = useTranslation()
   const { backups, isLoading, isFetching } = useCloudBackups()
-  // Show the skeleton on initial load AND during refetches triggered by
-  // actions like "立即備份" invalidating the query.
-  const showSkeleton = isLoading || isFetching
+  const isBackingUp = useBackupStore(s => s.isBackingUp)
+  // Show the skeleton on initial load, background refetches, and while a
+  // manual backup is in flight — "立即備份" should flip the skeleton on
+  // immediately rather than waiting for the post-backup refetch.
+  const showSkeleton = isLoading || isFetching || isBackingUp
 
   // Import confirmation modal state
   const [confirmFilename, setConfirmFilename] = useState<string | null>(null)
