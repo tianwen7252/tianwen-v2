@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next'
 import dayjs from 'dayjs'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { RippleButton } from '@/components/ui/ripple-button'
+import { Skeleton } from '@/components/ui/skeleton'
 import { ConfirmModal } from '@/components/modal/modal'
 import { notify } from '@/components/ui/sonner'
 import { InitOverlay } from '@/components/init-ui'
@@ -33,11 +34,66 @@ function formatSize(bytes: number): string {
   return `${value.toFixed(1)} ${units[i]}`
 }
 
+// ── Skeleton ────────────────────────────────────────────────────────────────
+
+const SKELETON_ROW_COUNT = 3
+
+/**
+ * Placeholder rendered while the R2 list is fetching. Matches the live
+ * table's 4-column layout so the surrounding Card doesn't jump when the
+ * real data arrives.
+ */
+function HistorySkeleton() {
+  return (
+    <div className="overflow-auto">
+      <table className="w-full text-left">
+        <thead>
+          <tr className="border-b text-muted-foreground">
+            <th className="px-2 py-1 w-110">
+              <Skeleton className="h-4 w-20" />
+            </th>
+            <th className="px-2 py-1">
+              <Skeleton className="h-4 w-12" />
+            </th>
+            <th className="px-2 py-1">
+              <Skeleton className="h-4 w-16" />
+            </th>
+            <th className="px-2 py-1 w-20">
+              <Skeleton className="h-4 w-12" />
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {Array.from({ length: SKELETON_ROW_COUNT }).map((_, index) => (
+            <tr key={index} className="border-b">
+              <td className="px-2 py-2">
+                <Skeleton className="h-4 w-full" />
+              </td>
+              <td className="px-2 py-2">
+                <Skeleton className="h-4 w-16" />
+              </td>
+              <td className="px-2 py-2">
+                <Skeleton className="h-4 w-40" />
+              </td>
+              <td className="px-2 py-2">
+                <Skeleton className="h-8 w-20" />
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
 // ── Component ───────────────────────────────────────────────────────────────
 
 export function CloudBackupHistory() {
   const { t } = useTranslation()
-  const { backups, isLoading } = useCloudBackups()
+  const { backups, isLoading, isFetching } = useCloudBackups()
+  // Show the skeleton on initial load AND during refetches triggered by
+  // actions like "立即備份" invalidating the query.
+  const showSkeleton = isLoading || isFetching
 
   // Import confirmation modal state
   const [confirmFilename, setConfirmFilename] = useState<string | null>(null)
@@ -107,8 +163,8 @@ export function CloudBackupHistory() {
           <CardTitle>{t('backup.history')}</CardTitle>
         </CardHeader>
         <CardContent>
-          {isLoading ? (
-            <p className="text-muted-foreground">...</p>
+          {showSkeleton ? (
+            <HistorySkeleton />
           ) : backups.length === 0 ? (
             <p className="text-muted-foreground">
               {t('backup.noBackupHistory')}

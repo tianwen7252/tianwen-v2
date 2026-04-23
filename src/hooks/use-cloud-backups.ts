@@ -13,7 +13,13 @@ interface CloudBackups {
   readonly totalSize: number
   readonly backupCount: number
   readonly latestBackup: BackupMetadata | null
+  /** True only on the initial load when no cached data exists. */
   readonly isLoading: boolean
+  /**
+   * True whenever the query is in flight, including background refetches
+   * triggered by invalidation (e.g. after a manual backup completes).
+   */
+  readonly isFetching: boolean
   readonly error: Error | null
   readonly refetch: () => void
 }
@@ -25,7 +31,7 @@ const STALE_TIME_MS = 60_000
 // ── Hook ───────────────────────────────────────────────────────────────────
 
 export function useCloudBackups(): CloudBackups {
-  const { data, isLoading, error, refetch } = useQuery({
+  const { data, isLoading, isFetching, error, refetch } = useQuery({
     queryKey: ['cloud-backups'],
     queryFn: () => createBackupService().listBackups(),
     staleTime: STALE_TIME_MS,
@@ -49,6 +55,7 @@ export function useCloudBackups(): CloudBackups {
     backupCount,
     latestBackup,
     isLoading,
+    isFetching,
     error: error instanceof Error ? error : null,
     refetch: () => {
       refetch()
