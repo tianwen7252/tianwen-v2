@@ -28,7 +28,7 @@ function makeOrder(memo: string[] = []): Order {
 }
 
 // Window times from constants/app.ts:
-// MORNING_CHECKOUT_START = '13:00', MORNING_CHECKOUT_END = '14:30'
+// MORNING_CHECKOUT_START = '13:00', MORNING_CHECKOUT_END = '14:00'
 // EVENING_CHECKOUT_START = '19:00', EVENING_CHECKOUT_END = '20:30'
 
 describe('getCurrentShift', () => {
@@ -40,16 +40,16 @@ describe('getCurrentShift', () => {
     expect(getCurrentShift(makeTime(13, 0))).toBe('morning')
   })
 
-  it('returns morning inside window (13:45)', () => {
-    expect(getCurrentShift(makeTime(13, 45))).toBe('morning')
+  it('returns morning inside window (13:30)', () => {
+    expect(getCurrentShift(makeTime(13, 30))).toBe('morning')
   })
 
-  it('returns morning at last minute (14:29)', () => {
-    expect(getCurrentShift(makeTime(14, 29))).toBe('morning')
+  it('returns morning at last minute (13:59)', () => {
+    expect(getCurrentShift(makeTime(13, 59))).toBe('morning')
   })
 
-  it('returns null at morning window end (14:30)', () => {
-    expect(getCurrentShift(makeTime(14, 30))).toBeNull()
+  it('returns null at morning window end (14:00)', () => {
+    expect(getCurrentShift(makeTime(14, 0))).toBeNull()
   })
 
   it('returns null between windows (15:00)', () => {

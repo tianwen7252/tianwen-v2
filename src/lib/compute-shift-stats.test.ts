@@ -63,8 +63,8 @@ function makeCheckout(hour: number, minute: number): ShiftCheckout {
 // ─── getEffectiveCutoff ─────────────────────────────────────────────────────
 
 describe('getEffectiveCutoff', () => {
-  it('returns default MORNING_SHIFT (13:30) when no checkout', () => {
-    expect(getEffectiveCutoff(undefined)).toBe('13:30')
+  it('returns default MORNING_SHIFT (14:00) when no checkout', () => {
+    expect(getEffectiveCutoff(undefined)).toBe('14:00')
   })
 
   it('returns checkout time when checkout is at 13:15 (in window)', () => {
@@ -75,16 +75,16 @@ describe('getEffectiveCutoff', () => {
     expect(getEffectiveCutoff(makeCheckout(13, 0))).toBe('13:00')
   })
 
-  it('returns checkout time when checkout is at 13:30 (window end = MORNING_SHIFT)', () => {
-    expect(getEffectiveCutoff(makeCheckout(13, 30))).toBe('13:30')
+  it('returns checkout time when checkout is at 14:00 (window end = MORNING_SHIFT)', () => {
+    expect(getEffectiveCutoff(makeCheckout(14, 0))).toBe('14:00')
   })
 
-  it('returns default when checkout is at 14:00 (after MORNING_SHIFT)', () => {
-    expect(getEffectiveCutoff(makeCheckout(14, 0))).toBe('13:30')
+  it('returns default when checkout is at 14:30 (after MORNING_SHIFT)', () => {
+    expect(getEffectiveCutoff(makeCheckout(14, 30))).toBe('14:00')
   })
 
   it('returns default when checkout is at 12:59 (before MORNING_CHECKOUT_START)', () => {
-    expect(getEffectiveCutoff(makeCheckout(12, 59))).toBe('13:30')
+    expect(getEffectiveCutoff(makeCheckout(12, 59))).toBe('14:00')
   })
 })
 
@@ -95,12 +95,12 @@ describe('isMorningOrder', () => {
     expect(isMorningOrder(makeOrder(12, 0, 100))).toBe(true)
   })
 
-  it('returns true for order at 13:29 with default cutoff', () => {
-    expect(isMorningOrder(makeOrder(13, 29, 100))).toBe(true)
+  it('returns true for order at 13:59 with default cutoff', () => {
+    expect(isMorningOrder(makeOrder(13, 59, 100))).toBe(true)
   })
 
-  it('returns false for order at 13:30 with default cutoff', () => {
-    expect(isMorningOrder(makeOrder(13, 30, 100))).toBe(false)
+  it('returns false for order at 14:00 with default cutoff', () => {
+    expect(isMorningOrder(makeOrder(14, 0, 100))).toBe(false)
   })
 
   it('returns false for order at 13:20 with cutoff 13:15', () => {
@@ -124,10 +124,10 @@ describe('computeShiftStats', () => {
     makeOrder(11, 30, 150, ['攤位']), // 11:30 + 攤位 → stall
   ]
 
-  it('classifies with default cutoff (13:30)', () => {
+  it('classifies with default cutoff (14:00)', () => {
     const stats = computeShiftStats(orders)
     // stall: 150 (攤位 order)
-    // morning: 100 + 200 + 300 + 400 = 1000 (all before 13:30)
+    // morning: 100 + 200 + 300 + 400 = 1000 (all before 14:00)
     // evening: 500 (17:00)
     expect(stats.stall.revenue).toBe(150)
     expect(stats.stall.count).toBe(1)
@@ -172,7 +172,7 @@ describe('computeShiftStats', () => {
   it('stall orders are not affected by cutoff', () => {
     const stallOrders = [makeOrder(13, 20, 100, ['攤位'])]
     const stats1 = computeShiftStats(stallOrders, '13:00')
-    const stats2 = computeShiftStats(stallOrders, '13:30')
+    const stats2 = computeShiftStats(stallOrders, '14:00')
     expect(stats1.stall.revenue).toBe(100)
     expect(stats2.stall.revenue).toBe(100)
     expect(stats1.morning.revenue).toBe(0)
