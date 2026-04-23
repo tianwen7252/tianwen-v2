@@ -9,6 +9,7 @@ import { MoveDown, Trash2 } from 'lucide-react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { RippleButton } from '@/components/ui/ripple-button'
+import { Skeleton } from '@/components/ui/skeleton'
 import { ConfirmModal } from '@/components/modal/modal'
 import { notify } from '@/components/ui/sonner'
 import { InitOverlay } from '@/components/init-ui'
@@ -62,13 +63,42 @@ const SCHEDULE_OPTIONS: readonly {
   { type: 'none', labelKey: 'backup.scheduleNone' },
 ]
 
+// ── Skeletons ───────────────────────────────────────────────────────────────
+
+/**
+ * Placeholder for the cloud-stats table while the R2 list is fetching.
+ * 4 rows × 2 columns match the final table's layout so the card doesn't
+ * jump when the real data arrives.
+ */
+function CloudStatsSkeleton() {
+  return (
+    <table className="w-full text-left">
+      <tbody>
+        {Array.from({ length: 4 }).map((_, index) => (
+          <tr key={index} className="border-b">
+            <td className="px-2 py-2">
+              <Skeleton className="h-4 w-24" />
+            </td>
+            <td className="px-2 py-2 text-right">
+              <Skeleton className="ml-auto h-4 w-20" />
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  )
+}
+
 // ── Component ───────────────────────────────────────────────────────────────
 
 export function CloudBackupDbStats() {
   const { t } = useTranslation()
-  const { tables, totalRows } = useDbStats()
-  const { backupCount, totalSize, latestBackup, isLoading, error } =
+  const { tables, totalRows, isLoading: isDbStatsLoading } = useDbStats()
+  const { backupCount, totalSize, latestBackup, isLoading, isFetching, error } =
     useCloudBackups()
+  // Show the skeleton during both initial load and background refetches
+  // so "立即備份" → invalidate triggers a visible loading state.
+  const showSkeleton = isLoading || isFetching
 
   // Restore state
   const [restoreConfirmOpen, setRestoreConfirmOpen] = useState(false)
@@ -85,7 +115,7 @@ export function CloudBackupDbStats() {
   // Raw + gzipped byte counts for the active DB and the previous
   // snapshot. A single call keeps both rows in sync and avoids two
   // round-trips to the worker.
-  const { data: dbSizes = ZERO_SIZES } = useQuery({
+  const { data: dbSizes = ZERO_SIZES, isLoading: isDbSizesLoading } = useQuery({
     queryKey: ['db-sizes'],
     queryFn: () => getDatabase().getDatabaseSizes(),
   })
@@ -244,10 +274,14 @@ export function CloudBackupDbStats() {
                   {t('backup.currentDb')}
                 </td>
                 <td className="px-2 py-1 text-right">
-                  {formatSizePair(
-                    dbSizes.current.raw,
-                    dbSizes.current.compressed,
-                    t('backup.compressedLabel'),
+                  {isDbSizesLoading ? (
+                    <Skeleton className="ml-auto h-4 w-40" />
+                  ) : (
+                    formatSizePair(
+                      dbSizes.current.raw,
+                      dbSizes.current.compressed,
+                      t('backup.compressedLabel'),
+                    )
                   )}
                 </td>
               </tr>
@@ -300,14 +334,25 @@ export function CloudBackupDbStats() {
                 </tr>
               </thead>
               <tbody>
-                {tables.map(table => (
-                  <tr key={table.tableName} className="border-b">
-                    <td className="px-2 py-1">{table.tableName}</td>
-                    <td className="px-2 py-1 text-right">
-                      {table.rowCount.toLocaleString('zh-TW')}
-                    </td>
-                  </tr>
-                ))}
+                {isDbStatsLoading
+                  ? Array.from({ length: 5 }).map((_, index) => (
+                      <tr key={`db-skeleton-${index}`} className="border-b">
+                        <td className="px-2 py-2">
+                          <Skeleton className="h-4 w-32" />
+                        </td>
+                        <td className="px-2 py-2 text-right">
+                          <Skeleton className="ml-auto h-4 w-16" />
+                        </td>
+                      </tr>
+                    ))
+                  : tables.map(table => (
+                      <tr key={table.tableName} className="border-b">
+                        <td className="px-2 py-1">{table.tableName}</td>
+                        <td className="px-2 py-1 text-right">
+                          {table.rowCount.toLocaleString('zh-TW')}
+                        </td>
+                      </tr>
+                    ))}
               </tbody>
             </table>
             {tablesOverflow && !tablesExpanded && (
@@ -350,8 +395,8 @@ export function CloudBackupDbStats() {
         <CardContent className="flex flex-1 flex-col">
           {/* Cloud stats */}
           <div className="overflow-auto">
-            {isLoading ? (
-              <p className="px-2 py-4 text-center text-muted-foreground">...</p>
+            {showSkeleton ? (
+              <CloudStatsSkeleton />
             ) : error ? (
               <p className="px-2 py-4 text-center text-muted-foreground">
                 {t('backup.cloudStatsUnavailable')}

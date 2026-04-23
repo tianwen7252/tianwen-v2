@@ -5,9 +5,9 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Loader2 } from 'lucide-react'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { RippleButton } from '@/components/ui/ripple-button'
+import { Skeleton } from '@/components/ui/skeleton'
 import { ConfirmModal } from '@/components/modal/modal'
 import { notify } from '@/components/ui/sonner'
 import { useAppStore } from '@/stores/app-store'
@@ -217,13 +217,40 @@ export function CloudBackupV1Import() {
         {/* Logged in — show file list */}
         {isLoggedIn && (
           <>
-            {/* Loading state */}
+            {/* Loading state — skeleton rows mirroring the file-list table */}
             {loading && (
-              <div className="flex items-center justify-center py-8">
-                <Loader2
-                  size={24}
-                  className="animate-spin text-muted-foreground"
-                />
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b text-left text-muted-foreground">
+                      <th className="pb-2 pr-4">{t('backup.v1FileName')}</th>
+                      <th className="pb-2 pr-4">{t('backup.v1FileSize')}</th>
+                      <th className="pb-2 pr-4">{t('backup.v1FileCreated')}</th>
+                      <th className="pb-2">{t('backup.v1FileAction')}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {Array.from({ length: 3 }).map((_, index) => (
+                      <tr
+                        key={`v1-skeleton-${index}`}
+                        className="border-b last:border-0"
+                      >
+                        <td className="py-3 pr-4">
+                          <Skeleton className="h-4 w-40" />
+                        </td>
+                        <td className="py-3 pr-4">
+                          <Skeleton className="h-4 w-16" />
+                        </td>
+                        <td className="py-3 pr-4">
+                          <Skeleton className="h-4 w-28" />
+                        </td>
+                        <td className="py-3">
+                          <Skeleton className="h-8 w-20" />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             )}
 

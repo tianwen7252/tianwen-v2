@@ -46,9 +46,18 @@ export function CloudBackupActions() {
       setLastBackupTime(new Date().toISOString())
       finishBackup()
       notify.success(t('backup.backupSuccess'))
-      // Refresh the history list so the newly created file appears
-      // (and triggers the skeleton state while the R2 list is re-fetched).
-      await queryClient.invalidateQueries({ queryKey: ['cloud-backups'] })
+      // Force-refresh every consumer of the cloud-backup list (Status,
+      // DbStats, History) so the newly created file appears immediately.
+      // We use refetchQueries (not just invalidateQueries) so the request
+      // always fires regardless of whether the query is currently "fresh"
+      // under its staleTime, and we pass refetchType: 'all' so an inactive
+      // query (e.g. after a route transition) also refreshes. We also wait
+      // one tick for R2 list-objects to see the just-completed PUT.
+      await new Promise(resolve => setTimeout(resolve, 300))
+      await queryClient.refetchQueries({
+        queryKey: ['cloud-backups'],
+        type: 'all',
+      })
     } catch (error: unknown) {
       const message =
         error instanceof Error ? error.message : 'Unknown backup error'
