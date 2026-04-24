@@ -6,21 +6,22 @@ Welcome to the Tianwen V2 Restaurant POS application CODEMAPS. This directory co
 
 ## Quick Navigation
 
-| Document | Purpose | Audience |
-|----------|---------|----------|
-| [01-executive-summary.md](01-executive-summary.md) | 1-page product overview | Everyone |
-| [02-entities.md](02-entities.md) | 13 business entities, fields, lifecycle, relationships | Engineers, architects |
-| [03-business-rules.md](03-business-rules.md) | 13 invariants & rules with enforcement locations | Business analysts, engineers |
-| [04-operational-flows.md](04-operational-flows.md) | 15 end-to-end workflows with entry points & state transitions | Engineers, QA, product |
-| [05-integrations.md](05-integrations.md) | R2, Vercel Functions, Google OAuth, SQLite-OPFS, TanStack Query, Zustand | DevOps, backend engineers |
-| [06-architecture.md](06-architecture.md) | Subsystems, state boundaries, routing, error handling | Architects, senior engineers |
-| [07-glossary.md](07-glossary.md) | Traditional Chinese ↔ English domain vocabulary | All teams |
+| Document                                           | Purpose                                                                  | Audience                     |
+| -------------------------------------------------- | ------------------------------------------------------------------------ | ---------------------------- |
+| [01-executive-summary.md](01-executive-summary.md) | 1-page product overview                                                  | Everyone                     |
+| [02-entities.md](02-entities.md)                   | 13 business entities, fields, lifecycle, relationships                   | Engineers, architects        |
+| [03-business-rules.md](03-business-rules.md)       | 13 invariants & rules with enforcement locations                         | Business analysts, engineers |
+| [04-operational-flows.md](04-operational-flows.md) | 15 end-to-end workflows with entry points & state transitions            | Engineers, QA, product       |
+| [05-integrations.md](05-integrations.md)           | R2, Vercel Functions, Google OAuth, SQLite-OPFS, TanStack Query, Zustand | DevOps, backend engineers    |
+| [06-architecture.md](06-architecture.md)           | Subsystems, state boundaries, routing, error handling                    | Architects, senior engineers |
+| [07-glossary.md](07-glossary.md)                   | Traditional Chinese ↔ English domain vocabulary                          | All teams                    |
 
 ---
 
 ## What is a CODEMAP?
 
 A CODEMAP is a **living architectural document** that:
+
 - Reflects the **actual state** of the codebase
 - Includes **file:line citations** so you can jump to code
 - Maps **business intent** to implementation
@@ -33,20 +34,24 @@ A CODEMAP is a **living architectural document** that:
 The system models a restaurant POS workflow via 13 core tables:
 
 **Core Transactions**
+
 - **Order**: Customer order with items, discounts, fulfillment status
 - **OrderItem**: Line item in order (commodity + snapshot price)
 - **OrderDiscount**: Discount or credit applied to order
 
 **Menu & Operations**
+
 - **Commodity**: Menu item (bento, drink, stall item)
 - **CommodityType**: Category grouping (stall, bento, drink, dumpling, single)
 - **OrderType**: Fulfillment mode (delivery, pickup, dine-in) — proto
 
 **Staff & Time Tracking**
+
 - **Employee**: Staff member with clock-in capability, admin privileges
 - **Attendance**: Daily punch-in/out record per employee
 
 **Auditing & Analytics**
+
 - **BackupLog**: Backup operation audit (manual/auto/v1-import)
 - **ErrorLog**: Application error persistence for diagnostics
 - **PriceChangeLog**: Commodity price edit history
@@ -79,41 +84,46 @@ Core constraints and logic:
 
 End-to-end sequences from user action to persistence:
 
-| # | Flow | Entry Point | Key System Changes |
-|----|------|------------|-------------------|
-| 1 | Bootstrap | App cold-start | Init DB schema, seed data, check auto-backup |
-| 2 | Order Entry | OrderPage | Create order_items, order_discounts, update daily_data |
-| 3 | Order Edit | OrdersPage edit icon | Delete old items, create new ones, preserve original_total |
-| 4 | Mark Served | OrdersPage | Toggle is_served flag |
-| 5 | Clock-In/Out | ClockInPage | Create/update attendance with timestamp |
-| 6 | Product Management | Settings > Products | Update commodity, create price_change_logs |
-| 7 | Analytics | AnalyticsPage | Query daily_data aggregates, render charts |
-| 8 | Manual Backup | Settings > Cloud Backup | Gzip DB, get presigned URL, upload to R2, cleanup |
-| 9 | Auto-Backup | useAutoBackup hook | Check schedule, trigger backup if overdue |
-| 10 | Cloud Restore | Settings > Restore | Download from R2, decompress, replace DB |
-| 11 | V1→V2 Import | First launch (if legacy data) | Transform Dexie data, INSERT OR IGNORE |
-| 12 | Staff Management | Settings > Staff | Add/edit/soft-delete employees |
-| 13 | Google OAuth | Staff card > Link Google | Bind employee to Google account |
-| 14 | Error Handling | Any exception | Log to error_logs, show ErrorOverlay |
-| 15 | PWA Update | Service Worker | Detect new version, reload app |
+| #   | Flow               | Entry Point                   | Key System Changes                                         |
+| --- | ------------------ | ----------------------------- | ---------------------------------------------------------- |
+| 1   | Bootstrap          | App cold-start                | Init DB schema, seed data, check auto-backup               |
+| 2   | Order Entry        | OrderPage                     | Create order_items, order_discounts, update daily_data     |
+| 3   | Order Edit         | OrdersPage edit icon          | Delete old items, create new ones, preserve original_total |
+| 4   | Mark Served        | OrdersPage                    | Toggle is_served flag                                      |
+| 5   | Clock-In/Out       | ClockInPage                   | Create/update attendance with timestamp                    |
+| 6   | Product Management | Settings > Products           | Update commodity, create price_change_logs                 |
+| 7   | Analytics          | AnalyticsPage                 | Query daily_data aggregates, render charts                 |
+| 8   | Manual Backup      | Settings > Cloud Backup       | Gzip DB, get presigned URL, upload to R2, cleanup          |
+| 9   | Auto-Backup        | useAutoBackup hook            | Check schedule, trigger backup if overdue                  |
+| 10  | Cloud Restore      | Settings > Restore            | Download from R2, decompress, replace DB                   |
+| 11  | V1→V2 Import       | First launch (if legacy data) | Transform Dexie data, INSERT OR IGNORE                     |
+| 12  | Staff Management   | Settings > Staff              | Add/edit/soft-delete employees                             |
+| 13  | Google OAuth       | Staff card > Link Google      | Bind employee to Google account                            |
+| 14  | Error Handling     | Any exception                 | Log to error_logs, show ErrorOverlay                       |
+| 15  | PWA Update         | Service Worker                | Detect new version, reload app                             |
 
 ---
 
 ## External Integrations (6 Systems)
 
 **Data Persistence**
+
 - **SQLite WASM + OPFS**: Client-side persistent database (offline-capable)
 
 **Cloud Storage & Backup**
+
 - **Cloudflare R2**: Backup file storage (S3-compatible)
 
 **Backend & API**
+
 - **Vercel Serverless Functions**: Presigned URLs, backup verification, health checks
 
 **Authentication**
+
 - **Google Identity Services (OAuth)**: Staff account binding
 
 **State Management**
+
 - **Zustand**: Session state (orders, app config)
 - **TanStack Query**: Server state caching (mostly unused; future ready)
 
@@ -162,16 +172,16 @@ End-to-end sequences from user action to persistence:
 
 ## Key Technologies
 
-| Layer | Technology |
-|-------|-----------|
-| **Frontend** | React 19, TanStack Router, Tailwind CSS v4 |
-| **UI Components** | shadcn/ui, Radix UI, Magic UI |
-| **State** | Zustand, TanStack Query |
-| **Forms** | React Hook Form, Zod |
-| **Database** | SQLite WASM, OPFS (Open File System Access) |
-| **Backup** | Cloudflare R2, Vercel Functions |
-| **Auth** | Google OAuth, device identity |
-| **Deployment** | Vercel (frontend + serverless functions) |
+| Layer             | Technology                                  |
+| ----------------- | ------------------------------------------- |
+| **Frontend**      | React 19, TanStack Router, Tailwind CSS v4  |
+| **UI Components** | shadcn/ui, Radix UI, Magic UI               |
+| **State**         | Zustand, TanStack Query                     |
+| **Forms**         | React Hook Form, Zod                        |
+| **Database**      | SQLite WASM, OPFS (Open File System Access) |
+| **Backup**        | Cloudflare R2, Vercel Functions             |
+| **Auth**          | Google OAuth, device identity               |
+| **Deployment**    | Vercel (frontend + serverless functions)    |
 
 ---
 

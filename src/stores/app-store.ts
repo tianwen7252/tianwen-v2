@@ -130,7 +130,7 @@ export function isAdminUser(sub: string): boolean {
 
 const persisted = loadPersistedUser()
 
-export const useAppStore = create<AppState & AppActions>((set) => ({
+export const useAppStore = create<AppState & AppActions>(set => ({
   googleUser: persisted.user,
   accessToken: persisted.token,
   isAdmin: persisted.user ? isAdminUser(persisted.user.sub) : false,

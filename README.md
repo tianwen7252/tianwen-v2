@@ -28,15 +28,15 @@ pnpm dev
 
 ## Scripts
 
-| Command | Description |
-|---------|-------------|
-| `pnpm dev` | Start dev server |
-| `pnpm build` | Type-check and build for production |
-| `pnpm test` | Run unit tests |
-| `pnpm test:watch` | Run tests in watch mode |
-| `pnpm coverage` | Run tests with coverage |
-| `pnpm lint` | Lint with Oxlint |
-| `pnpm format` | Format with Oxfmt |
+| Command           | Description                         |
+| ----------------- | ----------------------------------- |
+| `pnpm dev`        | Start dev server                    |
+| `pnpm build`      | Type-check and build for production |
+| `pnpm test`       | Run unit tests                      |
+| `pnpm test:watch` | Run tests in watch mode             |
+| `pnpm coverage`   | Run tests with coverage             |
+| `pnpm lint`       | Lint with Oxlint                    |
+| `pnpm format`     | Format with Oxfmt                   |
 
 ## Git Workflow
 

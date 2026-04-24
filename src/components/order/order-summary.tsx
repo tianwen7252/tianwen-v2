@@ -1,5 +1,6 @@
 import { Utensils, Soup } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { tutorialAnchor } from '@/lib/tutorial/tutorial-anchor'
 
 export interface OrderSummaryProps {
   readonly bentoCount: number
@@ -18,7 +19,7 @@ export function OrderSummary({
 }: OrderSummaryProps) {
   const { t } = useTranslation()
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-2" {...tutorialAnchor('order.summary')}>
       {/* Bento + Soup count row (only when bento items exist) */}
       {bentoCount > 0 && (
         <div

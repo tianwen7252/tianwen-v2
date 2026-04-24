@@ -5,13 +5,14 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Loader2 } from 'lucide-react'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { RippleButton } from '@/components/ui/ripple-button'
+import { Skeleton } from '@/components/ui/skeleton'
 import { ConfirmModal } from '@/components/modal/modal'
 import { notify } from '@/components/ui/sonner'
 import { useAppStore } from '@/stores/app-store'
 import { useGoogleAuth } from '@/hooks/use-google-auth'
+import { tutorialAnchor } from '@/lib/tutorial/tutorial-anchor'
 import {
   listDriveBackupFiles,
   downloadDriveFile,
@@ -60,7 +61,7 @@ function formatDate(isoDate: string): string {
 
 export function CloudBackupV1Import() {
   const { t } = useTranslation()
-  const accessToken = useAppStore((s) => s.accessToken)
+  const accessToken = useAppStore(s => s.accessToken)
   const { login, isLoggedIn, refreshToken, handleAuthError } = useGoogleAuth()
 
   const [files, setFiles] = useState<readonly DriveFile[]>([])
@@ -86,7 +87,7 @@ export function CloudBackupV1Import() {
       setLoading(true)
       try {
         const result = await withTokenRefresh(
-          (token) => listDriveBackupFiles(token),
+          token => listDriveBackupFiles(token),
           accessToken!,
           refreshToken,
         )
@@ -144,7 +145,7 @@ export function CloudBackupV1Import() {
         tableName: 'downloading',
       })
       const buffer = await withTokenRefresh(
-        (token) => downloadDriveFile(token, selectedFile.id),
+        token => downloadDriveFile(token, selectedFile.id),
         accessToken,
         refreshToken,
       )
@@ -162,7 +163,7 @@ export function CloudBackupV1Import() {
 
       // Phase 3: Import into SQLite with per-table progress
       const db = getDatabase()
-      const result = await importV1Data(db, transformed, (progress) => {
+      const result = await importV1Data(db, transformed, progress => {
         setImportProgress(progress)
       })
 
@@ -196,7 +197,7 @@ export function CloudBackupV1Import() {
   }, [])
 
   return (
-    <Card>
+    <Card {...tutorialAnchor('settings.cloudBackup.v1Import')}>
       <CardHeader>
         <CardTitle>{t('backup.v1Import')}</CardTitle>
       </CardHeader>
@@ -216,13 +217,40 @@ export function CloudBackupV1Import() {
         {/* Logged in — show file list */}
         {isLoggedIn && (
           <>
-            {/* Loading state */}
+            {/* Loading state — skeleton rows mirroring the file-list table */}
             {loading && (
-              <div className="flex items-center justify-center py-8">
-                <Loader2
-                  size={24}
-                  className="animate-spin text-muted-foreground"
-                />
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b text-left text-muted-foreground">
+                      <th className="pb-2 pr-4">{t('backup.v1FileName')}</th>
+                      <th className="pb-2 pr-4">{t('backup.v1FileSize')}</th>
+                      <th className="pb-2 pr-4">{t('backup.v1FileCreated')}</th>
+                      <th className="pb-2">{t('backup.v1FileAction')}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {Array.from({ length: 3 }).map((_, index) => (
+                      <tr
+                        key={`v1-skeleton-${index}`}
+                        className="border-b last:border-0"
+                      >
+                        <td className="py-3 pr-4">
+                          <Skeleton className="h-4 w-40" />
+                        </td>
+                        <td className="py-3 pr-4">
+                          <Skeleton className="h-4 w-16" />
+                        </td>
+                        <td className="py-3 pr-4">
+                          <Skeleton className="h-4 w-28" />
+                        </td>
+                        <td className="py-3">
+                          <Skeleton className="h-8 w-20" />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             )}
 
@@ -246,7 +274,7 @@ export function CloudBackupV1Import() {
                     </tr>
                   </thead>
                   <tbody>
-                    {files.map((file) => (
+                    {files.map(file => (
                       <tr key={file.id} className="border-b last:border-0">
                         <td className="py-3 pr-4">{file.name}</td>
                         <td className="py-3 pr-4">

@@ -6,10 +6,7 @@
 import { useState, useRef, useCallback } from 'react'
 import { RippleButton } from '@/components/ui/ripple-button'
 import { V1ImportModal } from '@/components/settings/v1-import-modal'
-import type {
-  V1ImportProgress,
-  V1ImportResult,
-} from '@/lib/v1-data-importer'
+import type { V1ImportProgress, V1ImportResult } from '@/lib/v1-data-importer'
 
 // ── Fake data for simulation ───────────────────────────────────────────────
 
@@ -72,7 +69,8 @@ export function V1ImportPreview() {
         }
 
         // Small tables finish in one tick, large tables advance in bigger chunks
-        const step = phase.total <= 100 ? phase.total : Math.ceil(phase.total / 3)
+        const step =
+          phase.total <= 100 ? phase.total : Math.ceil(phase.total / 3)
         current = Math.min(current + step, phase.total)
 
         setProgress({

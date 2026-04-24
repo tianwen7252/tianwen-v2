@@ -13,6 +13,7 @@ import { useGoogleAuth } from '@/hooks/use-google-auth'
 import { resolveAvatarSrc } from '@/lib/resolve-avatar-src'
 import { ConfirmModal } from '@/components/modal/modal'
 import { RippleButton } from '@/components/ui/ripple-button'
+import { tutorialAnchor } from '@/lib/tutorial/tutorial-anchor'
 import { cn } from '@/lib/cn'
 
 // ─── Component ───────────────────────────────────────────────────────────────
@@ -63,6 +64,7 @@ export function HeaderUserMenu() {
           rippleColor="rgba(0,0,0,0.1)"
           className="flex size-9 items-center justify-center rounded-full overflow-hidden"
           onClick={() => setLogoutModalOpen(true)}
+          {...tutorialAnchor('header.userMenu')}
         >
           {avatarSrc ? (
             <img
@@ -87,6 +89,7 @@ export function HeaderUserMenu() {
             'text-muted-foreground',
           )}
           onClick={login}
+          {...tutorialAnchor('header.userMenu')}
         >
           <UserRound size={20} />
         </RippleButton>

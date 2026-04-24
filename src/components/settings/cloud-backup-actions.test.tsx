@@ -5,7 +5,30 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import {
+  render as rtlRender,
+  screen,
+  fireEvent,
+  waitFor,
+} from '@testing-library/react'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import type { ReactElement } from 'react'
+
+// ── Test helpers ────────────────────────────────────────────────────────────
+
+/**
+ * Wrap renders in a fresh QueryClientProvider since CloudBackupActions now
+ * uses useQueryClient() to invalidate the ['cloud-backups'] key after a
+ * successful manual backup.
+ */
+function render(ui: ReactElement) {
+  const client = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  })
+  return rtlRender(
+    <QueryClientProvider client={client}>{ui}</QueryClientProvider>,
+  )
+}
 
 // ── Mocks ───────────────────────────────────────────────────────────────────
 
@@ -281,5 +304,4 @@ describe('CloudBackupActions', () => {
       expect(mockSetSchedule).toHaveBeenCalledWith('none')
     })
   })
-
 })

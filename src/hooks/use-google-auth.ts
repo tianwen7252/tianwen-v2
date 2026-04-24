@@ -53,10 +53,10 @@ declare global {
 
 export function useGoogleAuth() {
   const { t } = useTranslation()
-  const googleUser = useAppStore((s) => s.googleUser)
-  const setGoogleUser = useAppStore((s) => s.setGoogleUser)
-  const appLogout = useAppStore((s) => s.logout)
-  const isAdmin = useAppStore((s) => s.isAdmin)
+  const googleUser = useAppStore(s => s.googleUser)
+  const setGoogleUser = useAppStore(s => s.setGoogleUser)
+  const appLogout = useAppStore(s => s.logout)
+  const isAdmin = useAppStore(s => s.isAdmin)
 
   const tokenClientRef = useRef<TokenClient | null>(null)
 

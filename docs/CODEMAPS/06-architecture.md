@@ -69,6 +69,7 @@ This document describes the high-level architecture, subsystems, state boundarie
 ### 1. Order Entry Subsystem
 
 **Components**:
+
 - `src/pages/order/OrderPage.tsx` — Main order UI with category tabs, commodity grid
 - `src/stores/order-store.ts` — Cart state (items, discounts, operator)
 - `src/lib/repositories/order-repository.ts` — Order persistence
@@ -76,6 +77,7 @@ This document describes the high-level architecture, subsystems, state boundarie
 - `src/lib/repositories/order-discount-repository.ts` — Discount CRUD
 
 **Data Flow**:
+
 ```
 User Input (tap commodity)
     ↓
@@ -97,6 +99,7 @@ Clear cart, show success
 ```
 
 **Key File Locations**:
+
 - `src/pages/order/` — UI components
 - `src/stores/order-store.ts:1–150` — State management
 - `src/lib/repositories/order-*.ts` — Persistence
@@ -106,6 +109,7 @@ Clear cart, show success
 ### 2. Employee Management Subsystem
 
 **Components**:
+
 - `src/pages/clock-in/ClockInPage.tsx` — Clock-in/out UI
 - `src/pages/records/RecordsPage.tsx` — Attendance history (admin view)
 - `src/pages/settings/StaffAdmin.tsx` — Employee CRUD
@@ -113,6 +117,7 @@ Clear cart, show success
 - `src/lib/repositories/attendance-repository.ts` — Attendance CRUD
 
 **Data Flow**:
+
 ```
 Employee Management:
   Admin Input → EmployeeRepository.create/update/delete()
@@ -128,6 +133,7 @@ Clock-In/Out:
 ```
 
 **Key File Locations**:
+
 - `src/pages/clock-in/` — Clock-in UI
 - `src/pages/records/` — Admin records view
 - `src/pages/settings/staff-admin.tsx` — Staff management
@@ -139,12 +145,14 @@ Clock-In/Out:
 ### 3. Product Management Subsystem
 
 **Components**:
+
 - `src/pages/settings/ProductManagement.tsx` — UI for editing commodities
 - `src/lib/repositories/commodity-repository.ts` — Commodity CRUD
 - `src/lib/repositories/commodity-type-repository.ts` — Category CRUD
 - `src/lib/repositories/price-change-log-repository.ts` — Audit trail
 
 **Data Flow**:
+
 ```
 Admin edits commodity (name, price, on_market)
     ↓
@@ -160,11 +168,13 @@ Refresh UI
 ```
 
 **Price Snapshot Protection**:
+
 - When order created, item.price = current commodity.price (snapshot)
 - Future price changes don't affect past orders
 - New orders see new prices
 
 **Key File Locations**:
+
 - `src/pages/settings/product-management.tsx`
 - `src/lib/repositories/commodity-repository.ts`
 - `src/lib/repositories/price-change-log-repository.ts`
@@ -174,12 +184,14 @@ Refresh UI
 ### 4. Analytics Subsystem
 
 **Components**:
+
 - `src/pages/analytics/AnalyticsPage.tsx` — Main dashboard
 - `src/lib/repositories/statistics-repository.ts` — Aggregation queries
 - `src/lib/repositories/daily-data-repository.ts` — Daily revenue aggregates
 - `src/components/charts/` — Recharts visualizations
 
 **Data Flow**:
+
 ```
 User opens Analytics page
     ↓
@@ -202,6 +214,7 @@ Charts update
 **Note**: Analytics is **point-in-time** (no real-time). Refresh page to see new orders.
 
 **Key File Locations**:
+
 - `src/pages/analytics/analytics-page.tsx`
 - `src/lib/repositories/statistics-repository.ts`
 - `src/components/charts/`
@@ -211,6 +224,7 @@ Charts update
 ### 5. Backup & Restore Subsystem
 
 **Components**:
+
 - `src/components/settings/cloud-backup.tsx` — Backup UI
 - `src/lib/backup.ts` — Compression, encryption, upload logic
 - `src/stores/backup-store.ts` — Backup schedule state
@@ -222,6 +236,7 @@ Charts update
 **Data Flow**:
 
 **Manual Backup**:
+
 ```
 User taps "Backup Now"
     ↓
@@ -249,6 +264,7 @@ Show success toast
 ```
 
 **Auto-Backup**:
+
 ```
 App startup → useAutoBackup hook fires
     ↓
@@ -261,6 +277,7 @@ Continue with app
 ```
 
 **Cloud Restore**:
+
 ```
 User taps "Restore from Cloud"
     ↓
@@ -284,6 +301,7 @@ App reloads with restored data
 ```
 
 **Key File Locations**:
+
 - `src/components/settings/cloud-backup.tsx`
 - `src/lib/backup.ts`
 - `src/lib/backup-schedule.ts`
@@ -296,6 +314,7 @@ App reloads with restored data
 ### 6. Bootstrap & Initialization Subsystem
 
 **Components**:
+
 - `src/routes/route-tree.tsx` — RootLayout (bootstrap orchestrator)
 - `src/stores/init-store.ts` — Bootstrap state
 - `src/lib/worker-database.ts` — DB initialization
@@ -304,6 +323,7 @@ App reloads with restored data
 - `src/components/init-ui/InitOverlay.tsx` — Init overlay UI
 
 **Data Flow**:
+
 ```
 1. App mounts → RootLayout renders
     ↓
@@ -327,6 +347,7 @@ App reloads with restored data
 ```
 
 **Key File Locations**:
+
 - `src/routes/route-tree.tsx`
 - `src/stores/init-store.ts`
 - `src/lib/worker-database.ts`
@@ -338,6 +359,7 @@ App reloads with restored data
 ### 7. Error Handling & Diagnostics Subsystem
 
 **Components**:
+
 - `src/lib/error-logger.ts` — logError() function
 - `src/lib/repositories/error-log-repository.ts` — Error persistence
 - `src/components/error-ui/ErrorOverlay.tsx` — Error display
@@ -345,6 +367,7 @@ App reloads with restored data
 - `src/components/AppErrorBoundary.tsx` — Global error boundary
 
 **Data Flow**:
+
 ```
 Exception thrown (async or render)
     ↓
@@ -362,6 +385,7 @@ User action: Retry | Go Home | Reload
 ```
 
 **Multi-Layer**:
+
 1. **Global Render Boundary** (AppErrorBoundary) — catches React render errors
 2. **Page-Level Boundaries** — isolate page crashes
 3. **Async Try-Catch** — log and recover in effects/handlers
@@ -369,6 +393,7 @@ User action: Retry | Go Home | Reload
 5. **Persistent Logging** — error_logs table for diagnostics
 
 **Key File Locations**:
+
 - `src/lib/error-logger.ts`
 - `src/lib/repositories/error-log-repository.ts`
 - `src/components/error-ui/`
@@ -381,10 +406,12 @@ User action: Retry | Go Home | Reload
 ### UI State (Zustand Stores)
 
 **Ephemeral** (cleared on app reload):
+
 - `useOrderStore` — cart (items, discounts, operator, edit mode)
 - `useInitStore` — bootstrap flags, overlay visibility
 
 **Persisted** (via localStorage or SQLite):
+
 - `useBackupStore` — schedule type, last backup time (hydrated from DB on startup)
 - `useAppStore` — theme, language, device settings
 
@@ -395,6 +422,7 @@ User action: Retry | Go Home | Reload
 ### Business State (SQLite Database)
 
 **Persistent** (survives app reload and device reboot):
+
 - Orders, order_items, order_discounts
 - Employees, attendances
 - Commodities, commodity_types
@@ -408,6 +436,7 @@ User action: Retry | Go Home | Reload
 ### Cloud State (Cloudflare R2)
 
 **Persisted Backups**:
+
 - Database snapshots (gzip-compressed `.sqlite.gz`)
 - Max 30 per device
 
@@ -418,6 +447,7 @@ User action: Retry | Go Home | Reload
 ### Server State (Vercel Functions + R2)
 
 **Transient**:
+
 - Presigned URLs (10-minute lifetime)
 - Backup cleanup job (runs on each upload completion)
 
@@ -432,35 +462,41 @@ User action: Retry | Go Home | Reload
 **Framework**: TanStack Router (file-based routing)
 
 **Configuration** (src/routes/route-tree.tsx):
+
 ```typescript
 const rootRoute = createRootRoute({
   component: RootLayout, // Wraps all pages with nav, overlays
-});
+})
 
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/',
   component: OrderPage,
-});
+})
 
 const clockInRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/clock-in',
   component: ClockInPage,
-});
+})
 
 const settingsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/settings',
   component: SettingsPage,
   // Nested: /settings/staff, /settings/products, /settings/backup
-});
+})
 
 // Export routes
-const routeTree = rootRoute.addChildren([indexRoute, clockInRoute, settingsRoute]);
+const routeTree = rootRoute.addChildren([
+  indexRoute,
+  clockInRoute,
+  settingsRoute,
+])
 ```
 
 **Page Structure**:
+
 ```
 Root Layout (navigation bar, overlays)
   ├── OrderPage (/)
@@ -477,6 +513,7 @@ Root Layout (navigation bar, overlays)
 ```
 
 **Lazy Loading**:
+
 - Main pages (OrderPage, ClockInPage, etc.) → separate chunks
 - Reduces initial bundle
 - Chunks loaded on-demand when user navigates
@@ -494,15 +531,18 @@ Root Layout (navigation bar, overlays)
 **Purpose**: Database initialization and minimum 5-second display
 
 **States**:
+
 - `showing=true` — InitOverlay displayed
 - `shownAt: timestamp` — When overlay first shown
 - `canDismiss: elapsed >= 5000ms`
 
 **Triggers**:
+
 - App cold-start (Bootstrap flow)
 - DB re-initialization (restore, error recovery)
 
 **Content**:
+
 - Spinner + "Initializing database..." message
 - Optional progress (V1 import shows phases)
 
@@ -511,15 +551,18 @@ Root Layout (navigation bar, overlays)
 **Purpose**: Display application errors with recovery options
 
 **States**:
+
 - `error: { message, source, stack }`
 - `dismissible: boolean` (critical errors may not be dismissible)
 
 **Triggers**:
+
 - Caught exception in try-catch
 - React error boundary
 - API call failure
 
 **Content**:
+
 - Error message
 - Optional stack trace (dev mode)
 - "Retry" button (re-trigger operation)
@@ -527,6 +570,7 @@ Root Layout (navigation bar, overlays)
 - Optional "Reload" button (hard reload)
 
 **Variants**:
+
 - Modal dialog (soft errors)
 - Full-screen canvas (critical, with WebGL error animation)
 
@@ -535,16 +579,19 @@ Root Layout (navigation bar, overlays)
 **Purpose**: Progress indicator for long-running operations
 
 **States**:
+
 - `visible: boolean`
 - `progress: number` (0–100)
 - `message: string` ("Backing up...", "Restoring...", etc.)
 
 **Triggers**:
+
 - Manual backup (progress: 0 → 30 → 50 → 90 → 100)
 - Cloud restore (progress: download → decompress → replace DB)
 - App portrait enforcement (while waiting for device rotation)
 
 **Content**:
+
 - Progress bar or spinner
 - Message text
 - Optional cancel button
@@ -556,17 +603,17 @@ Root Layout (navigation bar, overlays)
 export function RootLayout() {
   const { showInitUI, bootstrapDone } = useInitStore();
   const { isBackingUp, progress } = useBackupStore();
-  
+
   return (
     <>
       {/* Main content */}
       {bootstrapDone && <Outlet />}
-      
+
       {/* Overlays (layered) */}
       {showInitUI && <InitOverlay />}
       {errorState && <ErrorOverlay />}
       {isBackingUp && <WaitingOverlay progress={progress} />}
-      
+
       {/* Portrait enforcement */}
       {!isPortrait && <WaitingOverlay message="Please rotate device" />}
     </>
@@ -575,6 +622,7 @@ export function RootLayout() {
 ```
 
 **Z-Index Ordering**:
+
 1. InitOverlay (highest, blocks app during init)
 2. ErrorOverlay (high, shows error)
 3. WaitingOverlay (medium, progress indicator)
@@ -591,17 +639,17 @@ export function RootLayout() {
 Core Transactions:
   Order → (1:N) OrderItem
   Order → (1:N) OrderDiscount
-  
+
 Menu & Operations:
   CommodityType → (1:N) Commodity
   Commodity → (1:N) OrderItem
   Commodity → (1:N) PriceChangeLog
   OrderType (proto; unused)
-  
+
 Staff & Time:
   Employee → (1:N) Attendance
   Employee ← (loose ref) Order.editor
-  
+
 Auditing & Analytics:
   BackupLog (backup operations)
   ErrorLog (diagnostics)
@@ -610,6 +658,7 @@ Auditing & Analytics:
 ```
 
 **Relationship Patterns**:
+
 - **Hard FK**: Orders → OrderItems (not deletable without constraint check)
 - **Loose Ref**: Order.editor → Employees (soft reference; deletes allowed)
 - **Aggregate**: DailyData aggregates Orders by date
@@ -620,18 +669,21 @@ Auditing & Analytics:
 ## Performance Optimizations
 
 ### Database Query Optimization
+
 - **Indexes**: Created on frequently queried columns (date, employee_id, commodity_id)
 - **Aggregates**: DailyData pre-computed for fast analytics queries
 - **Pagination**: Orders listed by date range (not unbounded)
 - **Lazy Loading**: Related entities (items, discounts) loaded on-demand
 
 ### Bundle Optimization
+
 - **Code Splitting**: Pages lazy-loaded (separate chunks)
 - **Tree Shaking**: Unused code removed
 - **Compression**: Gzip on server (Vercel automatic)
 - **No Animation Library**: CSS keyframes instead of Framer Motion
 
 ### UI Optimization
+
 - **Virtual Lists**: Not needed (typical <100 orders/day)
 - **Memoization**: useCallback, useMemo for expensive computations
 - **Web Worker**: SQLite queries non-blocking
@@ -642,21 +694,25 @@ Auditing & Analytics:
 ## Security Considerations
 
 ### Client-Side
+
 - No hardcoded secrets (environment variables only)
 - No XSS vectors (React escapes by default)
 - localStorage: No sensitive data (device ID is non-sensitive)
 
 ### Backend (Vercel Functions)
+
 - Credentials stored in env vars (not committed)
 - Presigned URLs expire in 10 minutes
 - R2 bucket private (no public read/write)
 
 ### Data
+
 - SQLite backup gzip-compressed
 - No encrypted backup option (could be added)
 - No user-level access control (device-based, not user-based)
 
 ### Auth
+
 - No global login (staff per-order selection)
 - Google OAuth optional (for multi-device recognition)
 - Admin flag checked locally (no server validation)
@@ -666,6 +722,7 @@ Auditing & Analytics:
 ## Testing Architecture
 
 **Test Organization**:
+
 ```
 src/
   __tests__/
@@ -678,11 +735,13 @@ api/
 ```
 
 **Test Types**:
+
 1. **Unit** — Utility functions, Zustand stores, repositories
 2. **Integration** — Store → Repository → Database
 3. **E2E** — User flows (Playwright) with real SQLite
 
 **Mocks**:
+
 - R2 API (mock S3Client in tests)
 - Dates/timestamps (vi.useFakeTimers)
 - Web Worker (optional; use real async in most tests)
@@ -692,21 +751,25 @@ api/
 ## Deployment Architecture
 
 **Frontend** (src/): Deployed to Vercel
+
 - Automatic builds on push
 - Serverless static hosting
 - CDN distribution
 
 **Backend** (api/): Deployed to Vercel
+
 - Automatic builds from /api directory
 - Serverless Node.js functions
 - Environment variables from Vercel dashboard
 
 **Cloud Storage**: Cloudflare R2
+
 - S3-compatible API
 - Automatic CDN caching for presigned URLs
 - CORS configured for cross-origin requests
 
 **Workflow**:
+
 ```
 Git push → GitHub → Vercel webhook
                       ↓
@@ -742,6 +805,7 @@ Tianwen V2 is a **7-subsystem architecture**:
 ---
 
 **Next Steps:**
+
 - For detailed entity definitions, see [02-entities.md](02-entities.md)
 - For business rules enforced across subsystems, see [03-business-rules.md](03-business-rules.md)
 - For operational workflows, see [04-operational-flows.md](04-operational-flows.md)

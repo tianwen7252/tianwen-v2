@@ -13,6 +13,7 @@ import { ShineBorder } from '@/components/ui/shine-border'
 import { SHINE_COLOR_PRESETS } from '@/constants/shine-colors'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { notify } from '@/components/ui/sonner'
+import { tutorialAnchor } from '@/lib/tutorial/tutorial-anchor'
 import { CommodityTypeSection } from './commodity-type-section'
 import { CommoditySection } from './commodity-section'
 import { OrderTypeSection } from './order-type-section'
@@ -93,7 +94,10 @@ export function ProductManagement() {
   }, [])
 
   return (
-    <div className="space-y-8 p-6">
+    <div
+      className="space-y-8 p-6"
+      {...tutorialAnchor('settings.productManagement')}
+    >
       {/* Header with title and save button */}
       <div className="flex items-center justify-between">
         <h3 className="text-xl font-medium">{t('productMgmt.tabTitle')}</h3>

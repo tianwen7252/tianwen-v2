@@ -167,7 +167,7 @@ export function V1ImportModal({
 
         {/* Table import status list (2 columns on wider modal) */}
         <div className="grid w-full grid-cols-2 gap-x-4 gap-y-2">
-          {IMPORT_ORDER.map((tableName) => {
+          {IMPORT_ORDER.map(tableName => {
             const phase = getTablePhase(tableName, progress, result)
             const count = result?.counts[tableName]
             const isActive = phase === 'active' && progress?.phase === tableName

@@ -214,7 +214,7 @@ export function InitCanvas({ className }: InitCanvasProps) {
                 opacity: 0.6 + Math.random() * 0.4,
                 hitWater: false,
                 restartDelay: 0,
-                chars: col.chars.map((c) => ({ ...c, char: randomChar() })),
+                chars: col.chars.map(c => ({ ...c, char: randomChar() })),
               }
             } else {
               columns[i] = { ...col, restartDelay: 0.3 + Math.random() * 1.5 }
@@ -229,7 +229,7 @@ export function InitCanvas({ className }: InitCanvasProps) {
         const newY = col.y + col.speed * FALL_SPEED * dt * 60
 
         // Cycle characters randomly
-        const newChars = col.chars.map((c) => {
+        const newChars = col.chars.map(c => {
           const newTimer = c.cycleTimer - dt
           if (newTimer <= 0) {
             return { ...c, char: randomChar(), cycleTimer: c.cycleRate }

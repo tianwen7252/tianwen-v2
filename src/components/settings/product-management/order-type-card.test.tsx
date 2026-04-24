@@ -204,7 +204,9 @@ describe('OrderTypeCard', () => {
           onDelete={vi.fn()}
         />,
       )
-      expect(screen.getByText(String(ORDER_TYPE_NO_COLOR.priority))).toBeTruthy()
+      expect(
+        screen.getByText(String(ORDER_TYPE_NO_COLOR.priority)),
+      ).toBeTruthy()
     })
   })
 })

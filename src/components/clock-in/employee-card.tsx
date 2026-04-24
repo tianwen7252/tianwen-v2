@@ -63,7 +63,7 @@ export function EmployeeCard({
       tabIndex={0}
       aria-label={`${employee.name} ${t('nav.clockIn')} — ${badgeText}`}
       onClick={() => onCardClick(employee, records)}
-      onKeyDown={(e) => e.key === 'Enter' && onCardClick(employee, records)}
+      onKeyDown={e => e.key === 'Enter' && onCardClick(employee, records)}
     >
       {/* Avatar with colored border */}
       <div className="mx-auto mb-3">
@@ -139,16 +139,14 @@ export function EmployeeCard({
             <button
               type="button"
               className="rounded-lg border bg-white text-[#444] px-3 py-1.5 text-sm hover:bg-[#6b8058]"
-              onClick={(e) => onButtonAction(e, employee, 'clockIn', undefined)}
+              onClick={e => onButtonAction(e, employee, 'clockIn', undefined)}
             >
               {t('clockIn.clockIn')}
             </button>
             <button
               type="button"
               className="rounded-lg border bg-white text-[#444] px-3 py-1.5 text-sm hover:bg-[#e06868]"
-              onClick={(e) =>
-                onButtonAction(e, employee, 'vacation', undefined)
-              }
+              onClick={e => onButtonAction(e, employee, 'vacation', undefined)}
             >
               {t('clockIn.applyVacation')}
             </button>
@@ -158,7 +156,7 @@ export function EmployeeCard({
           <button
             type="button"
             className="rounded-lg border bg-white text-[#444] px-3 py-1.5 text-sm hover:bg-[#6b8058]"
-            onClick={(e) => onButtonAction(e, employee, 'clockOut', lastRecord)}
+            onClick={e => onButtonAction(e, employee, 'clockOut', lastRecord)}
           >
             {t('clockIn.clockOut')}
           </button>
@@ -167,7 +165,7 @@ export function EmployeeCard({
           <button
             type="button"
             className="rounded-lg border bg-white text-[#444] px-3 py-1.5 text-sm hover:bg-[#6b8058]"
-            onClick={(e) => onButtonAction(e, employee, 'clockIn', undefined)}
+            onClick={e => onButtonAction(e, employee, 'clockIn', undefined)}
           >
             {t('clockIn.clockIn')}
           </button>
@@ -176,7 +174,7 @@ export function EmployeeCard({
           <button
             type="button"
             className="rounded-lg border bg-white text-[#444] px-3 py-1.5 text-sm hover:bg-gray-500"
-            onClick={(e) =>
+            onClick={e =>
               onButtonAction(e, employee, 'cancelVacation', lastRecord)
             }
           >

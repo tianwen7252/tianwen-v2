@@ -88,7 +88,8 @@ async function injectAdminAuth(page: Page): Promise<void> {
 async function seedDefaultEmployees(page: Page): Promise<void> {
   await page.evaluate(async () => {
     try {
-      const { insertDefaultEmployeesAsync } = await import('/src/lib/default-data.ts')
+      const { insertDefaultEmployeesAsync } =
+        await import('/src/lib/default-data.ts')
       const { getDatabase } = await import('/src/lib/repositories/provider.ts')
       const db = getDatabase()
       await insertDefaultEmployeesAsync(db)
@@ -112,7 +113,9 @@ async function gotoWithEmployees(page: Page, path: string): Promise<void> {
   await page.reload({ waitUntil: 'domcontentloaded' })
   await waitForBootstrap(page)
   // Wait for employee cards to render (they are div[role="button"], not <button>)
-  await page.waitForSelector('[data-testid="employee-card"]', { timeout: 15_000 }).catch(() => {})
+  await page
+    .waitForSelector('[data-testid="employee-card"]', { timeout: 15_000 })
+    .catch(() => {})
   await page.waitForTimeout(500)
 }
 
@@ -136,7 +139,9 @@ async function waitForBootstrap(page: Page, retries = 2): Promise<void> {
   // Detect transient OPFS/SQLite errors (error overlay with h1="ERROR")
   // and retry — the lock contention may resolve after a brief pause.
   const errorHeading = page.locator('h1').filter({ hasText: /^ERROR$/ })
-  const headingVisible = await errorHeading.isVisible({ timeout: 500 }).catch(() => false)
+  const headingVisible = await errorHeading
+    .isVisible({ timeout: 500 })
+    .catch(() => false)
   if (headingVisible && retries > 0) {
     // Wait for OPFS to settle, then reload the page in the same context
     await page.waitForTimeout(3000)
@@ -150,15 +155,15 @@ async function exposeStores(page: Page): Promise<void> {
   await page.evaluate(async () => {
     try {
       const initMod = await import('/src/stores/init-store.ts')
-      ;(window as typeof window & { __initStore: unknown }).
-        __initStore = initMod.useInitStore
+      ;(window as typeof window & { __initStore: unknown }).__initStore =
+        initMod.useInitStore
     } catch {
       // Dev TS import may not work in all configs — ignore
     }
     try {
       const appMod = await import('/src/stores/app-store.ts')
-      ;(window as typeof window & { __appStore: unknown }).
-        __appStore = appMod.useAppStore
+      ;(window as typeof window & { __appStore: unknown }).__appStore =
+        appMod.useAppStore
     } catch {
       // Ignore
     }
@@ -168,9 +173,11 @@ async function exposeStores(page: Page): Promise<void> {
 /** Call setForceWaitingUI(true) on the init store if accessible */
 async function forceWaitingUI(page: Page, enabled: boolean): Promise<void> {
   await exposeStores(page)
-  await page.evaluate((en) => {
+  await page.evaluate(en => {
     const w = window as typeof window & {
-      __initStore?: { getState: () => { setForceWaitingUI: (v: boolean) => void } }
+      __initStore?: {
+        getState: () => { setForceWaitingUI: (v: boolean) => void }
+      }
     }
     w.__initStore?.getState().setForceWaitingUI(en)
   }, enabled)
@@ -179,7 +186,7 @@ async function forceWaitingUI(page: Page, enabled: boolean): Promise<void> {
 /** Call setForceInitUI(true) on the init store if accessible */
 async function forceInitUI(page: Page, enabled: boolean): Promise<void> {
   await exposeStores(page)
-  await page.evaluate((en) => {
+  await page.evaluate(en => {
     const w = window as typeof window & {
       __initStore?: { getState: () => { setForceInitUI: (v: boolean) => void } }
     }
@@ -287,7 +294,9 @@ test.describe.serial('00 — 首次設定', () => {
     await shot(page, '00', '00-05')
   })
 
-  test('00-06: ClockInPage with employee cards (overview)', async ({ page }) => {
+  test('00-06: ClockInPage with employee cards (overview)', async ({
+    page,
+  }) => {
     await gotoWithEmployees(page, '/clock-in')
     await page.waitForTimeout(400)
     await shot(page, '00', '00-06')
@@ -323,7 +332,9 @@ test.describe.serial('10 — 點餐操作', () => {
     await shot(page, '10', '10-01')
   })
 
-  test('10-02: Category tabs (different category selected)', async ({ page }) => {
+  test('10-02: Category tabs (different category selected)', async ({
+    page,
+  }) => {
     await page.goto('/', { waitUntil: 'domcontentloaded' })
     await waitForBootstrap(page)
     await page.waitForTimeout(800)
@@ -379,13 +390,19 @@ test.describe.serial('10 — 點餐操作', () => {
     await addProductsToCart(page, 1)
     await page.waitForTimeout(400)
     // Cart item rows show an inline note input or a note icon/button
-    const noteInput = page.locator('input[placeholder*="備註"], input[placeholder*="note"]').first()
+    const noteInput = page
+      .locator('input[placeholder*="備註"], input[placeholder*="note"]')
+      .first()
     if (await noteInput.isVisible({ timeout: 2000 })) {
       await noteInput.fill('不加蛋')
       await page.waitForTimeout(400)
     } else {
       // Look for a pencil/edit icon next to the cart item
-      const editIcon = page.locator('[aria-label*="備註"], [aria-label*="note"], [aria-label*="edit"]').first()
+      const editIcon = page
+        .locator(
+          '[aria-label*="備註"], [aria-label*="note"], [aria-label*="edit"]',
+        )
+        .first()
       if (await editIcon.isVisible({ timeout: 2000 })) {
         await editIcon.click()
         await page.waitForTimeout(400)
@@ -430,7 +447,9 @@ test.describe.serial('10 — 點餐操作', () => {
     await page.waitForTimeout(300)
   })
 
-  test('10-09: Cart with discount (negative calculator entry)', async ({ page }) => {
+  test('10-09: Cart with discount (negative calculator entry)', async ({
+    page,
+  }) => {
     await page.goto('/', { waitUntil: 'domcontentloaded' })
     await waitForBootstrap(page)
     await page.waitForTimeout(800)
@@ -445,7 +464,10 @@ test.describe.serial('10 — 點餐操作', () => {
     await page.keyboard.press('0')
     await page.waitForTimeout(400)
     // Submit via calculator submit button
-    const submitCalcBtn = page.locator('button').filter({ hasText: '確定送出' }).first()
+    const submitCalcBtn = page
+      .locator('button')
+      .filter({ hasText: '確定送出' })
+      .first()
     if (await submitCalcBtn.isVisible({ timeout: 2000 })) {
       await submitCalcBtn.click()
       await page.waitForTimeout(600)
@@ -463,7 +485,9 @@ test.describe.serial('10 — 點餐操作', () => {
     await addProductsToCart(page, 1)
     await page.waitForTimeout(400)
     // Disable quick submit so the confirmation modal appears
-    const quickSwitch = page.locator('[role="switch"], input[type="checkbox"]').first()
+    const quickSwitch = page
+      .locator('[role="switch"], input[type="checkbox"]')
+      .first()
     if (await quickSwitch.isVisible({ timeout: 2000 })) {
       const checked = await quickSwitch.getAttribute('aria-checked')
       if (checked === 'true') {
@@ -471,7 +495,10 @@ test.describe.serial('10 — 點餐操作', () => {
         await page.waitForTimeout(400)
       }
     }
-    const submitBtn = page.locator('button').filter({ hasText: '送出訂單' }).first()
+    const submitBtn = page
+      .locator('button')
+      .filter({ hasText: '送出訂單' })
+      .first()
     if (await submitBtn.isVisible({ timeout: 3000 })) {
       await submitBtn.click()
       await page.waitForTimeout(600)
@@ -488,12 +515,18 @@ test.describe.serial('10 — 點餐操作', () => {
     await page.waitForTimeout(800)
     await addProductsToCart(page, 1)
     await page.waitForTimeout(400)
-    const submitBtn = page.locator('button').filter({ hasText: '送出訂單' }).first()
+    const submitBtn = page
+      .locator('button')
+      .filter({ hasText: '送出訂單' })
+      .first()
     if (await submitBtn.isVisible({ timeout: 3000 })) {
       await submitBtn.click()
       await page.waitForTimeout(500)
       // Accept confirm if it appears
-      const confirmBtn = page.locator('button').filter({ hasText: '確認送出' }).first()
+      const confirmBtn = page
+        .locator('button')
+        .filter({ hasText: '確認送出' })
+        .first()
       if (await confirmBtn.isVisible({ timeout: 1500 })) {
         await confirmBtn.click()
       }
@@ -509,36 +542,53 @@ test.describe.serial('10 — 點餐操作', () => {
     // Submit an order first
     await addProductsToCart(page, 1)
     await page.waitForTimeout(400)
-    const submitBtn = page.locator('button').filter({ hasText: '送出訂單' }).first()
+    const submitBtn = page
+      .locator('button')
+      .filter({ hasText: '送出訂單' })
+      .first()
     if (await submitBtn.isVisible({ timeout: 3000 })) {
       await submitBtn.click()
       await page.waitForTimeout(400)
-      const confirmBtn = page.locator('button').filter({ hasText: '確認送出' }).first()
+      const confirmBtn = page
+        .locator('button')
+        .filter({ hasText: '確認送出' })
+        .first()
       if (await confirmBtn.isVisible({ timeout: 1500 })) {
         await confirmBtn.click()
         await page.waitForTimeout(500)
       }
     }
     // Switch to recent orders tab
-    const recentTab = page.locator('[role="tab"]').filter({ hasText: '近期訂單' }).first()
+    const recentTab = page
+      .locator('[role="tab"]')
+      .filter({ hasText: '近期訂單' })
+      .first()
     await expect(recentTab).toBeVisible({ timeout: 5000 })
     await recentTab.click()
     await page.waitForTimeout(1000)
     await shot(page, '10', '10-12')
   })
 
-  test('10-13: Edit order from recent orders (swipe to reveal actions)', async ({ page }) => {
+  test('10-13: Edit order from recent orders (swipe to reveal actions)', async ({
+    page,
+  }) => {
     await page.goto('/', { waitUntil: 'domcontentloaded' })
     await waitForBootstrap(page)
     await page.waitForTimeout(800)
     // Submit an order first (quickSubmit=true by default, no confirm modal)
     await addProductsToCart(page, 2)
     await page.waitForTimeout(400)
-    const submitBtn = page.locator('button').filter({ hasText: /送出訂單/ }).first()
+    const submitBtn = page
+      .locator('button')
+      .filter({ hasText: /送出訂單/ })
+      .first()
     await submitBtn.click()
     await page.waitForTimeout(1500)
     // Switch to 近期訂單 tab
-    const recentTab = page.locator('[role="tab"]').filter({ hasText: '近期訂單' }).first()
+    const recentTab = page
+      .locator('[role="tab"]')
+      .filter({ hasText: '近期訂單' })
+      .first()
     if (await recentTab.isVisible({ timeout: 3000 })) {
       await recentTab.click()
       await page.waitForTimeout(1000)
@@ -566,11 +616,17 @@ test.describe.serial('10 — 點餐操作', () => {
     // Submit an order (quick mode)
     await addProductsToCart(page, 1)
     await page.waitForTimeout(400)
-    const submitBtn = page.locator('button').filter({ hasText: /送出訂單/ }).first()
+    const submitBtn = page
+      .locator('button')
+      .filter({ hasText: /送出訂單/ })
+      .first()
     await submitBtn.click()
     await page.waitForTimeout(1500)
     // Switch to 近期訂單 tab
-    const recentTab = page.locator('[role="tab"]').filter({ hasText: '近期訂單' }).first()
+    const recentTab = page
+      .locator('[role="tab"]')
+      .filter({ hasText: '近期訂單' })
+      .first()
     if (await recentTab.isVisible({ timeout: 3000 })) {
       await recentTab.click()
       await page.waitForTimeout(1000)
@@ -622,12 +678,18 @@ test.describe.serial('20 — 打卡與出勤', () => {
   test('20-03: Clock-in confirmation state', async ({ page }) => {
     await gotoClockInReady(page)
     // Open modal for Eric
-    const employeeCard = page.locator('button').filter({ hasText: 'Eric' }).first()
+    const employeeCard = page
+      .locator('button')
+      .filter({ hasText: 'Eric' })
+      .first()
     if (await employeeCard.isVisible({ timeout: 5000 })) {
       await employeeCard.click()
       await page.waitForTimeout(500)
       // Click clock-in / 上班 button
-      const clockInBtn = page.locator('button').filter({ hasText: '上班' }).first()
+      const clockInBtn = page
+        .locator('button')
+        .filter({ hasText: '上班' })
+        .first()
       if (await clockInBtn.isVisible({ timeout: 2000 })) {
         await clockInBtn.click()
         await page.waitForTimeout(800)
@@ -636,13 +698,20 @@ test.describe.serial('20 — 打卡與出勤', () => {
     await shot(page, '20', '20-03')
   })
 
-  test('20-04: Employee shows clocked-in state after successful clock-in', async ({ page }) => {
+  test('20-04: Employee shows clocked-in state after successful clock-in', async ({
+    page,
+  }) => {
     await gotoClockInReady(page)
     // Clock in Eric so his card shows "正在上班" state
-    const ericCard = page.locator('[data-testid="employee-card"]').filter({ hasText: 'Eric' }).first()
+    const ericCard = page
+      .locator('[data-testid="employee-card"]')
+      .filter({ hasText: 'Eric' })
+      .first()
     await ericCard.click()
     const clockInBtn = page.locator('button').filter({ hasText: '確認打卡' })
-    await clockInBtn.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {})
+    await clockInBtn
+      .waitFor({ state: 'visible', timeout: 5000 })
+      .catch(() => {})
     if (await clockInBtn.isVisible()) {
       await clockInBtn.click()
       await page.waitForTimeout(2000)
@@ -651,13 +720,21 @@ test.describe.serial('20 — 打卡與出勤', () => {
     await shot(page, '20', '20-04')
   })
 
-  test('20-05: Clock-out flow (clock-in first, then open clock-out modal)', async ({ page }) => {
+  test('20-05: Clock-out flow (clock-in first, then open clock-out modal)', async ({
+    page,
+  }) => {
     await gotoClockInReady(page)
     // Step 1: Click Eric's card (div role="button" data-testid="employee-card")
-    const ericCard = page.locator('[data-testid="employee-card"]').filter({ hasText: 'Eric' }).first()
+    const ericCard = page
+      .locator('[data-testid="employee-card"]')
+      .filter({ hasText: 'Eric' })
+      .first()
     await ericCard.click()
     // Step 2: Wait for modal with "確認打卡" button, then click it
-    const clockInBtn = page.locator('button, [role="button"]').filter({ hasText: '確認打卡' }).first()
+    const clockInBtn = page
+      .locator('button, [role="button"]')
+      .filter({ hasText: '確認打卡' })
+      .first()
     await clockInBtn.waitFor({ state: 'visible', timeout: 5000 })
     await clockInBtn.click()
     // Step 3: Wait for modal to close + DB refresh + toast
@@ -670,13 +747,18 @@ test.describe.serial('20 — 打卡與出勤', () => {
     await page.waitForTimeout(300)
   })
 
-  test('20-06: Leave/vacation request — show 休假 confirmation modal', async ({ page }) => {
+  test('20-06: Leave/vacation request — show 休假 confirmation modal', async ({
+    page,
+  }) => {
     test.setTimeout(60_000)
     await gotoClockInReady(page)
     // The "休假" button is INSIDE the employee card (not in modal).
     // For an employee with no records, the card shows two buttons: "打卡上班" + "休假".
     // Click the 休假 button directly on 妞妞's card to open vacation confirm modal.
-    const niuniuCard = page.locator('[data-testid="employee-card"]').filter({ hasText: '妞妞' }).first()
+    const niuniuCard = page
+      .locator('[data-testid="employee-card"]')
+      .filter({ hasText: '妞妞' })
+      .first()
     const vacBtn = niuniuCard.locator('button').filter({ hasText: '休假' })
     await vacBtn.waitFor({ state: 'visible', timeout: 5000 })
     await vacBtn.click()
@@ -693,7 +775,9 @@ test.describe.serial('20 — 打卡與出勤', () => {
     await shot(page, '20', '20-07')
   })
 
-  test('20-08: Attendance records page (Settings → records tab)', async ({ page }) => {
+  test('20-08: Attendance records page (Settings → records tab)', async ({
+    page,
+  }) => {
     // Seed employees first, then navigate to records via settings
     await gotoWithEmployees(page, '/')
     // Navigate to records tab within settings
@@ -757,7 +841,9 @@ test.describe.serial('30 — 管理功能', () => {
     } else {
       // Try clicking the employee row itself
       const empRow = page
-        .locator('tr:nth-child(2), [class*="employee-row"], [class*="staff-row"]')
+        .locator(
+          'tr:nth-child(2), [class*="employee-row"], [class*="staff-row"]',
+        )
         .first()
       if (await empRow.isVisible({ timeout: 2000 })) {
         await empRow.click()
@@ -783,7 +869,9 @@ test.describe.serial('30 — 管理功能', () => {
     await page.waitForTimeout(300)
   })
 
-  test('30-06: Google OAuth "Link Google" button (entrance only)', async ({ page }) => {
+  test('30-06: Google OAuth "Link Google" button (entrance only)', async ({
+    page,
+  }) => {
     // Caption: "點擊此按鈕後會出現 Google 登入畫面"
     await gotoAsAdmin(page, '/settings/staff-admin')
     // Find the Google login button — do NOT click it
@@ -798,7 +886,9 @@ test.describe.serial('30 — 管理功能', () => {
     await shot(page, '30', '30-06')
   })
 
-  test('30-07: Product management — commodity type tabs and list', async ({ page }) => {
+  test('30-07: Product management — commodity type tabs and list', async ({
+    page,
+  }) => {
     await gotoAsAdmin(page, '/settings/product-management')
     await page.waitForTimeout(600)
     await shot(page, '30', '30-07')
@@ -894,7 +984,7 @@ test.describe.serial('40 — 雲端備份', () => {
     await injectAdminAuth(page)
 
     // Mock the backup API
-    await page.route('**/api/backup**', async (route) => {
+    await page.route('**/api/backup**', async route => {
       const method = route.request().method()
       const url = route.request().url()
 
@@ -998,7 +1088,10 @@ test.describe.serial('40 — 雲端備份', () => {
     await gotoCloudBackup(page)
     await page.waitForTimeout(600)
     // Look for "查看全部" expand button
-    const viewAllBtn = page.locator('button').filter({ hasText: '查看全部' }).first()
+    const viewAllBtn = page
+      .locator('button')
+      .filter({ hasText: '查看全部' })
+      .first()
     if (await viewAllBtn.isVisible({ timeout: 5000 })) {
       await viewAllBtn.scrollIntoViewIfNeeded()
       await viewAllBtn.click()
@@ -1101,16 +1194,21 @@ test.describe.serial('90 — 疑難排解', () => {
     await page.waitForTimeout(300)
   })
 
-  test('90-05: Backup failed — error state in cloud backup', async ({ page }) => {
+  test('90-05: Backup failed — error state in cloud backup', async ({
+    page,
+  }) => {
     // Show cloud backup page with a failing API to demonstrate error state
     await page.goto('/', { waitUntil: 'domcontentloaded' })
     await injectAdminAuth(page)
     // Mock the backup API to return an error
-    await page.route('**/api/backup**', async (route) => {
+    await page.route('**/api/backup**', async route => {
       await route.fulfill({
         status: 500,
         contentType: 'application/json',
-        body: JSON.stringify({ success: false, error: '備份失敗：網路連線逾時' }),
+        body: JSON.stringify({
+          success: false,
+          error: '備份失敗：網路連線逾時',
+        }),
       })
     })
     await page.goto('/settings/cloud-backup', { waitUntil: 'domcontentloaded' })
@@ -1119,7 +1217,9 @@ test.describe.serial('90 — 疑難排解', () => {
     await shot(page, '90', '90-05')
   })
 
-  test('90-06: WaitingOverlay — landscape/orientation prompt', async ({ page }) => {
+  test('90-06: WaitingOverlay — landscape/orientation prompt', async ({
+    page,
+  }) => {
     await gotoReady(page)
     await forceWaitingUI(page, true)
     await page.waitForTimeout(1500)

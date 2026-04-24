@@ -10,7 +10,9 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { OrderHistoryCard } from '@/components/orders/order-history-card'
 import { DeleteOrderModal } from '@/components/orders/delete-order-modal'
+import { Coachmark } from '@/components/tutorial/coachmark'
 import { notify } from '@/components/ui/sonner'
+import { logError } from '@/lib/error-logger'
 import { useOrderStore } from '@/stores/order-store'
 import { getOrderRepo, getCommodityRepo } from '@/lib/repositories/provider'
 import type { Order } from '@/lib/schemas'
@@ -80,7 +82,13 @@ export function RecentOrdersList() {
       await repo.remove(deletingOrder.id)
       queryClient.invalidateQueries({ queryKey: ['orders', 'recent'] })
       notify.success(t('orders.deleteSuccess'))
-    } catch {
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err)
+      logError(
+        `RecentOrdersList.handleDeleteConfirm: ${message}`,
+        'RecentOrdersList.handleDeleteConfirm',
+        err instanceof Error ? err.stack : undefined,
+      )
       notify.error(t('orders.deleteError'))
     } finally {
       setIsDeleting(false)
@@ -100,7 +108,11 @@ export function RecentOrdersList() {
         className="flex flex-1 flex-col items-center justify-center gap-3"
         onClick={handleBackgroundTap}
       >
-        <PackageOpen size={40} className="text-muted-foreground" strokeWidth={1.2} />
+        <PackageOpen
+          size={40}
+          className="text-muted-foreground"
+          strokeWidth={1.2}
+        />
         <p className="text-muted-foreground">{t('order.noRecentOrders')}</p>
       </div>
     )
@@ -110,18 +122,30 @@ export function RecentOrdersList() {
     <>
       <ScrollArea className="flex-1">
         {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions */}
-        <div className="flex flex-col gap-3 pr-2 pb-4" onClick={handleBackgroundTap}>
-          {orders.map(order => (
-            <OrderHistoryCard
-              key={order.id}
-              order={order}
-              typeIdMap={typeIdMap}
-              onDelete={() => setDeletingOrder(order)}
-              onEdit={() => handleEdit(order)}
-              resetKey={swipeResetKey}
-              isServed={order.isServed}
-              onTap={() => handleToggleServed(order.id, order.isServed)}
-            />
+        <div
+          className="flex flex-col gap-3 pr-2 pb-4"
+          onClick={handleBackgroundTap}
+        >
+          {orders.map((order, index) => (
+            // position:relative lets the Coachmark sit absolutely inside the row
+            <div key={order.id} className="relative">
+              <OrderHistoryCard
+                order={order}
+                typeIdMap={typeIdMap}
+                onDelete={() => setDeletingOrder(order)}
+                onEdit={() => handleEdit(order)}
+                resetKey={swipeResetKey}
+                isServed={order.isServed}
+                onTap={() => handleToggleServed(order.id, order.isServed)}
+              />
+              {/* Coachmark: hint swipe-to-edit on the first card only */}
+              {index === 0 && (
+                <Coachmark
+                  id="coachmark.recentOrders.swipeToEdit"
+                  ariaLabel={t('tutorial.coachmark.swipeToEdit')}
+                />
+              )}
+            </div>
           ))}
         </div>
       </ScrollArea>

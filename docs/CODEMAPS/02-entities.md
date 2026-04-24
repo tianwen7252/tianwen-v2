@@ -8,21 +8,21 @@ This document describes all 13 business entities in Tianwen V2, including their 
 
 ## Entity Overview
 
-| Entity | Table | Purpose | Parent | Children |
-|--------|-------|---------|--------|----------|
-| **Order** | orders | Core transaction | — | OrderItem, OrderDiscount |
-| **OrderItem** | order_items | Line item in order | Order | — |
-| **OrderDiscount** | order_discounts | Discount applied | Order | — |
-| **Commodity** | commodities | Menu item | CommodityType | OrderItem, PriceChangeLog |
-| **CommodityType** | commodity_types | Category grouping | — | Commodity |
-| **OrderType** | order_types | Fulfillment mode (proto) | — | — |
-| **Employee** | employees | Staff member | — | Attendance, Order |
-| **Attendance** | attendances | Daily time record | Employee | — |
-| **BackupLog** | backup_logs | Backup audit | — | — |
-| **ErrorLog** | error_logs | Error persistence | — | — |
-| **PriceChangeLog** | price_change_logs | Price history | — | — |
-| **DailyData** | daily_data | Daily revenue aggregate | — | — |
-| **CustomOrderName** | custom_order_names | User-defined item name | — | — |
+| Entity              | Table              | Purpose                  | Parent        | Children                  |
+| ------------------- | ------------------ | ------------------------ | ------------- | ------------------------- |
+| **Order**           | orders             | Core transaction         | —             | OrderItem, OrderDiscount  |
+| **OrderItem**       | order_items        | Line item in order       | Order         | —                         |
+| **OrderDiscount**   | order_discounts    | Discount applied         | Order         | —                         |
+| **Commodity**       | commodities        | Menu item                | CommodityType | OrderItem, PriceChangeLog |
+| **CommodityType**   | commodity_types    | Category grouping        | —             | Commodity                 |
+| **OrderType**       | order_types        | Fulfillment mode (proto) | —             | —                         |
+| **Employee**        | employees          | Staff member             | —             | Attendance, Order         |
+| **Attendance**      | attendances        | Daily time record        | Employee      | —                         |
+| **BackupLog**       | backup_logs        | Backup audit             | —             | —                         |
+| **ErrorLog**        | error_logs         | Error persistence        | —             | —                         |
+| **PriceChangeLog**  | price_change_logs  | Price history            | —             | —                         |
+| **DailyData**       | daily_data         | Daily revenue aggregate  | —             | —                         |
+| **CustomOrderName** | custom_order_names | User-defined item name   | —             | —                         |
 
 ---
 
@@ -33,6 +33,7 @@ This document describes all 13 business entities in Tianwen V2, including their 
 **Purpose**: Represents a single customer order with items, discounts, and fulfillment status.
 
 **Schema** (src/lib/schema.ts:44–56):
+
 ```sql
 CREATE TABLE orders (
   id TEXT PRIMARY KEY,
@@ -50,6 +51,7 @@ CREATE TABLE orders (
 ```
 
 **Key Fields**:
+
 - `id`: Nanoid primary key (e.g., "V1StfluxX7A_qzpZ")
 - `number`: Sequential display number for receipts (e.g., 42)
 - `memo`: JSON array of memo tags (e.g., `["攤位"]` for stall items)
@@ -58,6 +60,7 @@ CREATE TABLE orders (
 - `editor`: Employee/admin who entered the order
 
 **Lifecycle**:
+
 1. **Create**: User submits order via OrderPage → `useOrderStore.submitOrder()` → OrderRepository.create()
 2. **Items**: OrderItem records linked via FK order_id
 3. **Display**: OrdersPage shows today's orders via `OrderRepository.findRecent()`
@@ -65,24 +68,26 @@ CREATE TABLE orders (
 5. **Mark Served**: Click "Mark as Served" → `OrderRepository.toggleServed(id, true)` → `is_served=1`
 
 **Relationships**:
+
 - 1:N with `order_items` (child line items)
 - 1:N with `order_discounts` (applied discounts)
 - M:1 with `employees` (editor field; loose reference)
 
 **Type Definition** (src/lib/schemas.ts):
+
 ```typescript
 export interface Order {
-  id: string;
-  number: number;
-  memo: string; // JSON array string
-  soups: number;
-  total: number;
-  original_total: number | null;
-  edited_memo: string | null;
-  editor: string;
-  is_served: 0 | 1;
-  created_at: number;
-  updated_at: number;
+  id: string
+  number: number
+  memo: string // JSON array string
+  soups: number
+  total: number
+  original_total: number | null
+  edited_memo: string | null
+  editor: string
+  is_served: 0 | 1
+  created_at: number
+  updated_at: number
 }
 
 export const orderSchema = z.object({
@@ -97,10 +102,11 @@ export const orderSchema = z.object({
   is_served: z.number().int().min(0).max(1),
   created_at: z.number(),
   updated_at: z.number(),
-});
+})
 ```
 
 **File Locations**:
+
 - Schema: `src/lib/schema.ts:44–56`
 - Type/Zod: `src/lib/schemas.ts` (Order, CreateOrder, orderSchema)
 - Repository: `src/lib/repositories/order-repository.ts`
@@ -114,6 +120,7 @@ export const orderSchema = z.object({
 **Purpose**: Normalized line item — represents one commodity (or custom item) added to an order.
 
 **Schema** (src/lib/schema.ts:126–137):
+
 ```sql
 CREATE TABLE order_items (
   id TEXT PRIMARY KEY,
@@ -129,6 +136,7 @@ CREATE TABLE order_items (
 ```
 
 **Key Fields**:
+
 - `id`: Nanoid primary key
 - `order_id`: FK to parent order
 - `commodity_id`: Ref to commodity (may not exist for custom items; no hard FK)
@@ -137,6 +145,7 @@ CREATE TABLE order_items (
 - `includes_soup`: Boolean flag for bento with soup
 
 **Lifecycle**:
+
 1. **Add Item**: User taps commodity on OrderPage → `useOrderStore.addItem(commodity)` → CartItem added to state
 2. **Cart**: Item resides in cart (Zustand state) until order submitted
 3. **Submit**: OrderItemRepository.createBatch() inserts row per cart item with snapshot price
@@ -144,25 +153,28 @@ CREATE TABLE order_items (
 5. **Display**: OrderRepository.attachRelated() loads items when retrieving order detail
 
 **Relationships**:
+
 - M:1 with `orders` (child of order)
 - Loose reference to `commodities` (commodity_id may point to deleted item or custom-xxx)
 
 **Type Definition** (src/lib/schemas.ts):
+
 ```typescript
 export interface OrderItem {
-  id: string;
-  order_id: string;
-  commodity_id: string;
-  name: string;
-  price: number;
-  quantity: number;
-  includes_soup: 0 | 1;
-  created_at: number;
-  updated_at: number;
+  id: string
+  order_id: string
+  commodity_id: string
+  name: string
+  price: number
+  quantity: number
+  includes_soup: 0 | 1
+  created_at: number
+  updated_at: number
 }
 ```
 
 **File Locations**:
+
 - Schema: `src/lib/schema.ts:126–137`
 - Type: `src/lib/schemas.ts` (OrderItem, CreateOrderItem)
 - Repository: `src/lib/repositories/order-item-repository.ts`
@@ -175,6 +187,7 @@ export interface OrderItem {
 **Purpose**: Discount or promotional credit applied to an order.
 
 **Schema** (src/lib/schema.ts:142–150):
+
 ```sql
 CREATE TABLE order_discounts (
   id TEXT PRIMARY KEY,
@@ -187,38 +200,43 @@ CREATE TABLE order_discounts (
 ```
 
 **Key Fields**:
+
 - `id`: Nanoid primary key
 - `order_id`: FK to parent order
 - `label`: Human-readable discount name
 - `amount`: Discount amount (positive; represents reduction)
 
 **Lifecycle**:
+
 1. **Add Discount**: User opens Calculator overlay → enters discount name + amount → `useOrderStore.addDiscount(label, amount)` → Discount object added to cart
 2. **Submit**: OrderDiscountRepository.createBatch() inserts one row per discount
 3. **Display**: OrderRepository.attachRelated() loads discounts when viewing order detail
 4. **Recalc**: `total = subtotal - sum(discount.amount)`
 
 **Relationships**:
+
 - M:1 with `orders` (child discount)
 
 **Type Definition**:
+
 ```typescript
 export interface OrderDiscount {
-  id: string;
-  order_id: string;
-  label: string;
-  amount: number;
-  created_at: number;
-  updated_at: number;
+  id: string
+  order_id: string
+  label: string
+  amount: number
+  created_at: number
+  updated_at: number
 }
 
 export interface Discount {
-  label: string;
-  amount: number;
+  label: string
+  amount: number
 }
 ```
 
 **File Locations**:
+
 - Schema: `src/lib/schema.ts:142–150`
 - Type: `src/lib/schemas.ts` (orderDiscountSchema)
 - Repository: `src/lib/repositories/order-discount-repository.ts`
@@ -234,6 +252,7 @@ export interface Discount {
 **Purpose**: Menu item definition — product the restaurant sells (bento, drink, stall item, etc.).
 
 **Schema** (src/lib/schema.ts:23–37):
+
 ```sql
 CREATE TABLE commodities (
   id TEXT PRIMARY KEY,
@@ -252,6 +271,7 @@ CREATE TABLE commodities (
 ```
 
 **Key Fields**:
+
 - `id`: Nanoid primary key
 - `type_id`: FK to commodity_types for category
 - `name`: Display name (e.g., "豬肉排便當")
@@ -261,6 +281,7 @@ CREATE TABLE commodities (
 - `editor`: Who last edited this item
 
 **Lifecycle**:
+
 1. **Seed**: Default commodities inserted on first launch via `insertDefaultCommodities()` (src/constants/default-data.ts)
 2. **Display**: OrderPage queries `CommodityRepository.findOnMarket()` to filter `on_market=1`
 3. **Edit**: Manager views ProductManagement page → clicks item → edit form (name, price, on_market)
@@ -268,25 +289,27 @@ CREATE TABLE commodities (
 5. **Soft-Delete**: Set `on_market=0` to hide from sales (preserves data)
 
 **Relationships**:
+
 - M:1 with `commodity_types` (parent category)
 - 1:N with `order_items` (via commodity_id)
 - 1:N with `price_change_logs` (pricing edits)
 
 **Type Definition** (src/lib/schemas.ts):
+
 ```typescript
 export interface Commodity {
-  id: string;
-  type_id: string;
-  name: string;
-  image: string | null;
-  price: number;
-  priority: number;
-  on_market: 0 | 1;
-  hide_on_mode: string | null;
-  includes_soup: 0 | 1;
-  editor: string;
-  created_at: number;
-  updated_at: number;
+  id: string
+  type_id: string
+  name: string
+  image: string | null
+  price: number
+  priority: number
+  on_market: 0 | 1
+  hide_on_mode: string | null
+  includes_soup: 0 | 1
+  editor: string
+  created_at: number
+  updated_at: number
 }
 
 export const commoditySchema = z.object({
@@ -302,10 +325,11 @@ export const commoditySchema = z.object({
   editor: z.string(),
   created_at: z.number(),
   updated_at: z.number(),
-});
+})
 ```
 
 **File Locations**:
+
 - Schema: `src/lib/schema.ts:23–37`
 - Type/Zod: `src/lib/schemas.ts` (commoditySchema)
 - Repository: `src/lib/repositories/commodity-repository.ts`
@@ -319,6 +343,7 @@ export const commoditySchema = z.object({
 **Purpose**: Product category definition — groups commodities for UI organization.
 
 **Schema** (src/lib/schema.ts:11–20):
+
 ```sql
 CREATE TABLE commodity_types (
   id TEXT PRIMARY KEY,
@@ -333,6 +358,7 @@ CREATE TABLE commodity_types (
 ```
 
 **Key Fields**:
+
 - `id`: Nanoid primary key
 - `type_id`: Unique slug (e.g., "stall", "bento", "drink") — used as FK key
 - `type`: Machine type code
@@ -341,24 +367,27 @@ CREATE TABLE commodity_types (
 - `priority`: Tab order on OrderPage
 
 **Lifecycle**:
+
 1. **Seed**: 5 default types inserted on first launch (bento/green, single/brown, drink/indigo, dumpling/indigo, stall/red; src/constants/default-data.ts)
 2. **Display**: OrderPage renders tabs in priority order; clicking expands commodity list
 3. **Edit**: ProductManagement page allows drag-drop reorder → priority updated (V2-PM feature)
 
 **Relationships**:
+
 - 1:N with `commodities` (parent of products)
 
 **Type Definition**:
+
 ```typescript
 export interface CommodityType {
-  id: string;
-  type_id: string;
-  type: string;
-  label: string;
-  color: string;
-  priority: number;
-  created_at: number;
-  updated_at: number;
+  id: string
+  type_id: string
+  type: string
+  label: string
+  color: string
+  priority: number
+  created_at: number
+  updated_at: number
 }
 
 export const commodityTypeSchema = z.object({
@@ -370,10 +399,11 @@ export const commodityTypeSchema = z.object({
   priority: z.number().int().min(0),
   created_at: z.number(),
   updated_at: z.number(),
-});
+})
 ```
 
 **File Locations**:
+
 - Schema: `src/lib/schema.ts:11–20`
 - Type: `src/lib/schemas.ts` (commodityTypeSchema)
 - Repository: `src/lib/repositories/commodity-type-repository.ts`
@@ -387,6 +417,7 @@ export const commodityTypeSchema = z.object({
 **Purpose**: Order classification — defines fulfillment mode (delivery, pickup, dine-in). Currently proto; unused in order flow.
 
 **Schema** (src/lib/schema.ts:62–72):
+
 ```sql
 CREATE TABLE order_types (
   id TEXT PRIMARY KEY,
@@ -401,6 +432,7 @@ CREATE TABLE order_types (
 ```
 
 **Key Fields**:
+
 - `id`: Nanoid primary key
 - `name`: Display name (e.g., "外送" = delivery, "電話自取" = pickup)
 - `type`: Machine code
@@ -408,14 +440,17 @@ CREATE TABLE order_types (
 - `priority`: Sort order
 
 **Lifecycle**:
+
 1. **Seed**: 3 default types (攤位/green, 外送/blue, 電話自取/yellow) inserted on first launch
 2. **Display**: Currently not used in UI; proto for future multi-channel support
 3. **Future**: Orders will be typed (e.g., order.order_type_id) to differentiate delivery vs dine-in
 
 **Relationships**:
+
 - Conceptual 1:N with `orders` (future feature)
 
 **File Locations**:
+
 - Schema: `src/lib/schema.ts:62–72`
 - Seed: `src/constants/default-data.ts` (ORDER_TYPE_SEEDS)
 
@@ -428,6 +463,7 @@ CREATE TABLE order_types (
 **Purpose**: Staff record — person who can clock in, perform orders, receive admin privileges.
 
 **Schema** (src/lib/schema.ts:88–102):
+
 ```sql
 CREATE TABLE employees (
   id TEXT PRIMARY KEY,
@@ -447,6 +483,7 @@ CREATE TABLE employees (
 ```
 
 **Key Fields**:
+
 - `id`: Nanoid primary key
 - `name`: Full name (e.g., "李小明")
 - `avatar`: Animal emoji PNG filename (e.g., "doberman.png")
@@ -457,6 +494,7 @@ CREATE TABLE employees (
 - `google_sub`, `google_email`: OAuth binding for multi-device account linking
 
 **Lifecycle**:
+
 1. **Create**: Admin adds via StaffAdmin page → form → EmployeeRepository.create()
 2. **Display**: ClockInPage filters active employees; shows avatar + name
 3. **Edit**: Admin taps employee card → form → EmployeeRepository.update()
@@ -464,25 +502,27 @@ CREATE TABLE employees (
 5. **Google OAuth**: Admin links Google account → stores google_sub + google_email (V2-DEV-102)
 
 **Relationships**:
+
 - 1:N with `attendances` (daily time records)
 - M:1 with `orders` (loose ref via editor field)
 
 **Type Definition** (src/lib/schemas.ts):
+
 ```typescript
 export interface Employee {
-  id: string;
-  name: string;
-  avatar: string;
-  status: 'active' | 'inactive';
-  shift_type: 'regular' | 'shift';
-  employee_no: string;
-  is_admin: 0 | 1;
-  hire_date: string | null;
-  resignation_date: string | null;
-  google_sub: string | null;
-  google_email: string | null;
-  created_at: number;
-  updated_at: number;
+  id: string
+  name: string
+  avatar: string
+  status: 'active' | 'inactive'
+  shift_type: 'regular' | 'shift'
+  employee_no: string
+  is_admin: 0 | 1
+  hire_date: string | null
+  resignation_date: string | null
+  google_sub: string | null
+  google_email: string | null
+  created_at: number
+  updated_at: number
 }
 
 export const employeeSchema = z.object({
@@ -499,10 +539,11 @@ export const employeeSchema = z.object({
   google_email: z.string().email().nullable(),
   created_at: z.number(),
   updated_at: z.number(),
-});
+})
 ```
 
 **File Locations**:
+
 - Schema: `src/lib/schema.ts:88–102`
 - Type/Zod: `src/lib/schemas.ts` (employeeSchema)
 - Repository: `src/lib/repositories/employee-repository.ts`
@@ -517,6 +558,7 @@ export const employeeSchema = z.object({
 **Purpose**: Daily time record — captures clock-in, clock-out, and vacation type per employee per day.
 
 **Schema** (src/lib/schema.ts:107–118):
+
 ```sql
 CREATE TABLE attendances (
   id TEXT PRIMARY KEY,
@@ -531,6 +573,7 @@ CREATE TABLE attendances (
 ```
 
 **Key Fields**:
+
 - `id`: Nanoid primary key
 - `employee_id`: FK to employees
 - `date`: ISO date (one record per employee per day)
@@ -539,6 +582,7 @@ CREATE TABLE attendances (
 - `type`: "regular", "paid_leave", "sick_leave", "personal_leave", "absent" (CHECK)
 
 **Lifecycle**:
+
 1. **Clock In**: Employee taps name on ClockInPage → shows today's record → taps "打卡上班" → AttendanceRepository.update({ clock_in: Date.now() })
 2. **Clock Out**: Later, tap name again → taps "打卡下班" → AttendanceRepository.update({ clock_out: Date.now() })
 3. **Vacation**: Select leave type → AttendanceRepository.update({ type: "paid_leave", clock_in: null, clock_out: null })
@@ -546,21 +590,28 @@ CREATE TABLE attendances (
 5. **Analytics**: StatisticsRepository aggregates hours worked, vacation usage
 
 **Relationships**:
+
 - M:1 with `employees` (child time record)
 
 **Type Definition**:
+
 ```typescript
-export type AttendanceType = 'regular' | 'paid_leave' | 'sick_leave' | 'personal_leave' | 'absent';
+export type AttendanceType =
+  | 'regular'
+  | 'paid_leave'
+  | 'sick_leave'
+  | 'personal_leave'
+  | 'absent'
 
 export interface Attendance {
-  id: string;
-  employee_id: string;
-  date: string; // ISO date
-  clock_in: number | null;
-  clock_out: number | null;
-  type: AttendanceType;
-  created_at: number;
-  updated_at: number;
+  id: string
+  employee_id: string
+  date: string // ISO date
+  clock_in: number | null
+  clock_out: number | null
+  type: AttendanceType
+  created_at: number
+  updated_at: number
 }
 
 export const attendanceSchema = z.object({
@@ -569,13 +620,20 @@ export const attendanceSchema = z.object({
   date: z.string().date(),
   clock_in: z.number().nullable(),
   clock_out: z.number().nullable(),
-  type: z.enum(['regular', 'paid_leave', 'sick_leave', 'personal_leave', 'absent']),
+  type: z.enum([
+    'regular',
+    'paid_leave',
+    'sick_leave',
+    'personal_leave',
+    'absent',
+  ]),
   created_at: z.number(),
   updated_at: z.number(),
-});
+})
 ```
 
 **File Locations**:
+
 - Schema: `src/lib/schema.ts:107–118`
 - Type/Zod: `src/lib/schemas.ts` (attendanceSchema, attendanceTypeEnum)
 - Repository: `src/lib/repositories/attendance-repository.ts`
@@ -590,6 +648,7 @@ export const attendanceSchema = z.object({
 **Purpose**: Audit trail for backup operations — tracks success/failure, file size, duration, retention.
 
 **Schema** (src/lib/schema.ts:175–187):
+
 ```sql
 CREATE TABLE backup_logs (
   id TEXT PRIMARY KEY,
@@ -605,6 +664,7 @@ CREATE TABLE backup_logs (
 ```
 
 **Key Fields**:
+
 - `id`: Nanoid primary key
 - `type`: "manual", "auto", or "v1-import" (CHECK)
 - `status`: "success" or "failed"
@@ -614,30 +674,34 @@ CREATE TABLE backup_logs (
 - `error_message`: Error detail if failed
 
 **Lifecycle**:
+
 1. **Manual Backup**: User taps "Backup Now" on Settings → executes backup → BackupLogRepository.create({ type: 'manual', status: 'success', ... })
 2. **Auto Backup**: App startup checks schedule → if overdue, triggers backup → type='auto'
 3. **V1 Import**: Legacy data migrated → type='v1-import' (logged once)
 4. **Hydration**: `hydrateBackupScheduleFromDb()` queries max(created_at) WHERE status='success' to determine if next backup due
 
 **Relationships**:
+
 - 1:1 conceptual with R2 backup file (filename points to S3 object)
 
 **Type Definition**:
+
 ```typescript
 export interface BackupLog {
-  id: string;
-  type: 'manual' | 'auto' | 'v1-import';
-  status: 'success' | 'failed';
-  filename: string | null;
-  size: number;
-  duration_ms: number;
-  error_message: string | null;
-  created_at: number;
-  updated_at: number;
+  id: string
+  type: 'manual' | 'auto' | 'v1-import'
+  status: 'success' | 'failed'
+  filename: string | null
+  size: number
+  duration_ms: number
+  error_message: string | null
+  created_at: number
+  updated_at: number
 }
 ```
 
 **File Locations**:
+
 - Schema: `src/lib/schema.ts:175–187`
 - Repository: `src/lib/repositories/backup-log-repository.ts`
 - UI/Logic: `src/components/settings/cloud-backup` (manual), `src/hooks/use-auto-backup` (auto)
@@ -650,6 +714,7 @@ export interface BackupLog {
 **Purpose**: Application error persistence — captures runtime errors for debugging and diagnostics.
 
 **Schema** (src/lib/schema.ts:163–170):
+
 ```sql
 CREATE TABLE error_logs (
   id TEXT PRIMARY KEY,
@@ -662,29 +727,33 @@ CREATE TABLE error_logs (
 ```
 
 **Key Fields**:
+
 - `id`: Nanoid primary key
 - `message`: Error message string
 - `source`: Origin identifier (e.g., "ClockInPage", "BackupService")
 - `stack`: Full JavaScript stack trace (nullable)
 
 **Lifecycle**:
+
 1. **Catch Error**: Any caught exception → `logError(err, source)` → creates ErrorLog row
 2. **Display**: Error shown to user via ErrorOverlay UI
 3. **Persist**: Error row stays in DB across sessions
 4. **Review**: Admin can view errors in SystemInfo page (future feature)
 
 **Relationships**:
+
 - None (diagnostic/audit table)
 
 **Type Definition**:
+
 ```typescript
 export interface ErrorLog {
-  id: string;
-  message: string;
-  source: string;
-  stack: string | null;
-  created_at: number;
-  updated_at: number;
+  id: string
+  message: string
+  source: string
+  stack: string | null
+  created_at: number
+  updated_at: number
 }
 
 export const errorLogSchema = z.object({
@@ -694,10 +763,11 @@ export const errorLogSchema = z.object({
   stack: z.string().nullable(),
   created_at: z.number(),
   updated_at: z.number(),
-});
+})
 ```
 
 **File Locations**:
+
 - Schema: `src/lib/schema.ts:163–170`
 - Type/Zod: `src/lib/schemas.ts` (errorLogSchema)
 - Repository: `src/lib/repositories/error-log-repository.ts`
@@ -711,6 +781,7 @@ export const errorLogSchema = z.object({
 **Purpose**: Price history tracking — records every commodity price modification for audit and analytics.
 
 **Schema** (src/lib/schema.ts:192–202):
+
 ```sql
 CREATE TABLE price_change_logs (
   id TEXT PRIMARY KEY,
@@ -725,6 +796,7 @@ CREATE TABLE price_change_logs (
 ```
 
 **Key Fields**:
+
 - `id`: Nanoid primary key
 - `commodity_id`: Reference to the commodity
 - `commodity_name`: Denormalized name snapshot
@@ -732,29 +804,33 @@ CREATE TABLE price_change_logs (
 - `editor`: Who made the change
 
 **Lifecycle**:
+
 1. **Edit Price**: Admin edits commodity on ProductManagement page
 2. **Trigger**: CommodityRepository.update() compares old vs new price
 3. **Create Log**: If different, create PriceChangeLog entry
 4. **History**: Viewable in admin audit trail (future feature; currently persisted but not displayed)
 
 **Relationships**:
+
 - Loose reference to `commodities` (no FK; name is denormalized)
 
 **Type Definition**:
+
 ```typescript
 export interface PriceChangeLog {
-  id: string;
-  commodity_id: string;
-  commodity_name: string;
-  old_price: number;
-  new_price: number;
-  editor: string;
-  created_at: number;
-  updated_at: number;
+  id: string
+  commodity_id: string
+  commodity_name: string
+  old_price: number
+  new_price: number
+  editor: string
+  created_at: number
+  updated_at: number
 }
 ```
 
 **File Locations**:
+
 - Schema: `src/lib/schema.ts:192–202`
 - Repository: `src/lib/repositories/price-change-log-repository.ts`
 - Write trigger: `src/lib/repositories/commodity-repository.ts` (update method)
@@ -766,6 +842,7 @@ export interface PriceChangeLog {
 **Purpose**: Daily revenue aggregation — pre-computed summary of orders per date for fast analytics queries.
 
 **Schema** (src/lib/schema.ts:75–83):
+
 ```sql
 CREATE TABLE daily_data (
   id TEXT PRIMARY KEY,
@@ -779,6 +856,7 @@ CREATE TABLE daily_data (
 ```
 
 **Key Fields**:
+
 - `id`: Nanoid primary key
 - `date`: ISO date (UNIQUE; one row per day)
 - `total`: Total revenue after discounts
@@ -786,6 +864,7 @@ CREATE TABLE daily_data (
 - `editor`: Who/what modified this row
 
 **Lifecycle**:
+
 1. **Order Submit**: On order creation, fetch daily_data row for that date (or create new)
 2. **Aggregate**: Recalculate sum(order.total) and sum(order.original_total) for the date
 3. **Update**: Persist aggregated totals to daily_data (atomic operation)
@@ -793,22 +872,25 @@ CREATE TABLE daily_data (
 5. **No Cleanup**: Accumulates indefinitely (can be archived manually if needed)
 
 **Relationships**:
+
 - Derived from `orders` (M:1 conceptual)
 
 **Type Definition**:
+
 ```typescript
 export interface DailyData {
-  id: string;
-  date: string; // ISO date
-  total: number;
-  original_total: number;
-  created_at: number;
-  updated_at: number;
-  editor: string;
+  id: string
+  date: string // ISO date
+  total: number
+  original_total: number
+  created_at: number
+  updated_at: number
+  editor: string
 }
 ```
 
 **File Locations**:
+
 - Schema: `src/lib/schema.ts:75–83`
 - Repository: `src/lib/repositories/daily-data-repository.ts`
 - Aggregation: `src/lib/repositories/statistics-repository.ts` (builds charts)
@@ -820,6 +902,7 @@ export interface DailyData {
 **Purpose**: User-defined item names — stores custom item names created via Calculator for fast re-use.
 
 **Schema** (src/lib/schema.ts:155–160):
+
 ```sql
 CREATE TABLE custom_order_names (
   id TEXT PRIMARY KEY,
@@ -830,29 +913,34 @@ CREATE TABLE custom_order_names (
 ```
 
 **Key Fields**:
+
 - `id`: Nanoid primary key
 - `name`: Item name (UNIQUE constraint)
 
 **Lifecycle**:
+
 1. **Enter Custom Item**: User types item name in Calculator overlay
 2. **Persist**: If name not in history, CustomOrderNameRepository.create({ name })
 3. **Suggest**: On next order entry, Calculator queries table → offers name suggestions (autocomplete)
 4. **Reduce Re-Typing**: Improves UX for common custom items
 
 **Relationships**:
+
 - None (utility/suggestion table)
 
 **Type Definition**:
+
 ```typescript
 export interface CustomOrderName {
-  id: string;
-  name: string;
-  created_at: number;
-  updated_at: number;
+  id: string
+  name: string
+  created_at: number
+  updated_at: number
 }
 ```
 
 **File Locations**:
+
 - Schema: `src/lib/schema.ts:155–160`
 - Repository: `src/lib/repositories/custom-order-name-repository.ts`
 
@@ -936,5 +1024,6 @@ These 13 entities form the complete domain model for Tianwen V2. Transaction ent
 ---
 
 **Next Steps:**
+
 - For business rules governing these entities, see [03-business-rules.md](03-business-rules.md)
 - For workflows using these entities, see [04-operational-flows.md](04-operational-flows.md)

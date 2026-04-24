@@ -5,12 +5,7 @@
 
 import { useState, useCallback, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import {
-  ChevronLeft,
-  ChevronRight,
-  ChevronDown,
-  FileText,
-} from 'lucide-react'
+import { ChevronLeft, ChevronRight, ChevronDown, FileText } from 'lucide-react'
 import { RippleButton } from '@/components/ui/ripple-button'
 import {
   Table,

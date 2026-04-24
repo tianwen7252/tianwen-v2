@@ -206,9 +206,7 @@ export function SortableList<T>({
       </SortableContext>
 
       <DragOverlay dropAnimation={DROP_ANIMATION}>
-        {activeItem
-          ? renderItem(activeItem, OVERLAY_DRAG_HANDLE_PROPS)
-          : null}
+        {activeItem ? renderItem(activeItem, OVERLAY_DRAG_HANDLE_PROPS) : null}
       </DragOverlay>
     </DndContext>
   )

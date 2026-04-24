@@ -83,11 +83,11 @@ describe('OrdersShiftSummary', () => {
     expect(summary.textContent).toContain('0')
   })
 
-  it('should calculate morning orders correctly (before 13:30)', () => {
+  it('should calculate morning orders correctly (before 14:00)', () => {
     const orders: readonly Order[] = [
       makeMorningOrder(200, '08:00'),
       makeMorningOrder(150, '10:30'),
-      makeMorningOrder(100, '13:00'),
+      makeMorningOrder(100, '13:30'),
     ]
 
     render(<OrdersShiftSummary orders={orders} />)
@@ -97,9 +97,9 @@ describe('OrdersShiftSummary', () => {
     expect(summary.textContent).toContain('$450')
   })
 
-  it('should calculate afternoon orders correctly (13:30+)', () => {
+  it('should calculate afternoon orders correctly (14:00+)', () => {
     const orders: readonly Order[] = [
-      makeAfternoonOrder(300, '13:30'),
+      makeAfternoonOrder(300, '14:00'),
       makeAfternoonOrder(250, '15:00'),
     ]
 
@@ -187,10 +187,10 @@ describe('OrdersShiftSummary', () => {
     expect(total.textContent).toContain('$1,100')
   })
 
-  it('should treat 13:29 as morning and 13:30 as afternoon (boundary)', () => {
+  it('should treat 13:59 as morning and 14:00 as afternoon (boundary)', () => {
     const orders: readonly Order[] = [
-      makeMorningOrder(100, '13:29'),
-      makeAfternoonOrder(200, '13:30'),
+      makeMorningOrder(100, '13:59'),
+      makeAfternoonOrder(200, '14:00'),
     ]
 
     render(<OrdersShiftSummary orders={orders} />)

@@ -27,6 +27,7 @@ import {
   getDeviceType,
   setDeviceName,
 } from '@/lib/device'
+import { tutorialAnchor } from '@/lib/tutorial/tutorial-anchor'
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
@@ -197,7 +198,7 @@ export function SystemInfo() {
   const handleClearCache = useCallback(async () => {
     try {
       const keys = await caches.keys()
-      await Promise.all(keys.map((k) => caches.delete(k)))
+      await Promise.all(keys.map(k => caches.delete(k)))
       notify.success(t('settings.cacheCleared'))
     } catch {
       // Caches API not available
@@ -214,7 +215,7 @@ export function SystemInfo() {
   // ── Render ────────────────────────────────────────────────────────────
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-6 p-6" {...tutorialAnchor('settings.systemInfo')}>
       {/* Section 1: KPI Cards */}
       <div className="grid grid-cols-3 gap-4">
         {/* Version Card */}
@@ -407,7 +408,7 @@ export function SystemInfo() {
           data-testid="device-name-input"
           type="text"
           value={deviceNameInput}
-          onChange={(e) => setDeviceNameInput(e.target.value)}
+          onChange={e => setDeviceNameInput(e.target.value)}
           placeholder={t('settings.deviceNamePlaceholder')}
           className="w-full rounded-md border border-gray-300 px-3 py-2 text-md outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400"
           style={{ background: 'rgba(255, 255, 255, 0.8)' }}
@@ -471,7 +472,7 @@ export function SystemInfo() {
                     </tr>
                   </thead>
                   <tbody>
-                    {logs.map((log) => (
+                    {logs.map(log => (
                       <tr key={log.id} className="border-b">
                         <td className="px-2 py-1 whitespace-nowrap">
                           {dayjs(log.createdAt).format('YYYY/MM/DD HH:mm:ss')}

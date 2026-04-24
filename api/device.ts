@@ -46,7 +46,10 @@ async function readDevicesFile(
   } catch (err: unknown) {
     // File not found — return empty device list
     const { S3ServiceException } = await import('@aws-sdk/client-s3')
-    if (err instanceof S3ServiceException && err.$metadata.httpStatusCode === 404) {
+    if (
+      err instanceof S3ServiceException &&
+      err.$metadata.httpStatusCode === 404
+    ) {
       return { devices: [] }
     }
     // Also handle NoSuchKey by name
@@ -99,7 +102,8 @@ export default async function handler(
       res.status(200).json({ success: true, data })
     } catch (err: unknown) {
       console.error('[api/device] GET error:', err)
-      const message = err instanceof Error ? err.message : 'Internal server error'
+      const message =
+        err instanceof Error ? err.message : 'Internal server error'
       res.status(500).json({ success: false, error: message })
     }
     return
@@ -117,7 +121,10 @@ export default async function handler(
       }
 
       if (!id || !name || !type || !mode) {
-        res.status(400).json({ success: false, error: 'Missing required fields: id, name, type, mode' })
+        res.status(400).json({
+          success: false,
+          error: 'Missing required fields: id, name, type, mode',
+        })
         return
       }
 
@@ -128,7 +135,9 @@ export default async function handler(
         device => device.name === name && device.id !== id,
       )
       if (isDuplicate) {
-        res.status(409).json({ success: false, error: 'Device name already in use' })
+        res
+          .status(409)
+          .json({ success: false, error: 'Device name already in use' })
         return
       }
 
@@ -138,7 +147,9 @@ export default async function handler(
       const existingIndex = data.devices.findIndex(device => device.id === id)
       const updatedDevices =
         existingIndex >= 0
-          ? data.devices.map((device, i) => (i === existingIndex ? updatedEntry : device))
+          ? data.devices.map((device, i) =>
+              i === existingIndex ? updatedEntry : device,
+            )
           : [...data.devices, updatedEntry]
 
       const updatedData: DevicesFile = { devices: updatedDevices }
@@ -147,7 +158,8 @@ export default async function handler(
       res.status(200).json({ success: true, data: updatedEntry })
     } catch (err: unknown) {
       console.error('[api/device] PUT error:', err)
-      const message = err instanceof Error ? err.message : 'Internal server error'
+      const message =
+        err instanceof Error ? err.message : 'Internal server error'
       res.status(500).json({ success: false, error: message })
     }
     return

@@ -1,293 +1,335 @@
 <!doctype html>
 <html lang="zh-TW">
-<head>
-<meta charset="utf-8">
-<title>天文 V2 POS 快速參考指南</title>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body {
-    font-family: 'Noto Sans TC','Inter',-apple-system,sans-serif;
-    color: #1f2937;
-    line-height: 1.5;
-    font-size: 9pt;
-    -webkit-font-smoothing: antialiased;
-  }
-  @page { size: A4; margin: 10mm 12mm; }
+  <head>
+    <meta charset="utf-8" />
+    <title>天文 V2 POS 快速參考指南</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html,
+      body {
+        font-family:
+          'Noto Sans TC',
+          'Inter',
+          -apple-system,
+          sans-serif;
+        color: #1f2937;
+        line-height: 1.5;
+        font-size: 9pt;
+        -webkit-font-smoothing: antialiased;
+      }
+      @page {
+        size: A4;
+        margin: 10mm 12mm;
+      }
 
-  .page {
-    max-width: 210mm;
-    margin: 0 auto;
-  }
+      .page {
+        max-width: 210mm;
+        margin: 0 auto;
+      }
 
-  /* ─── Header ────────────────────────── */
-  .header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding-bottom: 6pt;
-    border-bottom: 2pt solid #7f956a;
-    margin-bottom: 10pt;
-  }
-  .header-title {
-    font-size: 16pt;
-    font-weight: 700;
-    color: #0d3b66;
-    letter-spacing: 0.5pt;
-  }
-  .header-meta {
-    font-size: 8pt;
-    color: #6b7280;
-    text-align: right;
-  }
-  .header-meta strong {
-    color: #0d3b66;
-    font-weight: 600;
-  }
+      /* ─── Header ────────────────────────── */
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-bottom: 6pt;
+        border-bottom: 2pt solid #7f956a;
+        margin-bottom: 10pt;
+      }
+      .header-title {
+        font-size: 16pt;
+        font-weight: 700;
+        color: #0d3b66;
+        letter-spacing: 0.5pt;
+      }
+      .header-meta {
+        font-size: 8pt;
+        color: #6b7280;
+        text-align: right;
+      }
+      .header-meta strong {
+        color: #0d3b66;
+        font-weight: 600;
+      }
 
-  /* ─── Grid ──────────────────────────── */
-  .grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10pt;
-  }
+      /* ─── Grid ──────────────────────────── */
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10pt;
+      }
 
-  /* ─── Action Card ───────────────────── */
-  .action-card {
-    background: #fafaf9;
-    border: 0.5pt solid #e5e7eb;
-    border-radius: 6pt;
-    padding: 8pt 10pt;
-    page-break-inside: avoid;
-  }
-  .action-header {
-    display: flex;
-    align-items: center;
-    gap: 6pt;
-    margin-bottom: 5pt;
-  }
-  .action-num {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 22pt;
-    height: 22pt;
-    border-radius: 50%;
-    background: #7f956a;
-    color: #ffffff;
-    font-size: 11pt;
-    font-weight: 700;
-    flex-shrink: 0;
-  }
-  .action-title {
-    font-size: 12pt;
-    font-weight: 600;
-    color: #0d3b66;
-  }
+      /* ─── Action Card ───────────────────── */
+      .action-card {
+        background: #fafaf9;
+        border: 0.5pt solid #e5e7eb;
+        border-radius: 6pt;
+        padding: 8pt 10pt;
+        page-break-inside: avoid;
+      }
+      .action-header {
+        display: flex;
+        align-items: center;
+        gap: 6pt;
+        margin-bottom: 5pt;
+      }
+      .action-num {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 22pt;
+        height: 22pt;
+        border-radius: 50%;
+        background: #7f956a;
+        color: #ffffff;
+        font-size: 11pt;
+        font-weight: 700;
+        flex-shrink: 0;
+      }
+      .action-title {
+        font-size: 12pt;
+        font-weight: 600;
+        color: #0d3b66;
+      }
 
-  .action-steps {
-    padding-left: 0;
-    list-style: none;
-    margin-bottom: 6pt;
-  }
-  .action-steps li {
-    padding: 2pt 0;
-    padding-left: 12pt;
-    position: relative;
-    font-size: 8.5pt;
-    line-height: 1.5;
-  }
-  .action-steps li::before {
-    content: attr(data-step);
-    position: absolute;
-    left: 0;
-    font-weight: 700;
-    color: #7f956a;
-    font-size: 8pt;
-  }
-  .action-steps li strong {
-    color: #0d3b66;
-    font-weight: 600;
-  }
+      .action-steps {
+        padding-left: 0;
+        list-style: none;
+        margin-bottom: 6pt;
+      }
+      .action-steps li {
+        padding: 2pt 0;
+        padding-left: 12pt;
+        position: relative;
+        font-size: 8.5pt;
+        line-height: 1.5;
+      }
+      .action-steps li::before {
+        content: attr(data-step);
+        position: absolute;
+        left: 0;
+        font-weight: 700;
+        color: #7f956a;
+        font-size: 8pt;
+      }
+      .action-steps li strong {
+        color: #0d3b66;
+        font-weight: 600;
+      }
 
-  .thumb-row {
-    display: flex;
-    gap: 4pt;
-    justify-content: center;
-    margin-top: 4pt;
-  }
-  .thumb-row img {
-    max-height: 100pt;
-    border-radius: 4pt;
-    border: 0.5pt solid #d1d5db;
-    box-shadow: 0 1pt 3pt rgba(0,0,0,0.08);
-  }
-  .thumb-single {
-    text-align: center;
-    margin-top: 4pt;
-  }
-  .thumb-single img {
-    max-height: 100pt;
-    border-radius: 4pt;
-    border: 0.5pt solid #d1d5db;
-    box-shadow: 0 1pt 3pt rgba(0,0,0,0.08);
-  }
+      .thumb-row {
+        display: flex;
+        gap: 4pt;
+        justify-content: center;
+        margin-top: 4pt;
+      }
+      .thumb-row img {
+        max-height: 100pt;
+        border-radius: 4pt;
+        border: 0.5pt solid #d1d5db;
+        box-shadow: 0 1pt 3pt rgba(0, 0, 0, 0.08);
+      }
+      .thumb-single {
+        text-align: center;
+        margin-top: 4pt;
+      }
+      .thumb-single img {
+        max-height: 100pt;
+        border-radius: 4pt;
+        border: 0.5pt solid #d1d5db;
+        box-shadow: 0 1pt 3pt rgba(0, 0, 0, 0.08);
+      }
 
-  /* ─── Emergency Banner ──────────────── */
-  .emergency {
-    background: #fef2e0;
-    border: 1pt solid #f3d98f;
-    border-radius: 6pt;
-    padding: 6pt 10pt;
-  }
-  .emergency .action-num {
-    background: #e7c45f;
-    color: #0d3b66;
-  }
-  .emergency-text {
-    font-size: 9pt;
-    color: #92730b;
-    font-weight: 600;
-    margin-top: 2pt;
-    text-align: center;
-  }
+      /* ─── Emergency Banner ──────────────── */
+      .emergency {
+        background: #fef2e0;
+        border: 1pt solid #f3d98f;
+        border-radius: 6pt;
+        padding: 6pt 10pt;
+      }
+      .emergency .action-num {
+        background: #e7c45f;
+        color: #0d3b66;
+      }
+      .emergency-text {
+        font-size: 9pt;
+        color: #92730b;
+        font-weight: 600;
+        margin-top: 2pt;
+        text-align: center;
+      }
 
-  /* ─── Footer ────────────────────────── */
-  .footer {
-    margin-top: 10pt;
-    padding-top: 5pt;
-    border-top: 1pt solid #d1d5db;
-    font-size: 7.5pt;
-    color: #9ca3af;
-    text-align: center;
-    display: flex;
-    justify-content: space-between;
-  }
-  .footer strong { color: #6b7280; font-weight: 600; }
-</style>
-</head>
-<body>
+      /* ─── Footer ────────────────────────── */
+      .footer {
+        margin-top: 10pt;
+        padding-top: 5pt;
+        border-top: 1pt solid #d1d5db;
+        font-size: 7.5pt;
+        color: #9ca3af;
+        text-align: center;
+        display: flex;
+        justify-content: space-between;
+      }
+      .footer strong {
+        color: #6b7280;
+        font-weight: 600;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <!-- Header -->
+      <div class="header">
+        <div class="header-title">天文 V2 POS 快速參考指南</div>
+        <div class="header-meta">
+          版本 <strong>v2.10.0</strong><br />
+          2026-04-14
+        </div>
+      </div>
 
-<div class="page">
+      <!-- 2x3 Grid -->
+      <div class="grid">
+        <!-- 1. 下單 -->
+        <div class="action-card">
+          <div class="action-header">
+            <span class="action-num">1</span>
+            <span class="action-title">下單</span>
+          </div>
+          <ul class="action-steps">
+            <li data-step="a.">
+              <strong>點擊</strong>左側商品卡片 → 品項加入右側訂單面板
+            </li>
+            <li data-step="b.">
+              確認品項和數量後，點擊底部<strong>「送出訂單」</strong>
+            </li>
+            <li data-step="c.">
+              快速模式直接送出；標準模式需再點<strong>「確認」</strong>
+            </li>
+          </ul>
+          <div class="thumb-row">
+            <img src="screenshots/10/10-01.png" alt="點餐頁面" />
+            <img src="screenshots/10/10-10.png" alt="送出訂單" />
+          </div>
+        </div>
 
-  <!-- Header -->
-  <div class="header">
-    <div class="header-title">天文 V2 POS 快速參考指南</div>
-    <div class="header-meta">
-      版本 <strong>v2.10.0</strong><br>
-      2026-04-14
+        <!-- 2. 打卡上班 -->
+        <div class="action-card">
+          <div class="action-header">
+            <span class="action-num">2</span>
+            <span class="action-title">打卡上班</span>
+          </div>
+          <ul class="action-steps">
+            <li data-step="a.">
+              切換到<strong>「打卡」</strong>分頁 → 找到自己的員工卡片
+            </li>
+            <li data-step="b.">
+              <strong>點擊</strong>卡片 →
+              確認視窗點<strong>「打卡上班」</strong>或<strong
+                >「打卡下班」</strong
+              >
+            </li>
+          </ul>
+          <div class="thumb-row">
+            <img src="screenshots/20/20-01.png" alt="打卡頁面" />
+            <img src="screenshots/20/20-02.png" alt="打卡確認" />
+          </div>
+        </div>
+
+        <!-- 3. 編輯訂單 -->
+        <div class="action-card">
+          <div class="action-header">
+            <span class="action-num">3</span>
+            <span class="action-title">編輯訂單</span>
+          </div>
+          <ul class="action-steps">
+            <li data-step="a.">
+              在右側面板切換到<strong>「近期訂單」</strong>
+            </li>
+            <li data-step="b.">
+              找到目標訂單，<strong>向左滑動</strong> →
+              點擊<strong>「編輯」</strong>進行修改
+            </li>
+          </ul>
+          <div class="thumb-single">
+            <img src="screenshots/10/10-13.png" alt="編輯訂單" />
+          </div>
+        </div>
+
+        <!-- 4. 看營收 -->
+        <div class="action-card">
+          <div class="action-header">
+            <span class="action-num">4</span>
+            <span class="action-title">看營收</span>
+          </div>
+          <ul class="action-steps">
+            <li data-step="a.">點擊導覽列<strong>「統計」</strong>分頁</li>
+            <li data-step="b.">
+              查看 KPI 指標（總營收、日平均、上午/下午營收）
+            </li>
+            <li data-step="c.">使用日期選擇器切換範圍：今天 / 本週 / 本月</li>
+          </ul>
+          <div class="thumb-single">
+            <img src="screenshots/30/30-10.png" alt="營收統計" />
+          </div>
+        </div>
+
+        <!-- 5. 手動備份 -->
+        <div class="action-card">
+          <div class="action-header">
+            <span class="action-num">5</span>
+            <span class="action-title">手動備份</span>
+          </div>
+          <ul class="action-steps">
+            <li data-step="a.">進入<strong>「設定」→「雲端備份」</strong></li>
+            <li data-step="b.">
+              點擊<strong>「立即備份」</strong>按鈕 → 等待 10-30 秒
+            </li>
+            <li data-step="c.">看到成功訊息即完成（需管理員登入）</li>
+          </ul>
+          <div class="thumb-single">
+            <img src="screenshots/40/40-01.png" alt="雲端備份" />
+          </div>
+        </div>
+
+        <!-- 6. 遇到問題 -->
+        <div class="action-card emergency">
+          <div class="action-header">
+            <span class="action-num">!</span>
+            <span class="action-title">遇到問題</span>
+          </div>
+          <ul class="action-steps">
+            <li data-step="a.">
+              看到錯誤畫面 → 點擊<strong>「重新載入」</strong>或<strong
+                >「回首頁」</strong
+              >
+            </li>
+            <li data-step="b.">
+              按鈕無反應 → <strong>關閉應用程式</strong>後重新開啟
+            </li>
+            <li data-step="c.">問題持續 → 記錄錯誤訊息並通知管理員</li>
+          </ul>
+          <div class="thumb-single">
+            <img src="screenshots/90/90-01.png" alt="錯誤畫面" />
+          </div>
+          <div class="emergency-text">
+            您的資料不會遺失，大多數問題重新開啟即可解決
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="footer">
+        <span>完整手冊請參考 docs/user-guide/ 或聯繫管理員</span>
+        <span>天文 V2 POS &middot; v2.10.0 &middot; 2026-04-14</span>
+      </div>
     </div>
-  </div>
-
-  <!-- 2x3 Grid -->
-  <div class="grid">
-
-    <!-- 1. 下單 -->
-    <div class="action-card">
-      <div class="action-header">
-        <span class="action-num">1</span>
-        <span class="action-title">下單</span>
-      </div>
-      <ul class="action-steps">
-        <li data-step="a."><strong>點擊</strong>左側商品卡片 → 品項加入右側訂單面板</li>
-        <li data-step="b.">確認品項和數量後，點擊底部<strong>「送出訂單」</strong></li>
-        <li data-step="c.">快速模式直接送出；標準模式需再點<strong>「確認」</strong></li>
-      </ul>
-      <div class="thumb-row">
-        <img src="screenshots/10/10-01.png" alt="點餐頁面">
-        <img src="screenshots/10/10-10.png" alt="送出訂單">
-      </div>
-    </div>
-
-    <!-- 2. 打卡上班 -->
-    <div class="action-card">
-      <div class="action-header">
-        <span class="action-num">2</span>
-        <span class="action-title">打卡上班</span>
-      </div>
-      <ul class="action-steps">
-        <li data-step="a.">切換到<strong>「打卡」</strong>分頁 → 找到自己的員工卡片</li>
-        <li data-step="b."><strong>點擊</strong>卡片 → 確認視窗點<strong>「打卡上班」</strong>或<strong>「打卡下班」</strong></li>
-      </ul>
-      <div class="thumb-row">
-        <img src="screenshots/20/20-01.png" alt="打卡頁面">
-        <img src="screenshots/20/20-02.png" alt="打卡確認">
-      </div>
-    </div>
-
-    <!-- 3. 編輯訂單 -->
-    <div class="action-card">
-      <div class="action-header">
-        <span class="action-num">3</span>
-        <span class="action-title">編輯訂單</span>
-      </div>
-      <ul class="action-steps">
-        <li data-step="a.">在右側面板切換到<strong>「近期訂單」</strong></li>
-        <li data-step="b.">找到目標訂單，<strong>向左滑動</strong> → 點擊<strong>「編輯」</strong>進行修改</li>
-      </ul>
-      <div class="thumb-single">
-        <img src="screenshots/10/10-13.png" alt="編輯訂單">
-      </div>
-    </div>
-
-    <!-- 4. 看營收 -->
-    <div class="action-card">
-      <div class="action-header">
-        <span class="action-num">4</span>
-        <span class="action-title">看營收</span>
-      </div>
-      <ul class="action-steps">
-        <li data-step="a.">點擊導覽列<strong>「統計」</strong>分頁</li>
-        <li data-step="b.">查看 KPI 指標（總營收、日平均、上午/下午營收）</li>
-        <li data-step="c.">使用日期選擇器切換範圍：今天 / 本週 / 本月</li>
-      </ul>
-      <div class="thumb-single">
-        <img src="screenshots/30/30-10.png" alt="營收統計">
-      </div>
-    </div>
-
-    <!-- 5. 手動備份 -->
-    <div class="action-card">
-      <div class="action-header">
-        <span class="action-num">5</span>
-        <span class="action-title">手動備份</span>
-      </div>
-      <ul class="action-steps">
-        <li data-step="a.">進入<strong>「設定」→「雲端備份」</strong></li>
-        <li data-step="b.">點擊<strong>「立即備份」</strong>按鈕 → 等待 10-30 秒</li>
-        <li data-step="c.">看到成功訊息即完成（需管理員登入）</li>
-      </ul>
-      <div class="thumb-single">
-        <img src="screenshots/40/40-01.png" alt="雲端備份">
-      </div>
-    </div>
-
-    <!-- 6. 遇到問題 -->
-    <div class="action-card emergency">
-      <div class="action-header">
-        <span class="action-num">!</span>
-        <span class="action-title">遇到問題</span>
-      </div>
-      <ul class="action-steps">
-        <li data-step="a.">看到錯誤畫面 → 點擊<strong>「重新載入」</strong>或<strong>「回首頁」</strong></li>
-        <li data-step="b.">按鈕無反應 → <strong>關閉應用程式</strong>後重新開啟</li>
-        <li data-step="c.">問題持續 → 記錄錯誤訊息並通知管理員</li>
-      </ul>
-      <div class="thumb-single">
-        <img src="screenshots/90/90-01.png" alt="錯誤畫面">
-      </div>
-      <div class="emergency-text">您的資料不會遺失，大多數問題重新開啟即可解決</div>
-    </div>
-
-  </div>
-
-  <!-- Footer -->
-  <div class="footer">
-    <span>完整手冊請參考 docs/user-guide/ 或聯繫管理員</span>
-    <span>天文 V2 POS &middot; v2.10.0 &middot; 2026-04-14</span>
-  </div>
-
-</div>
-
-</body>
+  </body>
 </html>

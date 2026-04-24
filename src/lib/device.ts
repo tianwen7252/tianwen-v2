@@ -33,7 +33,8 @@ export function getDeviceType(): string {
   const ua = navigator.userAgent
 
   // Android
-  if (/Android/.test(ua)) return /Mobile/.test(ua) ? 'Android-phone' : 'Android-tablet'
+  if (/Android/.test(ua))
+    return /Mobile/.test(ua) ? 'Android-phone' : 'Android-tablet'
 
   // iPhone
   if (/iPhone/.test(ua)) return 'iPhone'

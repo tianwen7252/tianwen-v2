@@ -196,8 +196,7 @@ export function parseV1OrderData(
       const price = Number(entry.value) || 0
       const type = typeof entry.type === 'string' ? entry.type : ''
       // Check if amount hint is provided directly on the item
-      const amountHint =
-        entry.amount != null ? Number(entry.amount) || 1 : 1
+      const amountHint = entry.amount != null ? Number(entry.amount) || 1 : 1
       rawItems.push({ name, price, type, quantity: amountHint })
     } else if (isOperator(entry) && entry.operator === '*') {
       // Multiplier applies to the previous item

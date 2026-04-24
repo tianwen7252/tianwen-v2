@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { X } from 'lucide-react'
 import { RippleButton } from '@/components/ui/ripple-button'
+import { tutorialAnchor } from '@/lib/tutorial/tutorial-anchor'
 import type { Discount } from '@/stores/order-store'
 
 export interface DiscountSectionProps {
@@ -15,7 +16,7 @@ export function DiscountSection({
 }: DiscountSectionProps) {
   const { t } = useTranslation()
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-2" {...tutorialAnchor('order.discount')}>
       <h4 className="text-sm font-medium text-muted-foreground">
         {t('order.discount')} ({t('order.discountHint')})
       </h4>

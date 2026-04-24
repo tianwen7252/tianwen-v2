@@ -110,7 +110,11 @@ export function EditOrderModal({
       notify.success(t('order.editSuccess'))
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err)
-      logError(msg, 'EditOrderModal.handleConfirm', err instanceof Error ? err.stack : undefined)
+      logError(
+        msg,
+        'EditOrderModal.handleConfirm',
+        err instanceof Error ? err.stack : undefined,
+      )
       notify.error(t('order.editError'))
     } finally {
       setIsSubmitting(false)

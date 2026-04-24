@@ -63,7 +63,10 @@ export function AuthGuard({
     return (
       <div className="flex min-h-[400px] flex-col items-center justify-center gap-6 p-10">
         <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-(--color-red)/10">
-          <ShieldOff className="h-10 w-10 text-(--color-red)" strokeWidth={1.5} />
+          <ShieldOff
+            className="h-10 w-10 text-(--color-red)"
+            strokeWidth={1.5}
+          />
         </div>
         <h2 className="text-2xl text-foreground">{t('auth.title')}</h2>
         <p className="text-muted-foreground">{t('auth.adminOnly')}</p>
