@@ -9,7 +9,7 @@ import { cn } from '@/lib/cn'
 export function HeaderOrderStaff() {
   const { t } = useTranslation()
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const orderStaffName = useOrderStaffStore((s) => s.orderStaffName)
+  const orderStaffName = useOrderStaffStore(s => s.orderStaffName)
 
   return (
     <>

@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/cn'
 import { RippleButton } from '@/components/ui/ripple-button'
+import { tutorialAnchor } from '@/lib/tutorial/tutorial-anchor'
 import type { CommodityType } from '@/lib/schemas'
 
 interface CategoryTabsProps {
@@ -20,7 +21,13 @@ export function CategoryTabs({
 }: CategoryTabsProps) {
   const { t } = useTranslation()
   if (categories.length === 0) {
-    return <div role="tablist" aria-label={t('order.categories')} />
+    return (
+      <div
+        role="tablist"
+        aria-label={t('order.categories')}
+        {...tutorialAnchor('order.categoryTabs')}
+      />
+    )
   }
 
   return (
@@ -28,6 +35,7 @@ export function CategoryTabs({
       role="tablist"
       aria-label={t('order.categories')}
       className="flex flex-wrap gap-2"
+      {...tutorialAnchor('order.categoryTabs')}
     >
       {categories.map(category => {
         const isActive = category.typeId === selectedTypeId

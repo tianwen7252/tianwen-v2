@@ -62,7 +62,7 @@ function DayCellContent({
   if (day.cells.length === 0) return null
 
   // Filter cells that have attendance
-  const activeCells = day.cells.filter((cell) => cell.attendances.length > 0)
+  const activeCells = day.cells.filter(cell => cell.attendances.length > 0)
   if (activeCells.length === 0) return null
 
   return (
@@ -70,7 +70,7 @@ function DayCellContent({
       {activeCells.map((cell, cellIdx) => {
         const { employee, attendances } = cell
         const hasVacation = attendances.some(
-          (a) => getCellDisplayType(a) === 'vacation',
+          a => getCellDisplayType(a) === 'vacation',
         )
         const totalHours = calcTotalHours(attendances)
 
@@ -86,7 +86,7 @@ function DayCellContent({
               backgroundColor:
                 'color-mix(in srgb, var(--color-blue-grey) 10%, transparent)',
             }}
-            onClick={(e) => {
+            onClick={e => {
               e.stopPropagation()
               onEditRecord(employee, day.date, attendances[0]!)
             }}
@@ -134,7 +134,7 @@ export function RecordsCalendarView({
       {/* Calendar grid */}
       <div className="grid grid-cols-7 gap-px bg-regal-navy/10">
         {calendarGrid.map((week, _weekIdx) =>
-          week.map((day) => {
+          week.map(day => {
             const dateNum = parseInt(day.date.split('-')[2] ?? '0', 10)
 
             return (

@@ -10,6 +10,7 @@ import { employeeFormSchema } from '@/lib/form-schemas'
 import { getEmployeeRepo } from '@/lib/repositories'
 import { useDbQuery } from '@/hooks/use-db-query'
 import { useAppStore } from '@/stores/app-store'
+import { tutorialAnchor } from '@/lib/tutorial/tutorial-anchor'
 import { EmployeeRow } from './employee-row'
 import { EmployeeForm } from './employee-form'
 import { DEFAULT_VALUES, employeeToFormValues } from './staff-admin.types'
@@ -224,7 +225,7 @@ export function StaffAdmin() {
   }, [])
 
   return (
-    <div className="p-6">
+    <div className="p-6" {...tutorialAnchor('settings.staffAdmin')}>
       {/* Header with add button */}
       <div className="mb-4 flex items-center justify-between">
         <h3 className="text-xl font-medium">{t('staff.title')}</h3>

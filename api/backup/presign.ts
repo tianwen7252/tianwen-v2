@@ -14,7 +14,8 @@
 
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 
-const VALID_FILENAME_RE = /^tianwen-.+-\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}\.sqlite\.gz$/
+const VALID_FILENAME_RE =
+  /^tianwen-.+-\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}\.sqlite\.gz$/
 const PRESIGN_EXPIRY_SECONDS = 600 // 10 minutes
 
 export default async function handler(
@@ -33,12 +34,17 @@ export default async function handler(
     }
 
     if (!action || !filename || !VALID_FILENAME_RE.test(filename)) {
-      res.status(400).json({ success: false, error: 'Invalid action or filename' })
+      res
+        .status(400)
+        .json({ success: false, error: 'Invalid action or filename' })
       return
     }
 
     if (action !== 'upload' && action !== 'download') {
-      res.status(400).json({ success: false, error: 'Action must be "upload" or "download"' })
+      res.status(400).json({
+        success: false,
+        error: 'Action must be "upload" or "download"',
+      })
       return
     }
 
@@ -78,6 +84,8 @@ export default async function handler(
     res.status(200).json({ success: true, presignedUrl, filename })
   } catch (err: unknown) {
     console.error('[api/backup/presign] Error:', err)
-    res.status(500).json({ success: false, error: 'Failed to generate presigned URL' })
+    res
+      .status(500)
+      .json({ success: false, error: 'Failed to generate presigned URL' })
   }
 }

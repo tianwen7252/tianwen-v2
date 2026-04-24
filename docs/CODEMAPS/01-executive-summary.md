@@ -13,13 +13,13 @@
 
 ### Core Value Propositions
 
-| Pillar | Capability |
-|--------|-----------|
-| **Offline-First** | Take orders, manage staff, view analytics without internet; sync via cloud backup |
-| **Cloud-Resilient** | Automatic daily/weekly backup to Cloudflare R2; one-click cloud restore |
-| **Mobile-Native** | iPad-optimized UI (portrait-only, touch gestures); installed as homescreen app |
-| **Multi-Device** | Each device has independent offline DB; unique device identity for backup scoping |
-| **Real-Time Reporting** | Daily revenue KPIs, product sales rankings, staff performance metrics |
+| Pillar                  | Capability                                                                        |
+| ----------------------- | --------------------------------------------------------------------------------- |
+| **Offline-First**       | Take orders, manage staff, view analytics without internet; sync via cloud backup |
+| **Cloud-Resilient**     | Automatic daily/weekly backup to Cloudflare R2; one-click cloud restore           |
+| **Mobile-Native**       | iPad-optimized UI (portrait-only, touch gestures); installed as homescreen app    |
+| **Multi-Device**        | Each device has independent offline DB; unique device identity for backup scoping |
+| **Real-Time Reporting** | Daily revenue KPIs, product sales rankings, staff performance metrics             |
 
 ---
 
@@ -54,20 +54,24 @@
 ### Data Scope
 
 **Transaction Data**
+
 - **Orders** — Customer orders with items, discounts, timestamps
 - **Order Items** — Line items with snapshot prices (price changes don't affect past orders)
 - **Discounts** — Manual discounts applied per order
 
 **Operational Data**
+
 - **Commodities** — Menu items (name, price, category, availability)
 - **Employees** — Staff roster with shift type, admin privileges, employment dates
 - **Attendance** — Daily punch-in/out or vacation records
 
 **Reporting Data**
+
 - **Daily Data** — Pre-aggregated daily revenue for fast chart queries
 - **Analytics** — On-demand aggregation of sales by product, hour, staff, payment
 
 **Audit Data**
+
 - **Backup Logs** — Backup operations (manual/auto/v1-import) with status, file size, duration
 - **Error Logs** — Application errors for diagnostics
 - **Price Change Logs** — Commodity price edits with old→new snapshot
@@ -75,11 +79,11 @@
 
 ### Backup Policy
 
-| Schedule | Frequency | Retention | Transport |
-|----------|-----------|-----------|-----------|
-| Manual | On-demand | Latest 30 per device | Gzip + presigned URL to R2 |
-| Auto | Daily or weekly (configurable) | Latest 30 per device | Gzip + presigned URL to R2 |
-| V1 Legacy | One-time import | Deduplicated via INSERT OR IGNORE | No transport |
+| Schedule  | Frequency                      | Retention                         | Transport                  |
+| --------- | ------------------------------ | --------------------------------- | -------------------------- |
+| Manual    | On-demand                      | Latest 30 per device              | Gzip + presigned URL to R2 |
+| Auto      | Daily or weekly (configurable) | Latest 30 per device              | Gzip + presigned URL to R2 |
+| V1 Legacy | One-time import                | Deduplicated via INSERT OR IGNORE | No transport               |
 
 ---
 
@@ -116,26 +120,26 @@
 
 ### Key Technologies
 
-| Category | Choice | Rationale |
-|----------|--------|-----------|
-| **Framework** | React 19 | Latest stable; Server Components ready |
-| **Routing** | TanStack Router | File-based, type-safe |
-| **CSS** | Tailwind CSS v4 | Utility-first, low bundle size |
-| **UI Primitives** | shadcn/ui + Radix | Accessible, composable |
-| **Forms** | React Hook Form + Zod | Lightweight validation, DX |
-| **State (UI)** | Zustand | Minimal boilerplate, persistent store option |
-| **State (Server)** | TanStack Query | Future API expansion ready |
-| **Database** | SQLite WASM + OPFS | Offline-capable, near-native performance |
-| **Backup** | Cloudflare R2 | S3-compatible, cheap, edge-optimized |
-| **Backend** | Vercel Functions | Serverless, no infrastructure overhead |
-| **Auth** | Google OAuth | Staff account binding (optional) |
-| **Animation** | CSS keyframes + tw-animate | Smaller bundle than Framer Motion |
-| **Charts** | Recharts | Lightweight, responsive |
-| **Icons** | lucide-react | Modern, consistent |
-| **Testing** | Vitest + Playwright | Fast, DX-focused |
-| **Linting** | Oxlint | Rust-based, faster than ESLint |
-| **Formatting** | Oxfmt | Rust-based, faster than Prettier |
-| **i18n** | react-i18next | Traditional Chinese (zh-TW) primary |
+| Category           | Choice                     | Rationale                                    |
+| ------------------ | -------------------------- | -------------------------------------------- |
+| **Framework**      | React 19                   | Latest stable; Server Components ready       |
+| **Routing**        | TanStack Router            | File-based, type-safe                        |
+| **CSS**            | Tailwind CSS v4            | Utility-first, low bundle size               |
+| **UI Primitives**  | shadcn/ui + Radix          | Accessible, composable                       |
+| **Forms**          | React Hook Form + Zod      | Lightweight validation, DX                   |
+| **State (UI)**     | Zustand                    | Minimal boilerplate, persistent store option |
+| **State (Server)** | TanStack Query             | Future API expansion ready                   |
+| **Database**       | SQLite WASM + OPFS         | Offline-capable, near-native performance     |
+| **Backup**         | Cloudflare R2              | S3-compatible, cheap, edge-optimized         |
+| **Backend**        | Vercel Functions           | Serverless, no infrastructure overhead       |
+| **Auth**           | Google OAuth               | Staff account binding (optional)             |
+| **Animation**      | CSS keyframes + tw-animate | Smaller bundle than Framer Motion            |
+| **Charts**         | Recharts                   | Lightweight, responsive                      |
+| **Icons**          | lucide-react               | Modern, consistent                           |
+| **Testing**        | Vitest + Playwright        | Fast, DX-focused                             |
+| **Linting**        | Oxlint                     | Rust-based, faster than ESLint               |
+| **Formatting**     | Oxfmt                      | Rust-based, faster than Prettier             |
+| **i18n**           | react-i18next              | Traditional Chinese (zh-TW) primary          |
 
 ---
 
@@ -144,13 +148,15 @@
 ### Immutable Orders
 
 Once submitted, an order's items retain their snapshot prices. Editing an order creates new item records without mutating originals. This prevents:
+
 - Revenue audit discrepancies from price changes
 - Customer surprise when reprinting old receipts
 
 ### Backup Scheduling (Taiwan Timezone)
 
 Backup overdue checks respect Taiwan time (UTC+8), not server time. This ensures:
-- Restaurants in Taiwan see "overdue" at midnight *Taiwan time*, not UTC
+
+- Restaurants in Taiwan see "overdue" at midnight _Taiwan time_, not UTC
 - Daily backup runs once per calendar day in Taiwan
 - Weekly backup aligns to Monday in Taiwan timezone
 
@@ -161,6 +167,7 @@ Orders containing items from the "stall" category automatically receive a memo t
 ### Device Identity
 
 Each browser has a unique DEVICE_ID stored in localStorage. This enables:
+
 - Per-device backup scoping (e.g., "restore backup from iPad A only")
 - Multi-device deployments with separate data per device
 - Device-specific error diagnostics
@@ -189,13 +196,13 @@ Each browser has a unique DEVICE_ID stored in localStorage. This enables:
 
 ## Internationalization
 
-| Aspect | Details |
-|--------|---------|
-| **Primary Language** | Traditional Chinese (zh-TW) |
-| **Secondary Language** | English (en) — partial coverage |
-| **Timezone** | Taiwan (UTC+8) hardcoded for backup scheduling |
-| **Date Format** | YYYY-MM-DD (ISO; storage + some UI displays) |
-| **Currency** | Taiwan Dollar (TWD); implicit in prices |
+| Aspect                 | Details                                        |
+| ---------------------- | ---------------------------------------------- |
+| **Primary Language**   | Traditional Chinese (zh-TW)                    |
+| **Secondary Language** | English (en) — partial coverage                |
+| **Timezone**           | Taiwan (UTC+8) hardcoded for backup scheduling |
+| **Date Format**        | YYYY-MM-DD (ISO; storage + some UI displays)   |
+| **Currency**           | Taiwan Dollar (TWD); implicit in prices        |
 
 ---
 
@@ -244,15 +251,15 @@ Each browser has a unique DEVICE_ID stored in localStorage. This enables:
 
 ## Key Files for Quick Reference
 
-| What You Want | Where to Look |
-|---------------|----------------|
-| Schema definition | `src/lib/schema.ts` |
-| Business rules | `src/stores/order-store.ts`, `src/lib/backup-schedule.ts` |
-| Repositories (data access) | `src/lib/repositories/*.ts` |
-| UI pages | `src/pages/*.tsx` |
-| Vercel API | `api/backup/*.ts` |
-| Zustand stores | `src/stores/*.ts` |
-| Localization | `src/locales/zh-TW.json` |
+| What You Want              | Where to Look                                             |
+| -------------------------- | --------------------------------------------------------- |
+| Schema definition          | `src/lib/schema.ts`                                       |
+| Business rules             | `src/stores/order-store.ts`, `src/lib/backup-schedule.ts` |
+| Repositories (data access) | `src/lib/repositories/*.ts`                               |
+| UI pages                   | `src/pages/*.tsx`                                         |
+| Vercel API                 | `api/backup/*.ts`                                         |
+| Zustand stores             | `src/stores/*.ts`                                         |
+| Localization               | `src/locales/zh-TW.json`                                  |
 
 ---
 
@@ -263,6 +270,7 @@ Tianwen V2 is a **focused, offline-first POS system** purpose-built for Taiwanes
 ---
 
 **Next Steps:**
+
 - For entity definitions, see [02-entities.md](02-entities.md)
 - For business rules detail, see [03-business-rules.md](03-business-rules.md)
 - For operational workflows, see [04-operational-flows.md](04-operational-flows.md)

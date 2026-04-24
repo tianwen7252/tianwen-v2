@@ -76,41 +76,31 @@ describe('EmployeeRow', () => {
   describe('basic rendering', () => {
     it('renders employee name', () => {
       const employee = makeEmployee({ name: 'Alex' })
-      renderInTable(
-        <EmployeeRow employee={employee} {...defaultRowProps} />,
-      )
+      renderInTable(<EmployeeRow employee={employee} {...defaultRowProps} />)
       expect(screen.getByText('Alex')).toBeTruthy()
     })
 
     it('renders employee number', () => {
       const employee = makeEmployee({ employeeNo: 'E001' })
-      renderInTable(
-        <EmployeeRow employee={employee} {...defaultRowProps} />,
-      )
+      renderInTable(<EmployeeRow employee={employee} {...defaultRowProps} />)
       expect(screen.getByText('E001')).toBeTruthy()
     })
 
     it('shows admin tag when employee is admin', () => {
       const employee = makeEmployee({ isAdmin: true })
-      renderInTable(
-        <EmployeeRow employee={employee} {...defaultRowProps} />,
-      )
+      renderInTable(<EmployeeRow employee={employee} {...defaultRowProps} />)
       expect(screen.getByText('管理員')).toBeTruthy()
     })
 
     it('does not show admin tag when employee is not admin', () => {
       const employee = makeEmployee({ isAdmin: false })
-      renderInTable(
-        <EmployeeRow employee={employee} {...defaultRowProps} />,
-      )
+      renderInTable(<EmployeeRow employee={employee} {...defaultRowProps} />)
       expect(screen.queryByText('管理員')).toBeNull()
     })
 
     it('shows resigned tag when employee is inactive', () => {
       const employee = makeEmployee({ status: 'inactive' })
-      renderInTable(
-        <EmployeeRow employee={employee} {...defaultRowProps} />,
-      )
+      renderInTable(<EmployeeRow employee={employee} {...defaultRowProps} />)
       expect(screen.getByText('已離職')).toBeTruthy()
     })
   })
@@ -123,17 +113,13 @@ describe('EmployeeRow', () => {
         googleSub: '112232479673923380065',
         googleEmail: 'alex@gmail.com',
       })
-      renderInTable(
-        <EmployeeRow employee={employee} {...defaultRowProps} />,
-      )
+      renderInTable(<EmployeeRow employee={employee} {...defaultRowProps} />)
       expect(screen.getByText('已連結Google')).toBeTruthy()
     })
 
     it('does not show "已連結Google" tag when googleSub is undefined', () => {
       const employee = makeEmployee({ googleSub: undefined })
-      renderInTable(
-        <EmployeeRow employee={employee} {...defaultRowProps} />,
-      )
+      renderInTable(<EmployeeRow employee={employee} {...defaultRowProps} />)
       expect(screen.queryByText('已連結Google')).toBeNull()
     })
 
@@ -142,9 +128,7 @@ describe('EmployeeRow', () => {
         isAdmin: true,
         googleSub: 'sub-123',
       })
-      renderInTable(
-        <EmployeeRow employee={employee} {...defaultRowProps} />,
-      )
+      renderInTable(<EmployeeRow employee={employee} {...defaultRowProps} />)
       const adminTag = screen.getByText('管理員')
       const googleTag = screen.getByText('已連結Google')
       expect(adminTag).toBeTruthy()
@@ -200,7 +184,11 @@ describe('EmployeeRow', () => {
     it('calls onLinkGoogle with employee when link button is clicked', async () => {
       const user = userEvent.setup()
       const onLinkGoogle = vi.fn()
-      const employee = makeEmployee({ id: 'emp-001', isAdmin: true, googleSub: undefined })
+      const employee = makeEmployee({
+        id: 'emp-001',
+        isAdmin: true,
+        googleSub: undefined,
+      })
       renderInTable(
         <EmployeeRow
           employee={employee}
@@ -306,9 +294,7 @@ describe('EmployeeRow', () => {
   describe('edit and delete buttons', () => {
     it('edit and delete buttons are always visible', () => {
       const employee = makeEmployee()
-      renderInTable(
-        <EmployeeRow employee={employee} {...defaultRowProps} />,
-      )
+      renderInTable(<EmployeeRow employee={employee} {...defaultRowProps} />)
       expect(screen.getByLabelText('編輯')).toBeTruthy()
       expect(screen.getByLabelText('刪除')).toBeTruthy()
     })

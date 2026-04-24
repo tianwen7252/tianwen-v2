@@ -12,7 +12,8 @@
 
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 
-const VALID_FILENAME_RE = /^tianwen-.+-\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}\.sqlite\.gz$/
+const VALID_FILENAME_RE =
+  /^tianwen-.+-\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}\.sqlite\.gz$/
 
 export default async function handler(
   req: VercelRequest,
@@ -30,8 +31,7 @@ export default async function handler(
   }
 
   try {
-    const { S3Client, DeleteObjectCommand } =
-      await import('@aws-sdk/client-s3')
+    const { S3Client, DeleteObjectCommand } = await import('@aws-sdk/client-s3')
 
     const accountId = process.env.R2_ACCOUNT_ID ?? ''
     const bucket = process.env.R2_BUCKET_NAME ?? ''
@@ -50,7 +50,10 @@ export default async function handler(
     res.status(200).json({ success: true })
   } catch (err: unknown) {
     const { S3ServiceException } = await import('@aws-sdk/client-s3')
-    if (err instanceof S3ServiceException && err.$metadata.httpStatusCode === 404) {
+    if (
+      err instanceof S3ServiceException &&
+      err.$metadata.httpStatusCode === 404
+    ) {
       res.status(404).json({ success: false, error: 'Backup not found' })
       return
     }

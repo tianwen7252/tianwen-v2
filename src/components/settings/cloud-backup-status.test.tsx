@@ -135,10 +135,17 @@ describe('CloudBackupStatus', () => {
       expect(screen.getByText('最後備份時間')).toBeTruthy()
     })
 
-    it('shows no record when lastBackupTime is null', () => {
+    it('shows no record when lastBackupTime is null', async () => {
+      // Both local lastBackupTime AND cloud latestBackup are null.
       mockStoreState = { ...mockStoreState, lastBackupTime: null }
+      mockListBackups.mockResolvedValue([])
       render(<CloudBackupStatus />, { wrapper: createWrapper() })
-      expect(screen.getByText('尚無記錄')).toBeTruthy()
+      // The Last Backup card is behind a skeleton while the cloud query is
+      // in flight; wait for the query to settle before asserting the empty
+      // fallback copy.
+      await waitFor(() => {
+        expect(screen.getByText('尚無記錄')).toBeTruthy()
+      })
     })
 
     it('shows formatted time when lastBackupTime is set', () => {

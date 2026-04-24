@@ -6,6 +6,7 @@
 import { useTranslation } from 'react-i18next'
 import dayjs from 'dayjs'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
 import { useBackupStore } from '@/stores/backup-store'
 import type { ScheduleType } from '@/stores/backup-store'
 import { useCloudBackups } from '@/hooks/use-cloud-backups'
@@ -17,16 +18,17 @@ export function CloudBackupStatus() {
   const { t } = useTranslation()
   const lastBackupTime = useBackupStore(s => s.lastBackupTime)
   const scheduleType = useBackupStore(s => s.scheduleType) as ScheduleType
-  const { totalSize, latestBackup, isLoading, error } = useCloudBackups()
+  const { totalSize, latestBackup, isLoading, isFetching, error } =
+    useCloudBackups()
 
   // Use runtime lastBackupTime if available, otherwise fall back to cloud latest
   const effectiveLastBackup = lastBackupTime ?? latestBackup?.createdAt ?? null
 
-  const cloudSizeDisplay = error
-    ? '—'
-    : isLoading
-      ? '...'
-      : formatBytes(totalSize)
+  // Show the skeleton for initial load and background refetches (e.g. after
+  // a successful manual backup triggers refetchQueries).
+  const showSkeleton = isLoading || isFetching
+
+  const cloudSizeDisplay = error ? '—' : formatBytes(totalSize)
 
   return (
     <div className="grid grid-cols-3 gap-4">
@@ -38,7 +40,11 @@ export function CloudBackupStatus() {
           </CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col flex-1">
-          <div className="text-2xl">{cloudSizeDisplay}</div>
+          {showSkeleton ? (
+            <Skeleton className="h-8 w-24" />
+          ) : (
+            <div className="text-2xl">{cloudSizeDisplay}</div>
+          )}
         </CardContent>
       </Card>
 
@@ -50,11 +56,15 @@ export function CloudBackupStatus() {
           </CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col flex-1">
-          <div className="text-2xl">
-            {effectiveLastBackup
-              ? dayjs(effectiveLastBackup).format('YYYY-MM-DD HH:mm')
-              : t('backup.noRecord')}
-          </div>
+          {showSkeleton ? (
+            <Skeleton className="h-8 w-48" />
+          ) : (
+            <div className="text-2xl">
+              {effectiveLastBackup
+                ? dayjs(effectiveLastBackup).format('YYYY-MM-DD HH:mm')
+                : t('backup.noRecord')}
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -66,9 +76,7 @@ export function CloudBackupStatus() {
           </CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col flex-1">
-          <div className="text-2xl">
-            {formatSchedule(t, scheduleType)}
-          </div>
+          <div className="text-2xl">{formatSchedule(t, scheduleType)}</div>
         </CardContent>
       </Card>
     </div>

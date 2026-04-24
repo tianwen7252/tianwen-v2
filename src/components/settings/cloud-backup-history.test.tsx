@@ -23,6 +23,7 @@ const mockUseCloudBackups = vi.hoisted(() =>
       },
     ],
     isLoading: false,
+    isFetching: false,
   }),
 )
 
@@ -106,6 +107,7 @@ describe('CloudBackupHistory', () => {
         },
       ],
       isLoading: false,
+      isFetching: false,
     })
     mockDownload.mockResolvedValue(new Uint8Array([1, 2, 3, 4]))
     mockDecompress.mockResolvedValue(new Uint8Array([5, 6, 7, 8]))
@@ -130,14 +132,41 @@ describe('CloudBackupHistory', () => {
     expect(importButtons).toHaveLength(2)
   })
 
-  it('renders loading state when isLoading is true', () => {
-    mockUseCloudBackups.mockReturnValue({ backups: [], isLoading: true })
-    renderComponent()
-    expect(screen.getByText('...')).toBeTruthy()
+  it('renders skeleton placeholders when isLoading is true', () => {
+    mockUseCloudBackups.mockReturnValue({
+      backups: [],
+      isLoading: true,
+      isFetching: true,
+    })
+    const { container } = renderComponent()
+    // Skeleton component tags its root with data-slot="skeleton"
+    expect(
+      container.querySelectorAll('[data-slot="skeleton"]').length,
+    ).toBeGreaterThan(0)
+    // The empty-state fallback must not render while loading
+    expect(screen.queryByText('尚無備份記錄')).toBeNull()
+  })
+
+  it('renders skeleton during refetch (isFetching) even when isLoading is false', () => {
+    // This covers the invalidate-after-manual-backup path where cached data
+    // exists but a refetch is in-flight.
+    mockUseCloudBackups.mockReturnValue({
+      backups: [],
+      isLoading: false,
+      isFetching: true,
+    })
+    const { container } = renderComponent()
+    expect(
+      container.querySelectorAll('[data-slot="skeleton"]').length,
+    ).toBeGreaterThan(0)
   })
 
   it('renders empty state when there are no backups', () => {
-    mockUseCloudBackups.mockReturnValue({ backups: [], isLoading: false })
+    mockUseCloudBackups.mockReturnValue({
+      backups: [],
+      isLoading: false,
+      isFetching: false,
+    })
     renderComponent()
     expect(screen.getByText('尚無備份記錄')).toBeTruthy()
   })

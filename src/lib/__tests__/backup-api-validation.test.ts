@@ -7,7 +7,8 @@ import { describe, it, expect } from 'vitest'
 
 // ── Re-implement pure validation functions to test ────────────────────────
 
-const VALID_FILENAME_RE = /^backup-\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}\.sqlite\.gz$/
+const VALID_FILENAME_RE =
+  /^backup-\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}\.sqlite\.gz$/
 const MAX_UPLOAD_BYTES = 1024 * 1024 * 1024 // 1 GB
 
 function isValidFilename(filename: string): boolean {
@@ -47,11 +48,15 @@ describe('backup API validation', () => {
     })
 
     it('rejects filename with path traversal', () => {
-      expect(isValidFilename('../backup-2026-04-07_13-10-00.sqlite.gz')).toBe(false)
+      expect(isValidFilename('../backup-2026-04-07_13-10-00.sqlite.gz')).toBe(
+        false,
+      )
     })
 
     it('rejects filename with slashes', () => {
-      expect(isValidFilename('foo/backup-2026-04-07_13-10-00.sqlite.gz')).toBe(false)
+      expect(isValidFilename('foo/backup-2026-04-07_13-10-00.sqlite.gz')).toBe(
+        false,
+      )
     })
 
     it('rejects empty filename', () => {
@@ -63,7 +68,9 @@ describe('backup API validation', () => {
     })
 
     it('rejects filename with spaces', () => {
-      expect(isValidFilename('backup- 2026-04-07_13-10-00.sqlite.gz')).toBe(false)
+      expect(isValidFilename('backup- 2026-04-07_13-10-00.sqlite.gz')).toBe(
+        false,
+      )
     })
   })
 

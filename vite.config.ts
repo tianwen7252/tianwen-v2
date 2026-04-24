@@ -6,9 +6,9 @@ import { VitePWA } from 'vite-plugin-pwa'
 import { resolve } from 'path'
 import { readFileSync } from 'fs'
 
-const packageJson = JSON.parse(
-  readFileSync('./package.json', 'utf-8'),
-) as { version: string }
+const packageJson = JSON.parse(readFileSync('./package.json', 'utf-8')) as {
+  version: string
+}
 
 export default defineConfig({
   define: {

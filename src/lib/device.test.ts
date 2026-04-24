@@ -156,7 +156,8 @@ describe('device utilities', () => {
 
     it('returns "iPad" for iPadOS 13+ masquerading as Macintosh with touch points', async () => {
       Object.defineProperty(navigator, 'userAgent', {
-        value: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15',
+        value:
+          'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15',
         writable: true,
         configurable: true,
       })
@@ -172,7 +173,8 @@ describe('device utilities', () => {
 
     it('returns "Mac" for real Macintosh with no touch points', async () => {
       Object.defineProperty(navigator, 'userAgent', {
-        value: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
+        value:
+          'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
         writable: true,
         configurable: true,
       })

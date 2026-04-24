@@ -3,6 +3,7 @@
  * DB statistics table, and backup action controls.
  */
 
+import { tutorialAnchor } from '@/lib/tutorial/tutorial-anchor'
 import { CloudBackupStatus } from './cloud-backup-status'
 import { CloudBackupDbStats } from './cloud-backup-db-stats'
 import { CloudBackupHistory } from './cloud-backup-history'
@@ -12,7 +13,10 @@ import { CloudBackupV1Import } from './cloud-backup-v1-import'
 
 export function CloudBackup() {
   return (
-    <div className="space-y-6 p-6">
+    <div
+      className="space-y-6 p-6"
+      {...tutorialAnchor('settings.cloudBackup.page')}
+    >
       {/* Section 1: Status KPI Cards (3-column grid) */}
       <CloudBackupStatus />
 

@@ -8,13 +8,13 @@ import { resolveAvatarSrc } from './resolve-avatar-src'
 describe('resolveAvatarSrc', () => {
   describe('filename-only input (new format)', () => {
     it('prepends base path for a plain filename', () => {
-      expect(resolveAvatarSrc('doberman.png')).toBe('images/aminals/doberman.png')
+      expect(resolveAvatarSrc('doberman.png')).toBe(
+        'images/aminals/doberman.png',
+      )
     })
 
     it('prepends base path for any .png filename', () => {
-      expect(resolveAvatarSrc('deer.png')).toBe(
-        'images/aminals/deer.png',
-      )
+      expect(resolveAvatarSrc('deer.png')).toBe('images/aminals/deer.png')
     })
 
     it('prepends base path for .jpg filename', () => {

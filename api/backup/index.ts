@@ -19,7 +19,8 @@ export default async function handler(
   }
 
   try {
-    const { S3Client, ListObjectsV2Command } = await import('@aws-sdk/client-s3')
+    const { S3Client, ListObjectsV2Command } =
+      await import('@aws-sdk/client-s3')
 
     const accountId = process.env.R2_ACCOUNT_ID ?? ''
     const bucketName = process.env.R2_BUCKET_NAME ?? ''
@@ -33,7 +34,11 @@ export default async function handler(
       },
     })
 
-    const objects: Array<{ filename: string; size: number; createdAt: string }> = []
+    const objects: Array<{
+      filename: string
+      size: number
+      createdAt: string
+    }> = []
     let continuationToken: string | undefined
 
     do {
@@ -52,14 +57,20 @@ export default async function handler(
         objects.push({
           filename: key,
           size: obj.Size ?? 0,
-          createdAt: obj.LastModified?.toISOString() ?? new Date().toISOString(),
+          createdAt:
+            obj.LastModified?.toISOString() ?? new Date().toISOString(),
         })
       }
 
-      continuationToken = result.IsTruncated ? result.NextContinuationToken : undefined
+      continuationToken = result.IsTruncated
+        ? result.NextContinuationToken
+        : undefined
     } while (continuationToken)
 
-    objects.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    objects.sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+    )
 
     res.status(200).json({ success: true, data: objects })
   } catch (err: unknown) {
