@@ -1,5 +1,26 @@
 # Changelog
 
+## [2.13.0](https://github.com/tianwen7252/tianwen-v2/compare/v2.12.0...v2.13.0) (2026-04-24)
+
+
+### Features
+
+* **backup:** force-refetch backup list after manual backup + skeletonize all cloud-backup loading UI ([8e33cdd](https://github.com/tianwen7252/tianwen-v2/commit/8e33cdd0a6667778e443d1e19c75982db6b5cc27))
+* **backup:** refresh history after manual backup + skeleton loading state ([bcc3588](https://github.com/tianwen7252/tianwen-v2/commit/bcc35880e5af2a9055788db25e64b2afe5aa49ee))
+* **tutorial:** add coachmark component, a11y polish, Playwright E2E (V2-245) ([c9bb9ce](https://github.com/tianwen7252/tianwen-v2/commit/c9bb9ce0fa78b856c0cc523b1934d6d9dc15346d))
+* **tutorial:** add header launcher button and tutorial index modal (V2-242) ([ebb9555](https://github.com/tianwen7252/tianwen-v2/commit/ebb9555642765fd11a028311567b2bb8b08afad6))
+* **tutorial:** add spotlight overlay and step popover primitives (V2-240) ([b29aece](https://github.com/tianwen7252/tianwen-v2/commit/b29aecede53c71d9fbdf5df0736db4f4fbb5aa64))
+* **tutorial:** add tutorial engine infrastructure (V2-239) ([e6b1e3c](https://github.com/tianwen7252/tianwen-v2/commit/e6b1e3c07f412b2e18a2bcedead1a4cc8ee40ef7))
+* **tutorial:** add tutorial runner engine with route integration (V2-241) ([1f0b031](https://github.com/tianwen7252/tianwen-v2/commit/1f0b0311984d7fd1dae0273b943e5c87c9150aec))
+* **tutorial:** author chapters 20/30/40/90 tour content (V2-244) ([36a6b87](https://github.com/tianwen7252/tianwen-v2/commit/36a6b87ee3e87608b9bc97e9cd6a532a57172b1f))
+* **tutorial:** author first-setup and order-basics tours (V2-243) ([cc142ed](https://github.com/tianwen7252/tianwen-v2/commit/cc142edb6f7019fd398e549e790fe37442bd7f03))
+
+
+### Bug Fixes
+
+* **backup:** only show backup list skeleton during post-backup refetch ([e4a06c4](https://github.com/tianwen7252/tianwen-v2/commit/e4a06c4a9ea5243c780965f3b74332df2b68bcac))
+* **backup:** show skeleton immediately on manual backup click ([7ec11d2](https://github.com/tianwen7252/tianwen-v2/commit/7ec11d25d80e0e670a720c747d485f5e5d2e738f))
+
 ## [2.12.0](https://github.com/tianwen7252/tianwen-v2/compare/v2.11.0...v2.12.0) (2026-04-17)
 
 ### Features
