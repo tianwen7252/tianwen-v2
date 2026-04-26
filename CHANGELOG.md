@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.13.1](https://github.com/tianwen7252/tianwen-v2/compare/v2.13.0...v2.13.1) (2026-04-26)
+
+
+### Bug Fixes
+
+* **clock-in:** resolve cross-day duplicate clock-in and stale-data bugs (V2-251) ([8bbdfe6](https://github.com/tianwen7252/tianwen-v2/commit/8bbdfe630481d9c148aafd10fb86a50dde2ddbdc))
+
 ## [2.13.0](https://github.com/tianwen7252/tianwen-v2/compare/v2.12.0...v2.13.0) (2026-04-24)
 
 
