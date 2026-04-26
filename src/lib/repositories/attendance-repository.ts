@@ -102,7 +102,12 @@ export function createAttendanceRepository(
         ],
       )
       const created = await this.findById(id)
-      return created!
+      if (!created) {
+        throw new Error(
+          `Attendance INSERT for id="${id}" succeeded but row could not be re-read`,
+        )
+      }
+      return created
     },
 
     async update(id: string, data: Partial<CreateAttendance>) {
@@ -133,12 +138,17 @@ export function createAttendanceRepository(
         values,
       )
       const updated = await this.findById(id)
-      return updated!
+      if (!updated) {
+        throw new Error(
+          `Attendance UPDATE for id="${id}" succeeded but row could not be re-read`,
+        )
+      }
+      return updated
     },
 
     async remove(id: string) {
-      await db.exec('DELETE FROM attendances WHERE id = ?', [id])
-      return true
+      const result = await db.exec('DELETE FROM attendances WHERE id = ?', [id])
+      return (result.changes ?? 0) > 0
     },
   }
 }

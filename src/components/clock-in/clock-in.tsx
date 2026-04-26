@@ -11,6 +11,7 @@ import { Info } from 'lucide-react'
 import { WEEKDAY_SHORT } from '@/lib/records-utils'
 import { getEmployeeRepo, getAttendanceRepo } from '@/lib/repositories'
 import { useDbQuery } from '@/hooks/use-db-query'
+import { logError } from '@/lib/error-logger'
 import { ClockInModal } from '@/components/clock-in-modal'
 import { EmployeeCard } from './employee-card'
 import { deriveCardAction } from './clock-in-utils'
@@ -47,10 +48,32 @@ export function ClockIn() {
   // Data sources — refreshKey forces re-fetch after mutations
   const [refreshKey, setRefreshKey] = useState(0)
 
+  // Refetch and re-evaluate today whenever the page becomes visible again.
+  // Covers (a) returning to the tab after switching away and (b) waking the
+  // PWA after the device slept past midnight, when the midnight setTimeout
+  // may have been throttled.
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        setToday(dayjs().format('YYYY-MM-DD'))
+        setRefreshKey(k => k + 1)
+      }
+    }
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
+  }, [])
+
+  const handleQueryError = useCallback(() => {
+    notify.error(t('clockIn.toastLoadError'))
+  }, [t])
+
   const allEmployees = useDbQuery(
     () => getEmployeeRepo().findAll(),
     [refreshKey],
     [] as Employee[],
+    { source: 'clock-in:employees', onError: handleQueryError },
   )
   const employees = useMemo(
     () => allEmployees.filter(e => !e.resignationDate),
@@ -61,6 +84,7 @@ export function ClockIn() {
     () => getAttendanceRepo().findByDate(today),
     [today, refreshKey],
     [] as Attendance[],
+    { source: 'clock-in:attendances', onError: handleQueryError },
   )
 
   // Build O(1) lookup from employeeId -> attendance records
@@ -145,6 +169,36 @@ export function ClockIn() {
       const now = dayjs()
       const currentDate = now.format('YYYY-MM-DD')
 
+      // Day-rollover guard: if the calendar date changed since the modal
+      // opened (PWA backgrounded past midnight), refuse the write and force
+      // a refresh so the user re-confirms against today's true state.
+      if (currentDate !== today) {
+        setToday(currentDate)
+        setRefreshKey(k => k + 1)
+        notify.warning(t('clockIn.toastDataChanged'))
+        handleModalClose()
+        return
+      }
+
+      // Re-fetch today's records and verify the action is still valid
+      // against the freshest data. Aborts when state changed underneath
+      // the user (concurrent write, second tap on stale snapshot, etc.).
+      const freshRecords = await getAttendanceRepo().findByDate(currentDate)
+      const empRecords = freshRecords.filter(r => r.employeeId === emp.id)
+      const expectedAction = deriveCardAction(empRecords)
+      // 'vacation' is an explicit user choice and is never returned by
+      // deriveCardAction; it is only valid when no records exist yet.
+      const actionStillValid =
+        action === 'vacation'
+          ? empRecords.length === 0
+          : expectedAction === action
+      if (!actionStillValid) {
+        setRefreshKey(k => k + 1)
+        notify.warning(t('clockIn.toastDuplicateClockIn'))
+        handleModalClose()
+        return
+      }
+
       switch (action) {
         case 'clockIn':
           await getAttendanceRepo().create({
@@ -184,10 +238,15 @@ export function ClockIn() {
       }
       setRefreshKey(k => k + 1)
       handleModalClose()
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error)
+      const stack = error instanceof Error ? error.stack : undefined
+      logError(message, 'clock-in:handleConfirm', stack)
+      notify.error(t('clockIn.toastActionError'))
     } finally {
       setLoading(false)
     }
-  }, [modalState, handleModalClose, t])
+  }, [modalState, today, handleModalClose, t])
 
   return (
     <div className="p-4" {...tutorialAnchor('clockIn.page')}>
