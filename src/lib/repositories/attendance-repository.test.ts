@@ -140,4 +140,109 @@ describe('AttendanceRepository', () => {
       )
     })
   })
+
+  // ─── V2-251 ─────────────────────────────────────────────────────────────
+
+  describe('remove() (V2-251)', () => {
+    it('returns true when a row was deleted', async () => {
+      const db = createMockAsyncDb()
+      vi.mocked(db.exec).mockResolvedValueOnce({ rows: [], changes: 1 })
+      const repo = createAttendanceRepository(db)
+
+      const result = await repo.remove('att-100')
+      expect(result).toBe(true)
+    })
+
+    it('returns false when no row matched the id', async () => {
+      const db = createMockAsyncDb()
+      vi.mocked(db.exec).mockResolvedValueOnce({ rows: [], changes: 0 })
+      const repo = createAttendanceRepository(db)
+
+      const result = await repo.remove('att-missing')
+      expect(result).toBe(false)
+    })
+  })
+
+  describe('create() (V2-251)', () => {
+    it('throws when the freshly inserted row cannot be re-read', async () => {
+      const db = createMockAsyncDb()
+      // INSERT succeeds, but the SELECT returns no row (e.g. concurrent
+      // delete or worker glitch). The previous code returned the bad value
+      // via a non-null assertion; the new code must throw instead.
+      vi.mocked(db.exec)
+        .mockResolvedValueOnce({ rows: [], changes: 1 }) // INSERT
+        .mockResolvedValueOnce({ rows: [], changes: 0 }) // findById
+      const repo = createAttendanceRepository(db)
+
+      await expect(
+        repo.create({
+          employeeId: 'emp-001',
+          date: '2026-03-21',
+          clockIn: Date.now(),
+          type: 'regular',
+        }),
+      ).rejects.toThrow()
+    })
+
+    it('returns the created row when both INSERT and SELECT succeed', async () => {
+      const db = createMockAsyncDb()
+      const insertedRow = {
+        id: 'whatever',
+        employee_id: 'emp-001',
+        date: '2026-03-21',
+        clock_in: 1742547600000,
+        clock_out: null,
+        type: 'regular',
+        created_at: 1742547600000,
+        updated_at: 1742547600000,
+      }
+      vi.mocked(db.exec)
+        .mockResolvedValueOnce({ rows: [], changes: 1 }) // INSERT
+        .mockResolvedValueOnce({ rows: [insertedRow], changes: 0 }) // findById
+      const repo = createAttendanceRepository(db)
+
+      const result = await repo.create({
+        employeeId: 'emp-001',
+        date: '2026-03-21',
+        clockIn: 1742547600000,
+        type: 'regular',
+      })
+      expect(result.employeeId).toBe('emp-001')
+      expect(result.type).toBe('regular')
+    })
+  })
+
+  describe('update() (V2-251)', () => {
+    it('returns undefined when the target id does not exist', async () => {
+      const db = createMockAsyncDb()
+      vi.mocked(db.exec).mockResolvedValueOnce({ rows: [], changes: 0 })
+      const repo = createAttendanceRepository(db)
+
+      const result = await repo.update('missing', { clockOut: Date.now() })
+      expect(result).toBeUndefined()
+    })
+
+    it('throws when the row vanishes between UPDATE and re-read', async () => {
+      const db = createMockAsyncDb()
+      const existingRow = {
+        id: 'att-100',
+        employee_id: 'emp-001',
+        date: '2026-03-21',
+        clock_in: 1742547600000,
+        clock_out: null,
+        type: 'regular',
+        created_at: 1742547600000,
+        updated_at: 1742547600000,
+      }
+      vi.mocked(db.exec)
+        .mockResolvedValueOnce({ rows: [existingRow], changes: 0 }) // initial findById
+        .mockResolvedValueOnce({ rows: [], changes: 1 }) // UPDATE
+        .mockResolvedValueOnce({ rows: [], changes: 0 }) // re-read returns nothing
+      const repo = createAttendanceRepository(db)
+
+      await expect(
+        repo.update('att-100', { clockOut: Date.now() }),
+      ).rejects.toThrow()
+    })
+  })
 })

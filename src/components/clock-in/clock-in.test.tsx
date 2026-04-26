@@ -320,4 +320,133 @@ describe('ClockIn', () => {
       expect(card.getAttribute('tabindex')).toBe('0')
     }
   })
+
+  // ─── V2-251 Bug fixes ────────────────────────────────────────────────────
+
+  describe('V2-251: visibility refetch (Bug #1)', () => {
+    it('refetches data and re-evaluates today when the page becomes visible', async () => {
+      const findByDateSpy = vi.spyOn(getAttendanceRepo(), 'findByDate')
+      render(<ClockIn />)
+      await screen.findAllByTestId('employee-card')
+      const initialCalls = findByDateSpy.mock.calls.length
+      expect(initialCalls).toBeGreaterThan(0)
+
+      // Simulate user backgrounding then returning to the tab
+      Object.defineProperty(document, 'visibilityState', {
+        configurable: true,
+        get: () => 'hidden',
+      })
+      document.dispatchEvent(new Event('visibilitychange'))
+
+      Object.defineProperty(document, 'visibilityState', {
+        configurable: true,
+        get: () => 'visible',
+      })
+      document.dispatchEvent(new Event('visibilitychange'))
+
+      await waitFor(() => {
+        expect(findByDateSpy.mock.calls.length).toBeGreaterThan(initialCalls)
+      })
+      findByDateSpy.mockRestore()
+    })
+
+    it('updates today header when the page becomes visible after midnight', async () => {
+      render(<ClockIn />)
+      // Start on 2026-03-21
+      await screen.findByText(/2026\/3\/21/)
+
+      // Advance system clock to next day while the page is hidden
+      Object.defineProperty(document, 'visibilityState', {
+        configurable: true,
+        get: () => 'hidden',
+      })
+      document.dispatchEvent(new Event('visibilitychange'))
+      vi.setSystemTime(new Date('2026-03-22T08:30:00'))
+
+      // Return to tab
+      Object.defineProperty(document, 'visibilityState', {
+        configurable: true,
+        get: () => 'visible',
+      })
+      document.dispatchEvent(new Event('visibilitychange'))
+
+      // Header reflects the new date
+      await screen.findByText(/2026\/3\/22/)
+    })
+  })
+
+  describe('V2-251: cross-day duplicate guard (Bug #2)', () => {
+    it('aborts a clockIn write if the calendar day rolled over after the modal opened', async () => {
+      const user = createUser()
+      const createSpy = vi.spyOn(getAttendanceRepo(), 'create')
+      render(<ClockIn />)
+
+      const cards = await screen.findAllByTestId('employee-card')
+      // emp-004 (豬) has no record on 2026-03-21 — opens clockIn modal
+      const emp4Card = cards.find(card => within(card).queryByText('豬'))!
+      await user.click(emp4Card)
+
+      // Day rolls over while the modal is open
+      vi.setSystemTime(new Date('2026-03-22T00:30:00'))
+
+      const before = createSpy.mock.calls.length
+      await user.click(screen.getByText('確認打卡'))
+
+      // Modal should close, write must NOT happen for the stale date,
+      // and no record should be created on the rolled-over date either.
+      await waitFor(() => {
+        expect(screen.queryByText(/確認 豬 的上班打卡？/)).toBeNull()
+      })
+      expect(createSpy.mock.calls.length).toBe(before)
+      createSpy.mockRestore()
+    })
+
+    it('refuses to write when a fresher record already changed the expected action', async () => {
+      const user = createUser()
+      render(<ClockIn />)
+
+      const cards = await screen.findAllByTestId('employee-card')
+      const emp4Card = cards.find(card => within(card).queryByText('豬'))!
+      await user.click(emp4Card)
+
+      // Another path inserts a clockIn record for emp-004 between modal open
+      // and confirm — derived action should now be 'clockOut', not 'clockIn'.
+      await getAttendanceRepo().create({
+        employeeId: 'emp-004',
+        date: '2026-03-21',
+        clockIn: Date.now(),
+        type: 'regular',
+      })
+
+      const createSpy = vi.spyOn(getAttendanceRepo(), 'create')
+      await user.click(screen.getByText('確認打卡'))
+
+      await waitFor(() => {
+        expect(screen.queryByText(/確認 豬 的上班打卡？/)).toBeNull()
+      })
+      // No second clockIn record written
+      expect(createSpy).not.toHaveBeenCalled()
+      createSpy.mockRestore()
+    })
+
+    it('surfaces a toast and logs when the write throws', async () => {
+      const user = createUser()
+      const createSpy = vi
+        .spyOn(getAttendanceRepo(), 'create')
+        .mockRejectedValueOnce(new Error('disk full'))
+      render(<ClockIn />)
+
+      const cards = await screen.findAllByTestId('employee-card')
+      const emp4Card = cards.find(card => within(card).queryByText('豬'))!
+      await user.click(emp4Card)
+      await user.click(screen.getByText('確認打卡'))
+
+      await waitFor(() => {
+        expect(createSpy).toHaveBeenCalled()
+      })
+      // Modal stays open or closes silently — but no success toast appears.
+      expect(screen.queryByText('打卡上班成功')).toBeNull()
+      createSpy.mockRestore()
+    })
+  })
 })
