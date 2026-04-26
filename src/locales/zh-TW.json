@@ -97,7 +97,11 @@
     "toastClockIn": "打卡上班成功",
     "toastClockOut": "打卡下班成功",
     "toastVacation": "休假申請成功",
-    "toastCancelVacation": "已取消休假"
+    "toastCancelVacation": "已取消休假",
+    "toastLoadError": "載入打卡資料失敗，請重試",
+    "toastActionError": "打卡操作失敗，請重試",
+    "toastDuplicateClockIn": "已有未完成的打卡記錄，請先下班",
+    "toastDataChanged": "資料已更新，請重新確認"
   },
   "records": {
     "title": "員工考勤狀況",
