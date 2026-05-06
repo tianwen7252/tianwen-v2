@@ -223,7 +223,7 @@ describe('deleteDefaultData(db)', () => {
         c.sql.includes('DELETE FROM commodities') &&
         !c.sql.includes('commodity_types'),
     )
-    expect(comCall!.params).toHaveLength(82) // COMMODITY_SEEDS has 82 entries
+    expect(comCall!.params).toHaveLength(84) // COMMODITY_SEEDS has 84 entries
   })
 
   it('deletes commodities before SELECT-checking and deleting commodity_types', () => {
@@ -445,7 +445,7 @@ describe('insertDefaultCommodities(db)', () => {
     expect(typeInserts).toHaveLength(5)
   })
 
-  it('inserts all 82 commodities', () => {
+  it('inserts all 84 commodities', () => {
     const db = makeMockDb()
     insertDefaultCommodities(db)
 
@@ -455,7 +455,7 @@ describe('insertDefaultCommodities(db)', () => {
         c.sql.includes('commodities') &&
         !c.sql.includes('commodity_types'),
     )
-    expect(comInserts).toHaveLength(82)
+    expect(comInserts).toHaveLength(84)
   })
 
   it('uses INSERT OR IGNORE for commodity types', () => {
@@ -591,8 +591,8 @@ describe('DEFAULT_COMMODITY_TYPES', () => {
 })
 
 describe('DEFAULT_COMMODITIES', () => {
-  it('has 82 items', () => {
-    expect(DEFAULT_COMMODITIES).toHaveLength(82)
+  it('has 84 items', () => {
+    expect(DEFAULT_COMMODITIES).toHaveLength(84)
   })
 
   it('all items are on market by default', () => {
@@ -904,7 +904,7 @@ describe('resetCommodityDataAsync()', () => {
         c.sql.includes('commodities') &&
         !c.sql.includes('commodity_types'),
     )
-    expect(comInserts).toHaveLength(82)
+    expect(comInserts).toHaveLength(84)
   })
 
   it('re-inserts all default order types', async () => {
