@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.14.0](https://github.com/tianwen7252/tianwen-v2/compare/v2.13.1...v2.14.0) (2026-05-06)
+
+
+### Features
+
+* 攤位新增雞肉絲飯與低醣版 ([a1d63f2](https://github.com/tianwen7252/tianwen-v2/commit/a1d63f25abe538ae713b3acd3319889712e3e311))
+
 ## [2.13.1](https://github.com/tianwen7252/tianwen-v2/compare/v2.13.0...v2.13.1) (2026-04-26)
 
 
