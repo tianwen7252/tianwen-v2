@@ -1,9 +1,9 @@
 {
   "name": "天文 POS",
   "short_name": "天文",
-  "version": "2.14.0",
+  "version": "2.15.0",
   "description": "天文餐廳 POS 點餐管理系統",
-  "start_url": ".?v=2.14.0",
+  "start_url": ".?v=2.15.0",
   "scope": "/",
   "display": "standalone",
   "orientation": "landscape",
