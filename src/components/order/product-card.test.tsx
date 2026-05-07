@@ -39,7 +39,7 @@ describe('ProductCard', () => {
     const img = screen.getByRole('img', { name: '滷肉便當' })
     expect(img).toBeTruthy()
     expect(img.getAttribute('src')).toBe(
-      'images/commodities/braised-pork-belly-rice.png',
+      '/images/commodities/braised-pork-belly-rice.png',
     )
   })
 

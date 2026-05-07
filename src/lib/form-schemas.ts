@@ -47,6 +47,7 @@ export const commodityFormSchema = z.object({
   name: z.string().min(1),
   price: z.number().min(0),
   includesSoup: z.boolean().default(false),
+  image: z.string().default(''),
 })
 
 export type CommodityFormValues = z.input<typeof commodityFormSchema>

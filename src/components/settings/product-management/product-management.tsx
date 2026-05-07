@@ -4,7 +4,7 @@
  * and a unified "Save Settings" button.
  */
 
-import { useState, useCallback, useRef } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Save, Plus, Pencil, Trash2, ArrowUpDown, Tag } from 'lucide-react'
 import { ConfirmModal } from '@/components/modal'
@@ -13,6 +13,8 @@ import { ShineBorder } from '@/components/ui/shine-border'
 import { SHINE_COLOR_PRESETS } from '@/constants/shine-colors'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { notify } from '@/components/ui/sonner'
+import { logError } from '@/lib/error-logger'
+import { useUnsavedChangesStore } from '@/stores/unsaved-changes-store'
 import { tutorialAnchor } from '@/lib/tutorial/tutorial-anchor'
 import { CommodityTypeSection } from './commodity-type-section'
 import { CommoditySection } from './commodity-section'
@@ -33,6 +35,15 @@ export function ProductManagement() {
   // Track which sections have changes
   const [changesMap, setChangesMap] = useState<Record<string, boolean>>({})
   const hasAnyChanges = Object.values(changesMap).some(Boolean)
+
+  // Mirror dirty state to the global store so UI elements outside this
+  // page (e.g. the floating scroll-to-top button) can prompt the user
+  // to save before navigating away.
+  const setDirty = useUnsavedChangesStore(s => s.setDirty)
+  useEffect(() => {
+    setDirty('product-management', hasAnyChanges)
+    return () => setDirty('product-management', false)
+  }, [hasAnyChanges, setDirty])
 
   // Save confirm modal state
   const [isSaveOpen, setIsSaveOpen] = useState(false)
@@ -82,7 +93,12 @@ export function ProductManagement() {
       setIsSaveOpen(false)
       notify.success(t('productMgmt.saveSuccess'))
       handleRefresh()
-    } catch {
+    } catch (error) {
+      logError(
+        error instanceof Error ? error.message : String(error),
+        'ProductManagement.handleSaveConfirm',
+        error instanceof Error ? error.stack : undefined,
+      )
       notify.error(t('productMgmt.saveError'))
     } finally {
       setIsSaving(false)

@@ -10,6 +10,7 @@
     "edit": "編輯",
     "search": "搜尋",
     "systemConfirm": "系統確認",
+    "unsavedChangesReminder": "別忘了儲存設定",
     "pagination": {
       "page": "第 {{current}} / {{total}} 頁",
       "prevPage": "上一頁",
@@ -558,7 +559,9 @@
       "summaryEdited": "修改商品：{{name}}",
       "summaryDeleted": "刪除商品：{{name}}",
       "summaryFieldName": "名稱",
-      "summaryFieldPrice": "價格"
+      "summaryFieldPrice": "價格",
+      "pickImage": "選擇圖片",
+      "noImage": "不使用圖片"
     },
     "priceLog": {
       "title": "歷史價格變動",

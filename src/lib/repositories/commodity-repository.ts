@@ -49,8 +49,10 @@ export function createCommodityRepository(
     },
 
     async findByTypeId(typeId: string) {
+      // Filter on_market = 1 so soft-deleted commodities don't reappear
+      // in the product management list or the order grid (V2-253).
       const result = await db.exec<Record<string, unknown>>(
-        'SELECT * FROM commodities WHERE type_id = ? ORDER BY priority ASC, name ASC',
+        'SELECT * FROM commodities WHERE type_id = ? AND on_market = 1 ORDER BY priority ASC, name ASC',
         [typeId],
       )
       return result.rows.map(toCommodity)

@@ -262,6 +262,65 @@ describe('CommodityForm', () => {
     })
   })
 
+  describe('image picker (V2-254)', () => {
+    it('renders the picker grid in add mode', () => {
+      render(
+        <CommodityForm
+          open={true}
+          commodity={null}
+          onSubmit={onSubmit}
+          onClose={onClose}
+        />,
+      )
+      expect(screen.getByTestId('image-picker-clear')).toBeTruthy()
+    })
+
+    it('pre-selects the existing image in edit mode', () => {
+      render(
+        <CommodityForm
+          open={true}
+          commodity={{
+            ...EXISTING_COMMODITY,
+            image: 'braised-pork-belly-rice',
+          }}
+          onSubmit={onSubmit}
+          onClose={onClose}
+        />,
+      )
+      const tile = screen.getByTestId('image-tile-braised-pork-belly-rice')
+      expect(tile.getAttribute('aria-pressed')).toBe('true')
+    })
+
+    it('submits the chosen image key alongside the rest of the form', async () => {
+      const user = userEvent.setup()
+      render(
+        <CommodityForm
+          open={true}
+          commodity={null}
+          onSubmit={onSubmit}
+          onClose={onClose}
+        />,
+      )
+
+      await user.type(screen.getByLabelText('品名'), '紅燒肉飯')
+      const priceInput = screen.getByLabelText('價格')
+      await user.clear(priceInput)
+      await user.type(priceInput, '110')
+      await user.click(screen.getByTestId('image-tile-braised-pork-belly-rice'))
+      await user.click(screen.getByRole('button', { name: '確認' }))
+
+      await waitFor(() => {
+        expect(onSubmit).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: '紅燒肉飯',
+            price: 110,
+            image: 'braised-pork-belly-rice',
+          }),
+        )
+      })
+    })
+  })
+
   describe('includesSoup toggle', () => {
     it('should render includesSoup field', () => {
       render(

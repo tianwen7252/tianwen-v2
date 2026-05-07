@@ -1,7 +1,8 @@
 /**
  * CommodityForm -- Modal form for add/edit commodity.
- * Uses React Hook Form + Zod for validation.
- * Opens in Modal from @/components/modal.
+ * Single column layout: name / price / soup toggle, then the image
+ * picker grid below. The picker holds its own scrollable area so the
+ * modal stays a comfortable height.
  */
 
 import { useCallback, useEffect } from 'react'
@@ -15,6 +16,7 @@ import { Switch } from '@/components/ui/switch'
 import { commodityFormSchema } from '@/lib/form-schemas'
 import type { CommodityFormValues } from '@/lib/form-schemas'
 import type { Commodity } from '@/lib/schemas'
+import { CommodityImagePicker } from './commodity-image-picker'
 
 export interface CommodityFormProps {
   readonly open: boolean
@@ -23,19 +25,19 @@ export interface CommodityFormProps {
   readonly onClose: () => void
 }
 
-/** Default values for a new commodity form. */
 const DEFAULT_VALUES: CommodityFormValues = {
   name: '',
   price: 0,
   includesSoup: false,
+  image: '',
 }
 
-/** Map a Commodity entity to form values for edit mode. */
 function commodityToFormValues(c: Commodity): CommodityFormValues {
   return {
     name: c.name,
     price: c.price,
     includesSoup: c.includesSoup,
+    image: c.image ?? '',
   }
 }
 
@@ -55,7 +57,6 @@ export function CommodityForm({
       : DEFAULT_VALUES,
   })
 
-  // Reset form when modal opens or commodity changes
   useEffect(() => {
     if (open) {
       form.reset(isEditing ? commodityToFormValues(commodity!) : DEFAULT_VALUES)
@@ -81,6 +82,7 @@ export function CommodityForm({
     <Modal
       open={open}
       title={title}
+      width={600}
       variant={isEditing ? 'warm' : 'green'}
       shineColor={isEditing ? 'purple' : 'green'}
       onClose={onClose}
@@ -101,8 +103,8 @@ export function CommodityForm({
         </div>
       }
     >
-      <div className="flex flex-col gap-5">
-        {/* Name field */}
+      <div className="flex flex-col gap-4">
+        {/* Name */}
         <div className="flex flex-col gap-1.5">
           <label htmlFor="commodity-name" className="text-base text-foreground">
             {t('productMgmt.commodities.name')}
@@ -120,7 +122,7 @@ export function CommodityForm({
           )}
         </div>
 
-        {/* Price field */}
+        {/* Price */}
         <div className="flex flex-col gap-1.5">
           <label
             htmlFor="commodity-price"
@@ -143,8 +145,8 @@ export function CommodityForm({
           )}
         </div>
 
-        {/* includesSoup toggle -- label and switch on separate lines */}
-        <div className="flex flex-col gap-1.5">
+        {/* includesSoup */}
+        <div className="flex items-center justify-between gap-4">
           <span className="text-base text-foreground">
             {t('productMgmt.commodities.includesSoup')}
           </span>
@@ -156,6 +158,18 @@ export function CommodityForm({
             )}
           />
         </div>
+
+        {/* Image picker */}
+        <Controller
+          name="image"
+          control={form.control}
+          render={({ field }) => (
+            <CommodityImagePicker
+              value={field.value ?? ''}
+              onChange={field.onChange}
+            />
+          )}
+        />
       </div>
     </Modal>
   )
