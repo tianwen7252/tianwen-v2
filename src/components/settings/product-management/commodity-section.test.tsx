@@ -514,6 +514,108 @@ describe('CommoditySection', () => {
       expect(logs[0]!.newPrice).toBe(999)
     })
 
+    it('should log price change for items edited on a non-active tab (H-1)', async () => {
+      // Regression: previously save() looked up the original price from
+      // the active tab snapshot only, so a price edit applied on tab A and
+      // another applied on tab B silently dropped the price_change_log
+      // entry for whichever tab was not active at save time.
+      const ref = React.createRef<SectionRef>()
+      const user = userEvent.setup()
+      render(
+        <CommoditySection
+          refreshKey={0}
+          onHasChanges={vi.fn()}
+          sectionRef={ref}
+        />,
+      )
+
+      await screen.findByText('油淋雞腿飯')
+
+      // Edit a bento item's price.
+      const bentoOriginal = (await getCommodityRepo().findByTypeId('bento'))[0]!
+      const bentoEditButtons = screen.getAllByTestId('edit-button')
+      await user.click(bentoEditButtons[0]!)
+      let priceInput = screen.getByPlaceholderText('0')
+      await user.clear(priceInput)
+      await user.type(priceInput, '777')
+      await user.click(screen.getByRole('button', { name: '確認' }))
+
+      // Switch to the drink tab and edit a drink item's price.
+      await user.click(screen.getByTestId('category-tab-drink'))
+      const drinkOriginal = (await getCommodityRepo().findByTypeId('drink'))[0]!
+      await waitFor(() => {
+        expect(screen.getAllByTestId('edit-button').length).toBeGreaterThan(0)
+      })
+      const drinkEditButtons = screen.getAllByTestId('edit-button')
+      await user.click(drinkEditButtons[0]!)
+      priceInput = screen.getByPlaceholderText('0')
+      await user.clear(priceInput)
+      await user.type(priceInput, '888')
+      await user.click(screen.getByRole('button', { name: '確認' }))
+
+      await act(async () => {
+        await ref.current?.save()
+      })
+
+      // Both price changes must produce log entries even though only the
+      // drink tab is currently active.
+      const logs = await getPriceChangeLogRepo().findAll()
+      const bentoLog = logs.find(l => l.commodityId === bentoOriginal.id)
+      const drinkLog = logs.find(l => l.commodityId === drinkOriginal.id)
+      expect(bentoLog).toBeTruthy()
+      expect(bentoLog?.oldPrice).toBe(bentoOriginal.price)
+      expect(bentoLog?.newPrice).toBe(777)
+      expect(drinkLog).toBeTruthy()
+      expect(drinkLog?.oldPrice).toBe(drinkOriginal.price)
+      expect(drinkLog?.newPrice).toBe(888)
+    })
+
+    it('should persist the dragged position of a newly added commodity (H-2)', async () => {
+      // Regression: previously save() filtered out temp-xxx ids from
+      // updatePriorities(), so a newly added commodity dragged to a
+      // non-tail position fell back to the create() default priority and
+      // silently moved to the end after refresh.
+      const ref = React.createRef<SectionRef>()
+      const user = userEvent.setup()
+      render(
+        <CommoditySection
+          refreshKey={0}
+          onHasChanges={vi.fn()}
+          sectionRef={ref}
+        />,
+      )
+
+      await screen.findByText('油淋雞腿飯')
+
+      // Add a new commodity on the bento tab.
+      await user.click(screen.getByText('新增商品'))
+      const nameInput = screen.getByPlaceholderText('品名')
+      await user.type(nameInput, '排序新品')
+      const priceInput = screen.getByPlaceholderText('0')
+      await user.clear(priceInput)
+      await user.type(priceInput, '120')
+      await user.click(screen.getByRole('button', { name: '確認' }))
+
+      await waitFor(() => {
+        expect(screen.getByText('排序新品')).toBeTruthy()
+      })
+
+      // Reverse the list — the new item becomes the first row.
+      await user.click(screen.getByTestId('trigger-reorder'))
+
+      await act(async () => {
+        await ref.current?.save()
+      })
+
+      // After save, the new commodity must be ordered ahead of the
+      // pre-existing ones, not pushed to the end.
+      const persisted = await getCommodityRepo().findByTypeId('bento')
+      const sorted = [...persisted]
+        .filter(c => c.onMarket)
+        .sort((a, b) => a.priority - b.priority)
+      expect(sorted[0]!.name).toBe('排序新品')
+    })
+
     it('should NOT create price change log when price is unchanged', async () => {
       const ref = React.createRef<SectionRef>()
       const user = userEvent.setup()

@@ -13,6 +13,7 @@ import { ShineBorder } from '@/components/ui/shine-border'
 import { SHINE_COLOR_PRESETS } from '@/constants/shine-colors'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { notify } from '@/components/ui/sonner'
+import { logError } from '@/lib/error-logger'
 import { tutorialAnchor } from '@/lib/tutorial/tutorial-anchor'
 import { CommodityTypeSection } from './commodity-type-section'
 import { CommoditySection } from './commodity-section'
@@ -82,7 +83,12 @@ export function ProductManagement() {
       setIsSaveOpen(false)
       notify.success(t('productMgmt.saveSuccess'))
       handleRefresh()
-    } catch {
+    } catch (error) {
+      logError(
+        error instanceof Error ? error.message : String(error),
+        'ProductManagement.handleSaveConfirm',
+        error instanceof Error ? error.stack : undefined,
+      )
       notify.error(t('productMgmt.saveError'))
     } finally {
       setIsSaving(false)

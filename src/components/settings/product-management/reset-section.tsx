@@ -11,6 +11,7 @@ import { ConfirmModal } from '@/components/modal'
 import { RippleButton } from '@/components/ui/ripple-button'
 import { notify } from '@/components/ui/sonner'
 import { resetCommodityDataAsync } from '@/lib/default-data'
+import { logError } from '@/lib/error-logger'
 
 interface ResetSectionProps {
   readonly onReset: () => void
@@ -28,7 +29,12 @@ export function ResetSection({ onReset }: ResetSectionProps) {
       setIsOpen(false)
       notify.success(t('productMgmt.reset.success'))
       onReset()
-    } catch {
+    } catch (error) {
+      logError(
+        error instanceof Error ? error.message : String(error),
+        'ResetSection.handleConfirm',
+        error instanceof Error ? error.stack : undefined,
+      )
       notify.error(t('productMgmt.reset.error'))
       setIsOpen(false)
     } finally {
