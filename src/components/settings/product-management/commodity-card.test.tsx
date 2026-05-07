@@ -74,8 +74,8 @@ describe('CommodityCard', () => {
       expect(img).toBeTruthy()
       expect(img!.getAttribute('loading')).toBe('lazy')
       expect(img!.getAttribute('decoding')).toBe('async')
-      expect(img!.getAttribute('src')).toContain(
-        'images/commodities/braised-pork-belly-rice.png',
+      expect(img!.getAttribute('src')).toBe(
+        '/images/commodities/braised-pork-belly-rice.png',
       )
     })
 
