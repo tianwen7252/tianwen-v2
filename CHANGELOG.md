@@ -1,5 +1,20 @@
 # Changelog
 
+## [2.15.0](https://github.com/tianwen7252/tianwen-v2/compare/v2.14.0...v2.15.0) (2026-05-07)
+
+
+### Features
+
+* **product-management:** commodity image picker in add/edit form [V2-254] ([ced85a8](https://github.com/tianwen7252/tianwen-v2/commit/ced85a811369a280380e0ac394b5bfa6564ed571))
+
+
+### Bug Fixes
+
+* **images:** emit absolute URLs from resolveProductImage so non-root routes work [V2-254] ([26b5b82](https://github.com/tianwen7252/tianwen-v2/commit/26b5b828639b07237fe634b9af6bfe27b08dcb94))
+* **product-management:** cross-tab price log, reorder of new items, error logging [V2-252] ([9a9853c](https://github.com/tianwen7252/tianwen-v2/commit/9a9853c5f9a1d61ea1e9fd97ecbfb24e732a243c))
+* **product-management:** hide soft-deleted commodities; add unsaved-changes tooltip [V2-253] ([84ded11](https://github.com/tianwen7252/tianwen-v2/commit/84ded1111cdd1835067eafa96154cd0545a1d211))
+* **product-management:** render commodity thumbnail; simplify image picker [V2-254] ([ea64b1a](https://github.com/tianwen7252/tianwen-v2/commit/ea64b1ac16a300e83fb8109b03d507a9680f6028))
+
 ## [2.14.0](https://github.com/tianwen7252/tianwen-v2/compare/v2.13.1...v2.14.0) (2026-05-06)
 
 
