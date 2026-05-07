@@ -1,17 +1,14 @@
 /**
  * CommodityForm -- Modal form for add/edit commodity.
- * Uses React Hook Form + Zod for validation.
- * Wide two-column layout: form fields on the left, current artwork
- * preview on the right, image picker grid below. Modal width is
- * fixed at 720px so the picker can fit a comfortable 6-tile row
- * without making the modal vertically tall.
+ * Single column layout: name / price / soup toggle, then the image
+ * picker grid below. The picker holds its own scrollable area so the
+ * modal stays a comfortable height.
  */
 
 import { useCallback, useEffect } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { ImageOff } from 'lucide-react'
 import { Modal } from '@/components/modal'
 import { RippleButton } from '@/components/ui/ripple-button'
 import { Input } from '@/components/ui/input'
@@ -19,7 +16,6 @@ import { Switch } from '@/components/ui/switch'
 import { commodityFormSchema } from '@/lib/form-schemas'
 import type { CommodityFormValues } from '@/lib/form-schemas'
 import type { Commodity } from '@/lib/schemas'
-import { resolveProductImage } from '@/lib/resolve-product-image'
 import { CommodityImagePicker } from './commodity-image-picker'
 
 export interface CommodityFormProps {
@@ -61,7 +57,6 @@ export function CommodityForm({
       : DEFAULT_VALUES,
   })
 
-  // Reset form when modal opens or commodity changes
   useEffect(() => {
     if (open) {
       form.reset(isEditing ? commodityToFormValues(commodity!) : DEFAULT_VALUES)
@@ -87,7 +82,7 @@ export function CommodityForm({
     <Modal
       open={open}
       title={title}
-      width={720}
+      width={600}
       variant={isEditing ? 'warm' : 'green'}
       shineColor={isEditing ? 'purple' : 'green'}
       onClose={onClose}
@@ -108,113 +103,63 @@ export function CommodityForm({
         </div>
       }
     >
-      <div className="flex flex-col gap-5">
-        {/* ── Top row: fields (left) + image preview (right) ── */}
-        <div
-          className="grid gap-6"
-          style={{ gridTemplateColumns: '1fr 140px' }}
-        >
-          {/* Left column: form fields */}
-          <div className="flex flex-col gap-4">
-            {/* Name */}
-            <div className="flex flex-col gap-1.5">
-              <label
-                htmlFor="commodity-name"
-                className="text-base text-foreground"
-              >
-                {t('productMgmt.commodities.name')}
-              </label>
-              <Input
-                id="commodity-name"
-                {...form.register('name')}
-                placeholder={t('productMgmt.commodities.name')}
-                className="text-base"
-              />
-              {form.formState.errors.name && (
-                <span className="text-base text-destructive">
-                  {form.formState.errors.name.message}
-                </span>
-              )}
-            </div>
+      <div className="flex flex-col gap-4">
+        {/* Name */}
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="commodity-name" className="text-base text-foreground">
+            {t('productMgmt.commodities.name')}
+          </label>
+          <Input
+            id="commodity-name"
+            {...form.register('name')}
+            placeholder={t('productMgmt.commodities.name')}
+            className="text-base"
+          />
+          {form.formState.errors.name && (
+            <span className="text-base text-destructive">
+              {form.formState.errors.name.message}
+            </span>
+          )}
+        </div>
 
-            {/* Price */}
-            <div className="flex flex-col gap-1.5">
-              <label
-                htmlFor="commodity-price"
-                className="text-base text-foreground"
-              >
-                {t('productMgmt.commodities.price')}
-              </label>
-              <Input
-                id="commodity-price"
-                type="number"
-                min={0}
-                {...form.register('price', { valueAsNumber: true })}
-                placeholder="0"
-                className="text-base"
-              />
-              {form.formState.errors.price && (
-                <span className="text-base text-destructive">
-                  {form.formState.errors.price.message}
-                </span>
-              )}
-            </div>
+        {/* Price */}
+        <div className="flex flex-col gap-1.5">
+          <label
+            htmlFor="commodity-price"
+            className="text-base text-foreground"
+          >
+            {t('productMgmt.commodities.price')}
+          </label>
+          <Input
+            id="commodity-price"
+            type="number"
+            min={0}
+            {...form.register('price', { valueAsNumber: true })}
+            placeholder="0"
+            className="text-base"
+          />
+          {form.formState.errors.price && (
+            <span className="text-base text-destructive">
+              {form.formState.errors.price.message}
+            </span>
+          )}
+        </div>
 
-            {/* includesSoup */}
-            <div className="flex items-center justify-between gap-4">
-              <span className="text-base text-foreground">
-                {t('productMgmt.commodities.includesSoup')}
-              </span>
-              <Controller
-                name="includesSoup"
-                control={form.control}
-                render={({ field }) => (
-                  <Switch
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                )}
-              />
-            </div>
-          </div>
-
-          {/* Right column: image preview */}
+        {/* includesSoup */}
+        <div className="flex items-center justify-between gap-4">
+          <span className="text-base text-foreground">
+            {t('productMgmt.commodities.includesSoup')}
+          </span>
           <Controller
-            name="image"
+            name="includesSoup"
             control={form.control}
-            render={({ field }) => {
-              const value = field.value ?? ''
-              const src = resolveProductImage(value)
-              return (
-                <div className="flex flex-col items-center gap-2">
-                  <span className="text-base text-muted-foreground">
-                    {t('productMgmt.commodities.image')}
-                  </span>
-                  <div
-                    data-testid="commodity-image-preview"
-                    className="flex size-[120px] items-center justify-center overflow-hidden rounded-xl border border-border bg-card"
-                  >
-                    {src ? (
-                      <img
-                        src={src}
-                        alt={value}
-                        className="size-full object-contain p-2"
-                      />
-                    ) : (
-                      <ImageOff
-                        size={36}
-                        className="text-muted-foreground"
-                        aria-label={t('productMgmt.commodities.noImage')}
-                      />
-                    )}
-                  </div>
-                </div>
-              )
-            }}
+            render={({ field }) => (
+              <Switch checked={field.value} onCheckedChange={field.onChange} />
+            )}
           />
         </div>
 
-        {/* ── Bottom: image picker grid ── */}
+        {/* Image picker */}
         <Controller
           name="image"
           control={form.control}

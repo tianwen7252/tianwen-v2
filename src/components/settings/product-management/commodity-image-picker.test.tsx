@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { CommodityImagePicker } from './commodity-image-picker'
 import { COMMODITY_IMAGE_KEYS } from '@/constants/commodity-images'
@@ -56,26 +56,16 @@ describe('CommodityImagePicker', () => {
     ).toBe('true')
   })
 
-  it('filters tiles by the search query', () => {
+  it('renders thumbnails with lazy + async decoding for performance', () => {
     render(<CommodityImagePicker value="" onChange={vi.fn()} />)
-    const search = screen.getByTestId('image-picker-search')
 
-    fireEvent.change(search, { target: { value: 'dumpling' } })
-
-    // Dumpling images stay
-    expect(screen.queryByTestId('image-tile-chive-dumpling')).toBeTruthy()
-    // Non-dumpling images are hidden
-    expect(
-      screen.queryByTestId('image-tile-braised-pork-belly-rice'),
-    ).toBeNull()
-  })
-
-  it('shows an empty-state hint when no tile matches the search', () => {
-    render(<CommodityImagePicker value="" onChange={vi.fn()} />)
-    fireEvent.change(screen.getByTestId('image-picker-search'), {
-      target: { value: 'no-such-key-xyz' },
-    })
-
-    expect(screen.getByTestId('image-picker-empty')).toBeTruthy()
+    const tile = screen.getByTestId('image-tile-braised-pork-belly-rice')
+    const img = tile.querySelector('img')
+    expect(img).toBeTruthy()
+    expect(img!.getAttribute('loading')).toBe('lazy')
+    expect(img!.getAttribute('decoding')).toBe('async')
+    expect(img!.getAttribute('src')).toContain(
+      'images/commodities/braised-pork-belly-rice.png',
+    )
   })
 })

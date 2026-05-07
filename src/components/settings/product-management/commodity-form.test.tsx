@@ -263,7 +263,7 @@ describe('CommodityForm', () => {
   })
 
   describe('image picker (V2-254)', () => {
-    it('renders the image preview and picker grid in add mode', () => {
+    it('renders the picker grid in add mode', () => {
       render(
         <CommodityForm
           open={true}
@@ -272,7 +272,6 @@ describe('CommodityForm', () => {
           onClose={onClose}
         />,
       )
-      expect(screen.getByTestId('commodity-image-preview')).toBeTruthy()
       expect(screen.getByTestId('image-picker-clear')).toBeTruthy()
     })
 
