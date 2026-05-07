@@ -38,9 +38,9 @@ export function CommodityImagePicker({
         {t('productMgmt.commodities.pickImage')}
       </span>
 
-      <ScrollArea className="h-[260px] rounded-lg border border-border bg-card/50 p-3">
+      <ScrollArea className="h-[260px]">
         <div
-          className="grid gap-2"
+          className="grid gap-3 m-2"
           style={{
             gridTemplateColumns: 'repeat(auto-fill, minmax(72px, 1fr))',
           }}
