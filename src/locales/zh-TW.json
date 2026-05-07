@@ -559,7 +559,12 @@
       "summaryEdited": "修改商品：{{name}}",
       "summaryDeleted": "刪除商品：{{name}}",
       "summaryFieldName": "名稱",
-      "summaryFieldPrice": "價格"
+      "summaryFieldPrice": "價格",
+      "image": "圖片",
+      "pickImage": "選擇圖片",
+      "noImage": "不使用圖片",
+      "searchImage": "搜尋圖片",
+      "noImageMatch": "找不到符合的圖片"
     },
     "priceLog": {
       "title": "歷史價格變動",

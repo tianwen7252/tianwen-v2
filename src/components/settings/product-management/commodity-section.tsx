@@ -57,6 +57,7 @@ interface PendingEdit {
     name: string
     price: number
     includesSoup: boolean
+    image: string
   }>
 }
 
@@ -362,6 +363,7 @@ export function CommoditySection({
   // Form submit (add or edit) -- local only
   const handleFormSubmit = useCallback(
     async (values: CommodityFormValues) => {
+      const image = values.image ?? ''
       if (editingCommodity) {
         // Edit mode
         if (isTempId(editingCommodity.id)) {
@@ -376,6 +378,7 @@ export function CommoditySection({
                       name: values.name,
                       price: values.price,
                       includesSoup: values.includesSoup ?? false,
+                      image: image || undefined,
                     },
                   }
                 : a,
@@ -395,6 +398,7 @@ export function CommoditySection({
                         name: values.name,
                         price: values.price,
                         includesSoup: values.includesSoup ?? false,
+                        image,
                       },
                     }
                   : e,
@@ -409,6 +413,7 @@ export function CommoditySection({
                   name: values.name,
                   price: values.price,
                   includesSoup: values.includesSoup ?? false,
+                  image,
                 },
               },
             ]
@@ -431,6 +436,7 @@ export function CommoditySection({
           priority: maxPriority + 1,
           onMarket: true,
           includesSoup: values.includesSoup ?? false,
+          image: image || undefined,
           createdAt: Date.now(),
           updatedAt: Date.now(),
         }

@@ -570,6 +570,67 @@ describe('CommoditySection', () => {
       expect(drinkLog?.newPrice).toBe(888)
     })
 
+    it('persists the picked image key for a new commodity (V2-254)', async () => {
+      const ref = React.createRef<SectionRef>()
+      const user = userEvent.setup()
+      render(
+        <CommoditySection
+          refreshKey={0}
+          onHasChanges={vi.fn()}
+          sectionRef={ref}
+        />,
+      )
+
+      await screen.findByText('油淋雞腿飯')
+      await user.click(screen.getByText('新增商品'))
+
+      await user.type(screen.getByPlaceholderText('品名'), '紅燒肉新品')
+      const priceInput = screen.getByPlaceholderText('0')
+      await user.clear(priceInput)
+      await user.type(priceInput, '120')
+      await user.click(screen.getByTestId('image-tile-braised-pork-belly-rice'))
+      await user.click(screen.getByRole('button', { name: '確認' }))
+
+      await waitFor(() => {
+        expect(screen.getByText('紅燒肉新品')).toBeTruthy()
+      })
+
+      await act(async () => {
+        await ref.current?.save()
+      })
+
+      const dbItems = await getCommodityRepo().findByTypeId('bento')
+      const persisted = dbItems.find(c => c.name === '紅燒肉新品')
+      expect(persisted?.image).toBe('braised-pork-belly-rice')
+    })
+
+    it('persists an updated image key when editing an existing commodity (V2-254)', async () => {
+      const ref = React.createRef<SectionRef>()
+      const user = userEvent.setup()
+      render(
+        <CommoditySection
+          refreshKey={0}
+          onHasChanges={vi.fn()}
+          sectionRef={ref}
+        />,
+      )
+
+      await screen.findByText('油淋雞腿飯')
+      const target = (await getCommodityRepo().findByTypeId('bento'))[0]!
+
+      const editButtons = screen.getAllByTestId('edit-button')
+      await user.click(editButtons[0]!)
+      await user.click(screen.getByTestId('image-tile-shredded-chicken-rice'))
+      await user.click(screen.getByRole('button', { name: '確認' }))
+
+      await act(async () => {
+        await ref.current?.save()
+      })
+
+      const updated = await getCommodityRepo().findById(target.id)
+      expect(updated?.image).toBe('shredded-chicken-rice')
+    })
+
     it('should persist the dragged position of a newly added commodity (H-2)', async () => {
       // Regression: previously save() filtered out temp-xxx ids from
       // updatePriorities(), so a newly added commodity dragged to a
