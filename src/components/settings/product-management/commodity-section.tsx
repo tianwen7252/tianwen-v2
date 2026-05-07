@@ -57,6 +57,7 @@ interface PendingEdit {
     name: string
     price: number
     includesSoup: boolean
+    image: string
   }>
 }
 
@@ -205,22 +206,26 @@ export function CommoditySection({
   const sectionRefValue: SectionRef = useMemo(
     () => ({
       async save(): Promise<void> {
-        // Write pending adds
+        // Write pending adds and remember temp→real id mapping so reorder
+        // can place newly-created items at their dragged positions.
+        const tempToRealId = new Map<string, string>()
         for (const add of pendingAdds) {
           const {
-            id: _tempId,
+            id: tempId,
             createdAt: _c,
             updatedAt: _u,
             ...data
           } = add.commodity
-          await getCommodityRepo().create(data)
+          const created = await getCommodityRepo().create(data)
+          tempToRealId.set(tempId, created.id)
         }
 
-        // Write pending edits and log price changes
+        // Write pending edits and log price changes.
+        // Look up the original commodity from allDbCommodities so cross-tab
+        // edits also produce price_change_log entries.
         for (const edit of pendingEdits) {
           if (edit.changes.price !== undefined) {
-            // Look up current price from the DB snapshot
-            const current = dbCommodities.find(c => c.id === edit.id)
+            const current = allDbCommodities.find(c => c.id === edit.id)
             if (current && current.price !== edit.changes.price) {
               await getPriceChangeLogRepo().create({
                 commodityId: edit.id,
@@ -238,12 +243,14 @@ export function CommoditySection({
           await getCommodityRepo().update(id, { onMarket: false })
         }
 
-        // Write reorder
+        // Write reorder. Replace temp IDs with the real IDs returned by
+        // create() so the dragged position of newly-added items persists.
         for (const [_typeId, ids] of reorderedIds) {
-          // Filter out temp IDs (they were just created above with new real IDs)
-          const realIds = [...ids].filter(id => !isTempId(id))
-          if (realIds.length > 0) {
-            await getCommodityRepo().updatePriorities(realIds)
+          const resolvedIds = ids
+            .map(id => (isTempId(id) ? tempToRealId.get(id) : id))
+            .filter((id): id is string => id !== undefined)
+          if (resolvedIds.length > 0) {
+            await getCommodityRepo().updatePriorities(resolvedIds)
           }
         }
       },
@@ -356,6 +363,7 @@ export function CommoditySection({
   // Form submit (add or edit) -- local only
   const handleFormSubmit = useCallback(
     async (values: CommodityFormValues) => {
+      const image = values.image ?? ''
       if (editingCommodity) {
         // Edit mode
         if (isTempId(editingCommodity.id)) {
@@ -370,6 +378,7 @@ export function CommoditySection({
                       name: values.name,
                       price: values.price,
                       includesSoup: values.includesSoup ?? false,
+                      image: image || undefined,
                     },
                   }
                 : a,
@@ -389,6 +398,7 @@ export function CommoditySection({
                         name: values.name,
                         price: values.price,
                         includesSoup: values.includesSoup ?? false,
+                        image,
                       },
                     }
                   : e,
@@ -403,6 +413,7 @@ export function CommoditySection({
                   name: values.name,
                   price: values.price,
                   includesSoup: values.includesSoup ?? false,
+                  image,
                 },
               },
             ]
@@ -425,6 +436,7 @@ export function CommoditySection({
           priority: maxPriority + 1,
           onMarket: true,
           includesSoup: values.includesSoup ?? false,
+          image: image || undefined,
           createdAt: Date.now(),
           updatedAt: Date.now(),
         }

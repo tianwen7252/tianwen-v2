@@ -60,6 +60,38 @@ describe('CommodityCard', () => {
       expect(screen.getByText('油淋雞腿飯')).toBeTruthy()
     })
 
+    it('renders the commodity thumbnail with lazy + async decoding when image is set (V2-254)', () => {
+      render(
+        <CommodityCard
+          commodity={{ ...BASE_COMMODITY, image: 'braised-pork-belly-rice' }}
+          dragHandleProps={MOCK_DRAG_HANDLE_PROPS}
+          onEdit={vi.fn()}
+          onDelete={vi.fn()}
+        />,
+      )
+      const wrapper = screen.getByTestId('commodity-thumbnail')
+      const img = wrapper.querySelector('img')
+      expect(img).toBeTruthy()
+      expect(img!.getAttribute('loading')).toBe('lazy')
+      expect(img!.getAttribute('decoding')).toBe('async')
+      expect(img!.getAttribute('src')).toBe(
+        '/images/commodities/braised-pork-belly-rice.png',
+      )
+    })
+
+    it('falls back to a placeholder icon when no image is set', () => {
+      render(
+        <CommodityCard
+          commodity={BASE_COMMODITY}
+          dragHandleProps={MOCK_DRAG_HANDLE_PROPS}
+          onEdit={vi.fn()}
+          onDelete={vi.fn()}
+        />,
+      )
+      const wrapper = screen.getByTestId('commodity-thumbnail')
+      expect(wrapper.querySelector('img')).toBeNull()
+    })
+
     it('should render commodity price with $ prefix', () => {
       const onEdit = vi.fn()
       const onDelete = vi.fn()

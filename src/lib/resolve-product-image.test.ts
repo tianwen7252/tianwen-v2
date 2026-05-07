@@ -1,5 +1,7 @@
 /**
  * Tests for resolveProductImage utility.
+ * The resolver must return an absolute URL so the same path renders
+ * correctly under any router segment (e.g. /settings/product-management).
  */
 
 import { describe, it, expect } from 'vitest'
@@ -14,27 +16,39 @@ describe('resolveProductImage', () => {
     expect(resolveProductImage('')).toBeUndefined()
   })
 
-  it('resolves short key to full commodities path', () => {
+  it('resolves a short key to an absolute commodities path', () => {
     expect(resolveProductImage('braised-pork-belly-rice')).toBe(
-      'images/commodities/braised-pork-belly-rice.png',
+      '/images/commodities/braised-pork-belly-rice.png',
     )
   })
 
-  it('resolves any short key to full path with .png extension', () => {
+  it('always emits the .png extension for short keys', () => {
     expect(resolveProductImage('scallop-dumpling')).toBe(
-      'images/commodities/scallop-dumpling.png',
+      '/images/commodities/scallop-dumpling.png',
     )
   })
 
-  it('returns legacy full path as-is (backward compatibility)', () => {
+  it('rebases legacy `images/...` paths onto BASE_URL', () => {
     expect(resolveProductImage('images/commodities/lu-rou.png')).toBe(
-      'images/commodities/lu-rou.png',
+      '/images/commodities/lu-rou.png',
+    )
+    expect(resolveProductImage('images/other/some-image.jpg')).toBe(
+      '/images/other/some-image.jpg',
     )
   })
 
-  it('returns any images/-prefixed path as-is', () => {
-    expect(resolveProductImage('images/other/some-image.jpg')).toBe(
-      'images/other/some-image.jpg',
+  it('passes already-absolute paths through unchanged', () => {
+    expect(resolveProductImage('/images/commodities/x.png')).toBe(
+      '/images/commodities/x.png',
+    )
+  })
+
+  it('passes http(s) and data URIs through unchanged', () => {
+    expect(resolveProductImage('https://cdn.example.com/x.png')).toBe(
+      'https://cdn.example.com/x.png',
+    )
+    expect(resolveProductImage('data:image/png;base64,iVBORw0KGgo=')).toBe(
+      'data:image/png;base64,iVBORw0KGgo=',
     )
   })
 })

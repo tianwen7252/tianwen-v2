@@ -6,11 +6,12 @@
 
 import { useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
-import { GripVertical, Pencil, Trash2, Soup } from 'lucide-react'
+import { GripVertical, Pencil, Trash2, Soup, ImageOff } from 'lucide-react'
 import { RippleButton } from '@/components/ui/ripple-button'
 import { ShineBorder } from '@/components/ui/shine-border'
 import { SHINE_COLOR_PRESETS } from '@/constants/shine-colors'
 import { cn } from '@/lib/cn'
+import { resolveProductImage } from '@/lib/resolve-product-image'
 import type { Commodity } from '@/lib/schemas'
 import type { DragHandleProps } from './sortable-list'
 
@@ -36,6 +37,8 @@ export function CommodityCard({
   const handleDelete = useCallback(() => {
     onDelete(commodity)
   }, [commodity, onDelete])
+
+  const imageSrc = resolveProductImage(commodity.image)
 
   return (
     <div
@@ -65,6 +68,25 @@ export function CommodityCard({
       <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-muted text-base text-muted-foreground">
         {commodity.priority}
       </span>
+
+      {/* Thumbnail */}
+      <div
+        data-testid="commodity-thumbnail"
+        className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-md border border-border bg-background"
+      >
+        {imageSrc != null ? (
+          <img
+            src={imageSrc}
+            alt=""
+            loading="lazy"
+            decoding="async"
+            draggable={false}
+            className="size-full object-contain p-1"
+          />
+        ) : (
+          <ImageOff size={16} className="text-muted-foreground" aria-hidden />
+        )}
+      </div>
 
       {/* Name and price */}
       <div className="flex min-w-0 flex-1 items-center gap-3">
