@@ -175,12 +175,12 @@ describe('CommodityRepository', () => {
   // ─── findByTypeId ───────────────────────────────────────────────────────────
 
   describe('findByTypeId()', () => {
-    it('calls db.exec with correct SQL and param', async () => {
+    it('filters by type_id AND on_market = 1 so soft-deleted rows do not surface (V2-253)', async () => {
       const repo = createCommodityRepository(db)
       await repo.findByTypeId('bento')
 
       expect(db.exec).toHaveBeenCalledWith(
-        'SELECT * FROM commodities WHERE type_id = ? ORDER BY priority ASC, name ASC',
+        'SELECT * FROM commodities WHERE type_id = ? AND on_market = 1 ORDER BY priority ASC, name ASC',
         ['bento'],
       )
     })

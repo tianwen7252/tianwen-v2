@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, act } from '@testing-library/react'
 import { ScrollToTop } from './scroll-to-top'
+import { useUnsavedChangesStore } from '@/stores/unsaved-changes-store'
 
 // Mock lucide-react
 vi.mock('lucide-react', () => ({
@@ -22,6 +23,7 @@ describe('ScrollToTop', () => {
     vi.spyOn(window, 'removeEventListener').mockImplementation(() => {})
     vi.spyOn(window, 'scrollTo').mockImplementation(() => {})
     Object.defineProperty(window, 'scrollY', { value: 0, writable: true })
+    useUnsavedChangesStore.getState().clearAll()
   })
 
   it('should render with opacity-0 when scrollY is 0', () => {
@@ -56,6 +58,43 @@ describe('ScrollToTop', () => {
   it('should have ArrowUp icon', () => {
     render(<ScrollToTop />)
     expect(screen.getByTestId('arrow-up-icon')).toBeTruthy()
+  })
+
+  it('shows the unsaved-changes tooltip while scrolled past the threshold (V2-253)', () => {
+    render(<ScrollToTop threshold={100} />)
+    Object.defineProperty(window, 'scrollY', { value: 300 })
+    act(() => {
+      scrollHandler?.()
+    })
+    act(() => {
+      useUnsavedChangesStore.getState().setDirty('product-management', true)
+    })
+    expect(screen.getAllByText('別忘了儲存設定').length).toBeGreaterThan(0)
+  })
+
+  it('hides the tooltip while still scrolled to the top, even with unsaved changes', () => {
+    render(<ScrollToTop threshold={100} />)
+    act(() => {
+      useUnsavedChangesStore.getState().setDirty('product-management', true)
+    })
+    // scrollY is 0 — button is hidden, the prompt should not be shown.
+    expect(screen.queryByText('別忘了儲存設定')).toBeNull()
+  })
+
+  it('hides the tooltip after the dirty flag clears', () => {
+    render(<ScrollToTop threshold={100} />)
+    Object.defineProperty(window, 'scrollY', { value: 300 })
+    act(() => {
+      scrollHandler?.()
+    })
+    act(() => {
+      useUnsavedChangesStore.getState().setDirty('product-management', true)
+    })
+    expect(screen.getAllByText('別忘了儲存設定').length).toBeGreaterThan(0)
+    act(() => {
+      useUnsavedChangesStore.getState().clearAll()
+    })
+    expect(screen.queryByText('別忘了儲存設定')).toBeNull()
   })
 
   it('should hide button when scrolling back to top', () => {
