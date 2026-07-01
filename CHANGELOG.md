@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.16.0](https://github.com/tianwen7252/tianwen-v2/compare/v2.15.0...v2.16.0) (2026-07-01)
+
+
+### Features
+
+* raise stall bento prices and add 雞胸沙拉 to stall menu ([798d514](https://github.com/tianwen7252/tianwen-v2/commit/798d514a994a1582b765524a938412144ee48e00))
+
 ## [2.15.0](https://github.com/tianwen7252/tianwen-v2/compare/v2.14.0...v2.15.0) (2026-05-07)
 
 
