@@ -223,7 +223,7 @@ describe('deleteDefaultData(db)', () => {
         c.sql.includes('DELETE FROM commodities') &&
         !c.sql.includes('commodity_types'),
     )
-    expect(comCall!.params).toHaveLength(84) // COMMODITY_SEEDS has 84 entries
+    expect(comCall!.params).toHaveLength(85) // COMMODITY_SEEDS has 85 entries
   })
 
   it('deletes commodities before SELECT-checking and deleting commodity_types', () => {
@@ -455,7 +455,7 @@ describe('insertDefaultCommodities(db)', () => {
         c.sql.includes('commodities') &&
         !c.sql.includes('commodity_types'),
     )
-    expect(comInserts).toHaveLength(84)
+    expect(comInserts).toHaveLength(85)
   })
 
   it('uses INSERT OR IGNORE for commodity types', () => {
@@ -591,8 +591,8 @@ describe('DEFAULT_COMMODITY_TYPES', () => {
 })
 
 describe('DEFAULT_COMMODITIES', () => {
-  it('has 84 items', () => {
-    expect(DEFAULT_COMMODITIES).toHaveLength(84)
+  it('has 85 items', () => {
+    expect(DEFAULT_COMMODITIES).toHaveLength(85)
   })
 
   it('all items are on market by default', () => {
@@ -604,6 +604,15 @@ describe('DEFAULT_COMMODITIES', () => {
   it('all IDs are unique', () => {
     const ids = DEFAULT_COMMODITIES.map(c => c.id)
     expect(new Set(ids).size).toBe(ids.length)
+  })
+
+  it('includes 雞胸沙拉 (com-417) in the stall category at $170 without soup', () => {
+    const salad = DEFAULT_COMMODITIES.find(c => c.id === 'com-417')
+    expect(salad).toBeDefined()
+    expect(salad!.name).toBe('雞胸沙拉')
+    expect(salad!.typeId).toBe('stall')
+    expect(salad!.price).toBe(170)
+    expect(salad!.includesSoup).toBe(false)
   })
 
   it('com-001 through com-014 have includesSoup=true', () => {
@@ -904,7 +913,7 @@ describe('resetCommodityDataAsync()', () => {
         c.sql.includes('commodities') &&
         !c.sql.includes('commodity_types'),
     )
-    expect(comInserts).toHaveLength(84)
+    expect(comInserts).toHaveLength(85)
   })
 
   it('re-inserts all default order types', async () => {
