@@ -695,13 +695,13 @@ describe('getCommoditiesForGeneration', () => {
     const commodities = getCommoditiesForGeneration()
 
     // Items with hideOnMode set in COMMODITY_SEEDS should be excluded
-    // Bento '加蛋' (com-016), '加菜' (com-017), '加菜(大)' (com-018), and '白飯' (com-019) have hideOnMode: 'both'
+    // Bento '加蛋' (com-016), '加菜' (com-017), '加菜(大)' (com-018), '白飯' (com-019), and '白飯(小)' (com-020) have hideOnMode: 'both'
     const ids = commodities.map(c => c.id)
     expect(ids).not.toContain('com-016')
     expect(ids).not.toContain('com-017')
 
-    // Non-hidden seeds only: 85 total seeds minus 5 hideOnMode add-ons (com-016..com-020)
-    expect(commodities.length).toBe(80)
+    // Non-hidden seeds only: 87 total seeds minus 5 hideOnMode add-ons (com-016..com-020)
+    expect(commodities.length).toBe(82)
   })
 
   it('includes commodities from all type categories', () => {

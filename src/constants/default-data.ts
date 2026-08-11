@@ -19,7 +19,7 @@ export const DELETE_DEFAULT_DATA = false
  * Increment this number to trigger an automatic reset of default data on next launch.
  * The value is stored in localStorage to detect version changes across sessions.
  */
-export const UPDATE_DEFAULT_DATA_NUMBER = 8
+export const UPDATE_DEFAULT_DATA_NUMBER = 9
 
 /**
  * When true, deletes ALL data from all tables on startup.
@@ -373,11 +373,19 @@ export const COMMODITY_SEEDS: readonly CommoditySeed[] = [
     includesSoup: true,
   },
   {
+    id: 'com-021',
+    typeId: 'bento',
+    name: '白木耳',
+    price: 60,
+    priority: 15,
+    imageKey: 'white-fungus-soup',
+  },
+  {
     id: 'com-015',
     typeId: 'bento',
     name: '雞胸肉沙拉',
     price: 170,
-    priority: 15,
+    priority: 16,
     imageKey: 'chicken-breast-salad',
   },
   {
@@ -385,7 +393,7 @@ export const COMMODITY_SEEDS: readonly CommoditySeed[] = [
     typeId: 'bento',
     name: '加蛋',
     price: 15,
-    priority: 16,
+    priority: 17,
     imageKey: 'add-egg',
     hideOnMode: 'both',
   },
@@ -394,7 +402,7 @@ export const COMMODITY_SEEDS: readonly CommoditySeed[] = [
     typeId: 'bento',
     name: '加菜',
     price: 15,
-    priority: 17,
+    priority: 18,
     imageKey: 'add-vegetable',
     hideOnMode: 'both',
   },
@@ -403,7 +411,7 @@ export const COMMODITY_SEEDS: readonly CommoditySeed[] = [
     typeId: 'bento',
     name: '加菜(大)',
     price: 30,
-    priority: 18,
+    priority: 19,
     imageKey: 'add-vegetable',
     hideOnMode: 'both',
   },
@@ -412,7 +420,7 @@ export const COMMODITY_SEEDS: readonly CommoditySeed[] = [
     typeId: 'bento',
     name: '白飯',
     price: 10,
-    priority: 19,
+    priority: 20,
     imageKey: 'steamed-rice',
     hideOnMode: 'both',
   },
@@ -421,7 +429,7 @@ export const COMMODITY_SEEDS: readonly CommoditySeed[] = [
     typeId: 'bento',
     name: '白飯(小)',
     price: 5,
-    priority: 20,
+    priority: 21,
     imageKey: 'steamed-rice-small',
     hideOnMode: 'both',
   },
@@ -979,11 +987,19 @@ export const COMMODITY_SEEDS: readonly CommoditySeed[] = [
     imageKey: 'add-vegetable',
   },
   {
+    id: 'com-435',
+    typeId: 'stall',
+    name: '白木耳',
+    price: 60,
+    priority: 34,
+    imageKey: 'white-fungus-soup',
+  },
+  {
     id: 'com-417',
     typeId: 'stall',
-    name: '雞胸沙拉',
+    name: '雞胸肉沙拉',
     price: 170,
-    priority: 34,
+    priority: 35,
     imageKey: 'chicken-breast-salad',
   },
 ] as const

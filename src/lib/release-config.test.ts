@@ -43,15 +43,15 @@ describe('release-please configuration', () => {
       expect(config.packages['.']['changelog-path']).toBe('CHANGELOG.md')
     })
 
-    it('enables prerelease mode with alpha type', () => {
+    it('creates stable releases rather than prereleases', () => {
       const content = fs.readFileSync(
         path.join(ROOT, 'release-please-config.json'),
         'utf-8',
       )
       const config = JSON.parse(content)
       const pkg = config.packages['.']
-      expect(pkg.prerelease).toBe(true)
-      expect(pkg['prerelease-type']).toBe('alpha')
+      expect(pkg.prerelease).toBe(false)
+      expect(pkg['prerelease-type']).toBeUndefined()
     })
 
     it('bumps minor pre-major for semver safety', () => {

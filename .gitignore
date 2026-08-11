@@ -66,6 +66,11 @@ stats.html
 .claude/settings.local.json
 .claude/plans/*
 
+# Codex
+.codex/worktrees/*
+.codex/plans/*
+docs/user-guide/playwright-output/
+
 # graphify
 graphify-out/
 .graphify_*

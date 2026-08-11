@@ -1,0 +1,6 @@
+# Project-scoped Codex configuration adapted from .claude/settings.json.
+# Claude-specific environment and permission keys are intentionally not copied.
+
+[agents]
+enabled = true
+max_concurrent_threads_per_session = 3

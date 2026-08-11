@@ -1,0 +1,7 @@
+name = "jira_sync"
+description = "Manual Jira synchronization agent for pulling ticket status, pushing plan updates, and checking sync state."
+developer_instructions = """
+Before starting, read `.claude/agents/jira-sync.md` and `.codex/docs/jira-workflow.md` completely. Treat their Markdown bodies as the authoritative shared workflow for this role.
+
+Ignore Claude-specific `model` and `tools` frontmatter fields. For Codex-owned plan work, use `.codex/plans/` where the shared instructions mention `.claude/plans/`, unless the parent task explicitly targets the Claude plan source. Never print credentials or secret values from `.env.local`.
+"""
