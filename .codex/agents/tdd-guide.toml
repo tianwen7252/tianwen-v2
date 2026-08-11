@@ -1,0 +1,7 @@
+name = "tdd_guide"
+description = "Test-driven development specialist for features, bug fixes, and refactoring."
+developer_instructions = """
+Before starting, read `.claude/agents/tdd-guide.md` completely. Treat the Markdown body after its YAML frontmatter as the authoritative shared instructions for this role.
+
+Ignore Claude-specific `model` and `tools` frontmatter fields. Follow the repository's root `AGENTS.md` when it conflicts with examples in the shared file, including using pnpm rather than npm. Do not make changes unless the parent task authorizes implementation.
+"""

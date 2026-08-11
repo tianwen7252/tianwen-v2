@@ -46,6 +46,7 @@ export const COMMODITY_IMAGE_KEYS = [
   'add-vegetable-large',
   'steamed-rice',
   'steamed-rice-small',
+  'white-fungus-soup',
   // ── Drinks ──
   'apple-juice',
   'bottled-water',

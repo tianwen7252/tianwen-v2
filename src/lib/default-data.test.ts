@@ -223,7 +223,7 @@ describe('deleteDefaultData(db)', () => {
         c.sql.includes('DELETE FROM commodities') &&
         !c.sql.includes('commodity_types'),
     )
-    expect(comCall!.params).toHaveLength(85) // COMMODITY_SEEDS has 85 entries
+    expect(comCall!.params).toHaveLength(87) // COMMODITY_SEEDS has 87 entries
   })
 
   it('deletes commodities before SELECT-checking and deleting commodity_types', () => {
@@ -445,7 +445,7 @@ describe('insertDefaultCommodities(db)', () => {
     expect(typeInserts).toHaveLength(5)
   })
 
-  it('inserts all 84 commodities', () => {
+  it('inserts all 87 commodities', () => {
     const db = makeMockDb()
     insertDefaultCommodities(db)
 
@@ -455,7 +455,7 @@ describe('insertDefaultCommodities(db)', () => {
         c.sql.includes('commodities') &&
         !c.sql.includes('commodity_types'),
     )
-    expect(comInserts).toHaveLength(85)
+    expect(comInserts).toHaveLength(87)
   })
 
   it('uses INSERT OR IGNORE for commodity types', () => {
@@ -549,8 +549,8 @@ describe('insertDefaultCommodities(db)', () => {
         c.sql.includes('commodities') &&
         !c.sql.includes('commodity_types'),
     )
-    // com-015 is the 15th commodity insert
-    const com015Insert = comInserts[14]
+    const com015Insert = comInserts.find(call => call.params[0] === 'com-015')
+    expect(com015Insert).toBeDefined()
     const includesSoupParam = com015Insert!.params[9]
     expect(includesSoupParam).toBe(0)
   })
@@ -591,8 +591,8 @@ describe('DEFAULT_COMMODITY_TYPES', () => {
 })
 
 describe('DEFAULT_COMMODITIES', () => {
-  it('has 85 items', () => {
-    expect(DEFAULT_COMMODITIES).toHaveLength(85)
+  it('has 87 items', () => {
+    expect(DEFAULT_COMMODITIES).toHaveLength(87)
   })
 
   it('all items are on market by default', () => {
@@ -606,13 +606,51 @@ describe('DEFAULT_COMMODITIES', () => {
     expect(new Set(ids).size).toBe(ids.length)
   })
 
-  it('includes 雞胸沙拉 (com-417) in the stall category at $170 without soup', () => {
+  it('includes 雞胸肉沙拉 (com-417) in the stall category at $170 without soup', () => {
     const salad = DEFAULT_COMMODITIES.find(c => c.id === 'com-417')
     expect(salad).toBeDefined()
-    expect(salad!.name).toBe('雞胸沙拉')
+    expect(salad!.name).toBe('雞胸肉沙拉')
     expect(salad!.typeId).toBe('stall')
     expect(salad!.price).toBe(170)
     expect(salad!.includesSoup).toBe(false)
+  })
+
+  it('places $60 白木耳 immediately before 雞胸肉沙拉 in the bento category', () => {
+    const bentoItems = DEFAULT_COMMODITIES.filter(
+      c => c.typeId === 'bento',
+    ).sort((a, b) => a.priority - b.priority)
+    const whiteFungusIndex = bentoItems.findIndex(c => c.id === 'com-021')
+
+    expect(whiteFungusIndex).toBeGreaterThanOrEqual(0)
+    expect(bentoItems[whiteFungusIndex]).toMatchObject({
+      name: '白木耳',
+      price: 60,
+      image: 'white-fungus-soup',
+      includesSoup: false,
+    })
+    expect(bentoItems[whiteFungusIndex + 1]).toMatchObject({
+      id: 'com-015',
+      name: '雞胸肉沙拉',
+    })
+  })
+
+  it('places $60 白木耳 immediately before 雞胸肉沙拉 in the stall category', () => {
+    const stallItems = DEFAULT_COMMODITIES.filter(
+      c => c.typeId === 'stall',
+    ).sort((a, b) => a.priority - b.priority)
+    const whiteFungusIndex = stallItems.findIndex(c => c.id === 'com-435')
+
+    expect(whiteFungusIndex).toBeGreaterThanOrEqual(0)
+    expect(stallItems[whiteFungusIndex]).toMatchObject({
+      name: '白木耳',
+      price: 60,
+      image: 'white-fungus-soup',
+      includesSoup: false,
+    })
+    expect(stallItems[whiteFungusIndex + 1]).toMatchObject({
+      id: 'com-417',
+      name: '雞胸肉沙拉',
+    })
   })
 
   it('com-001 through com-014 have includesSoup=true', () => {
@@ -641,8 +679,15 @@ describe('DEFAULT_COMMODITIES', () => {
     }
   })
 
-  it('com-015, com-016, com-017 have includesSoup=false', () => {
-    const noSoupIds = ['com-015', 'com-016', 'com-017']
+  it('salads, white fungus, and bento add-ons have includesSoup=false', () => {
+    const noSoupIds = [
+      'com-015',
+      'com-016',
+      'com-017',
+      'com-021',
+      'com-417',
+      'com-435',
+    ]
     for (const id of noSoupIds) {
       const com = DEFAULT_COMMODITIES.find(c => c.id === id)
       expect(com, `${id} should exist`).toBeDefined()
@@ -913,7 +958,7 @@ describe('resetCommodityDataAsync()', () => {
         c.sql.includes('commodities') &&
         !c.sql.includes('commodity_types'),
     )
-    expect(comInserts).toHaveLength(85)
+    expect(comInserts).toHaveLength(87)
   })
 
   it('re-inserts all default order types', async () => {
