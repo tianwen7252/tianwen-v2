@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.17.0](https://github.com/tianwen7252/tianwen-v2/compare/v2.16.0...v2.17.0) (2026-08-11)
+
+
+### Features
+
+* add white fungus soup to default menus ([9d1f52a](https://github.com/tianwen7252/tianwen-v2/commit/9d1f52ac0efaf346e709fce00dc7e83ef5bb96ff))
+
 ## [2.16.0](https://github.com/tianwen7252/tianwen-v2/compare/v2.15.0...v2.16.0) (2026-07-01)
 
 
