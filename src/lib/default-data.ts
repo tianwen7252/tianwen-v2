@@ -16,6 +16,7 @@ import {
   EMPLOYEE_SEEDS,
   COMMODITY_TYPE_SEEDS,
   COMMODITY_SEEDS,
+  RETIRED_COMMODITY_IDS,
   ORDER_TYPE_SEEDS,
   UPDATE_DEFAULT_DATA_NUMBER,
 } from '@/constants/default-data'
@@ -138,7 +139,12 @@ export function deleteDefaultData(db: Database): void {
   const employeeIds = EMPLOYEE_SEEDS.map(s => s.id)
   const typeIds = COMMODITY_TYPE_SEEDS.map(s => s.id)
   const typeIdValues = COMMODITY_TYPE_SEEDS.map(s => s.typeId)
-  const commodityIds = COMMODITY_SEEDS.map(s => s.id)
+  // Retired IDs are included so commodities dropped from COMMODITY_SEEDS are
+  // still purged from existing local databases on the next reset.
+  const commodityIds = [
+    ...COMMODITY_SEEDS.map(s => s.id),
+    ...RETIRED_COMMODITY_IDS,
+  ]
 
   const placeholders = (ids: readonly string[]) => ids.map(() => '?').join(', ')
 

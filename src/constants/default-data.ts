@@ -19,7 +19,7 @@ export const DELETE_DEFAULT_DATA = false
  * Increment this number to trigger an automatic reset of default data on next launch.
  * The value is stored in localStorage to detect version changes across sessions.
  */
-export const UPDATE_DEFAULT_DATA_NUMBER = 9
+export const UPDATE_DEFAULT_DATA_NUMBER = 10
 
 /**
  * When true, deletes ALL data from all tables on startup.
@@ -381,19 +381,11 @@ export const COMMODITY_SEEDS: readonly CommoditySeed[] = [
     imageKey: 'white-fungus-soup',
   },
   {
-    id: 'com-015',
-    typeId: 'bento',
-    name: '雞胸肉沙拉',
-    price: 170,
-    priority: 16,
-    imageKey: 'chicken-breast-salad',
-  },
-  {
     id: 'com-016',
     typeId: 'bento',
     name: '加蛋',
     price: 15,
-    priority: 17,
+    priority: 16,
     imageKey: 'add-egg',
     hideOnMode: 'both',
   },
@@ -402,7 +394,7 @@ export const COMMODITY_SEEDS: readonly CommoditySeed[] = [
     typeId: 'bento',
     name: '加菜',
     price: 15,
-    priority: 18,
+    priority: 17,
     imageKey: 'add-vegetable',
     hideOnMode: 'both',
   },
@@ -411,7 +403,7 @@ export const COMMODITY_SEEDS: readonly CommoditySeed[] = [
     typeId: 'bento',
     name: '加菜(大)',
     price: 30,
-    priority: 19,
+    priority: 18,
     imageKey: 'add-vegetable',
     hideOnMode: 'both',
   },
@@ -420,7 +412,7 @@ export const COMMODITY_SEEDS: readonly CommoditySeed[] = [
     typeId: 'bento',
     name: '白飯',
     price: 10,
-    priority: 20,
+    priority: 19,
     imageKey: 'steamed-rice',
     hideOnMode: 'both',
   },
@@ -429,7 +421,7 @@ export const COMMODITY_SEEDS: readonly CommoditySeed[] = [
     typeId: 'bento',
     name: '白飯(小)',
     price: 5,
-    priority: 21,
+    priority: 20,
     imageKey: 'steamed-rice-small',
     hideOnMode: 'both',
   },
@@ -1003,3 +995,20 @@ export const COMMODITY_SEEDS: readonly CommoditySeed[] = [
     imageKey: 'chicken-breast-salad',
   },
 ] as const
+
+// ─── Retired Commodities ────────────────────────────────────────────────────
+
+/**
+ * IDs of default commodities that used to ship in COMMODITY_SEEDS but have
+ * since been removed from the menu.
+ *
+ * deleteDefaultData() only deletes rows whose ID appears in the seed list, so
+ * an ID dropped from COMMODITY_SEEDS would otherwise linger in the local
+ * database forever. Keep the ID here (and bump UPDATE_DEFAULT_DATA_NUMBER) so
+ * the next reset purges it from existing installs.
+ *
+ * Never reuse a retired ID for a new commodity.
+ */
+export const RETIRED_COMMODITY_IDS: readonly string[] = [
+  'com-015', // 雞胸肉沙拉 (bento) — removed from the bento menu
+]
