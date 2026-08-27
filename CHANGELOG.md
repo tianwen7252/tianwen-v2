@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.17.1](https://github.com/tianwen7252/tianwen-v2/compare/v2.17.0...v2.17.1) (2026-08-27)
+
+
+### Bug Fixes
+
+* 移除餐盒雞胸肉沙拉並補上退役商品清除機制 ([c45f19f](https://github.com/tianwen7252/tianwen-v2/commit/c45f19f9608630ebb2b8826c970f5fc94cb9d6e1))
+
 ## [2.17.0](https://github.com/tianwen7252/tianwen-v2/compare/v2.16.0...v2.17.0) (2026-08-11)
 
 
