@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.18.0](https://github.com/tianwen7252/tianwen-v2/compare/v2.17.1...v2.18.0) (2026-11-15)
+
+
+### Features
+
+* **menu:** update bento and single menu prices ([#64](https://github.com/tianwen7252/tianwen-v2/issues/64)) ([ec31bbc](https://github.com/tianwen7252/tianwen-v2/commit/ec31bbc9907fb9ec7bc836d4cd228891173748a1))
+
 ## [2.17.1](https://github.com/tianwen7252/tianwen-v2/compare/v2.17.0...v2.17.1) (2026-08-27)
 
 
