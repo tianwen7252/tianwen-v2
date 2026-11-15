@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.18.1](https://github.com/tianwen7252/tianwen-v2/compare/v2.18.0...v2.18.1) (2026-11-15)
+
+
+### Bug Fixes
+
+* **ci:** pin Node.js 24.22.3 ([499f702](https://github.com/tianwen7252/tianwen-v2/commit/499f70274ac6ba36c0b9b70c8a87a9383644234f))
+
 ## [2.18.0](https://github.com/tianwen7252/tianwen-v2/compare/v2.17.1...v2.18.0) (2026-11-15)
 
 
