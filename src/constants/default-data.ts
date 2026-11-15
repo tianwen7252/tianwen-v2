@@ -19,7 +19,7 @@ export const DELETE_DEFAULT_DATA = false
  * Increment this number to trigger an automatic reset of default data on next launch.
  * The value is stored in localStorage to detect version changes across sessions.
  */
-export const UPDATE_DEFAULT_DATA_NUMBER = 11
+export const UPDATE_DEFAULT_DATA_NUMBER = 12
 
 /**
  * When true, deletes ALL data from all tables on startup.
@@ -504,11 +504,19 @@ export const COMMODITY_SEEDS: readonly CommoditySeed[] = [
     imageKey: 'add-vegetable',
   },
   {
+    id: 'com-119',
+    typeId: 'single',
+    name: '加菜(小)',
+    price: 20,
+    priority: 15,
+    imageKey: 'add-vegetable',
+  },
+  {
     id: 'com-113',
     typeId: 'single',
     name: '加蛋',
     price: 15,
-    priority: 15,
+    priority: 16,
     imageKey: 'add-egg-2',
   },
   {
@@ -516,7 +524,7 @@ export const COMMODITY_SEEDS: readonly CommoditySeed[] = [
     typeId: 'single',
     name: '白飯',
     price: 15,
-    priority: 16,
+    priority: 17,
     imageKey: 'steamed-rice',
   },
   // ── 飲料 (drink) ──

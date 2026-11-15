@@ -700,8 +700,8 @@ describe('getCommoditiesForGeneration', () => {
     expect(ids).not.toContain('com-016')
     expect(ids).not.toContain('com-017')
 
-    // Non-hidden seeds only: 81 total seeds minus 4 hideOnMode add-ons (com-016..com-019)
-    expect(commodities.length).toBe(77)
+    // Non-hidden seeds only: 82 total seeds minus 4 hideOnMode add-ons (com-016..com-019)
+    expect(commodities.length).toBe(78)
   })
 
   it('includes commodities from all type categories', () => {
