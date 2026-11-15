@@ -227,8 +227,8 @@ describe('deleteDefaultData(db)', () => {
         c.sql.includes('DELETE FROM commodities') &&
         !c.sql.includes('commodity_types'),
     )
-    // 86 COMMODITY_SEEDS entries + 1 retired ID (com-015)
-    expect(comCall!.params).toHaveLength(87)
+    // 82 COMMODITY_SEEDS entries + 6 retired IDs
+    expect(comCall!.params).toHaveLength(88)
   })
 
   it('deletes retired commodity IDs that are no longer in COMMODITY_SEEDS', () => {
@@ -471,7 +471,7 @@ describe('insertDefaultCommodities(db)', () => {
     expect(typeInserts).toHaveLength(5)
   })
 
-  it('inserts all 86 commodities', () => {
+  it('inserts all 82 commodities', () => {
     const db = makeMockDb()
     insertDefaultCommodities(db)
 
@@ -481,7 +481,7 @@ describe('insertDefaultCommodities(db)', () => {
         c.sql.includes('commodities') &&
         !c.sql.includes('commodity_types'),
     )
-    expect(comInserts).toHaveLength(86)
+    expect(comInserts).toHaveLength(82)
   })
 
   it('uses INSERT OR IGNORE for commodity types', () => {
@@ -547,7 +547,7 @@ describe('insertDefaultCommodities(db)', () => {
     }
   })
 
-  it('passes includes_soup as 1 for com-001 through com-014 (rice bentos)', () => {
+  it('passes includes_soup as 1 for the 12 remaining rice bentos', () => {
     const db = makeMockDb()
     insertDefaultCommodities(db)
 
@@ -557,8 +557,8 @@ describe('insertDefaultCommodities(db)', () => {
         c.sql.includes('commodities') &&
         !c.sql.includes('commodity_types'),
     )
-    // First 14 inserts are the rice bentos (com-001 to com-014)
-    for (let i = 0; i < 14; i++) {
+    // The first 12 inserts are rice bentos (com-001 to com-013, excluding com-006)
+    for (let i = 0; i < 12; i++) {
       // includes_soup is at index 9 (after editor at index 8)
       const includesSoupParam = comInserts[i]!.params[9]
       expect(includesSoupParam).toBe(1)
@@ -617,8 +617,8 @@ describe('DEFAULT_COMMODITY_TYPES', () => {
 })
 
 describe('DEFAULT_COMMODITIES', () => {
-  it('has 86 items', () => {
-    expect(DEFAULT_COMMODITIES).toHaveLength(86)
+  it('has 82 items', () => {
+    expect(DEFAULT_COMMODITIES).toHaveLength(82)
   })
 
   it('all items are on market by default', () => {
@@ -687,14 +687,28 @@ describe('DEFAULT_COMMODITIES', () => {
     })
   })
 
-  it('com-001 through com-014 have includesSoup=true', () => {
+  it('places $20 加菜(小) immediately after 加菜(大) in the single category', () => {
+    const singleItems = DEFAULT_COMMODITIES.filter(
+      c => c.typeId === 'single',
+    ).sort((a, b) => a.priority - b.priority)
+    const largeVegetableIndex = singleItems.findIndex(c => c.id === 'com-112')
+
+    expect(largeVegetableIndex).toBeGreaterThanOrEqual(0)
+    expect(singleItems[largeVegetableIndex + 1]).toMatchObject({
+      id: 'com-119',
+      name: '加菜(小)',
+      price: 20,
+      image: 'add-vegetable',
+    })
+  })
+
+  it('remaining rice bentos have includesSoup=true', () => {
     const soupIds = [
       'com-001',
       'com-002',
       'com-003',
       'com-004',
       'com-005',
-      'com-006',
       'com-007',
       'com-008',
       'com-009',
@@ -702,7 +716,6 @@ describe('DEFAULT_COMMODITIES', () => {
       'com-011',
       'com-012',
       'com-013',
-      'com-014',
     ]
     for (const id of soupIds) {
       const com = DEFAULT_COMMODITIES.find(c => c.id === id)
@@ -985,7 +998,7 @@ describe('resetCommodityDataAsync()', () => {
         c.sql.includes('commodities') &&
         !c.sql.includes('commodity_types'),
     )
-    expect(comInserts).toHaveLength(86)
+    expect(comInserts).toHaveLength(82)
   })
 
   it('re-inserts all default order types', async () => {
